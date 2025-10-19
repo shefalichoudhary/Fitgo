@@ -44,10 +44,7 @@ const en = {
     hint: "Hint: you can use any email address and your favorite password :)",
   },
   demoNavigator: {
-    componentsTab: "Components",
-    debugTab: "Debug",
-    communityTab: "Community",
-    podcastListTab: "Podcast",
+    homeTab: "Home",
   },
   demoCommunityScreen: {
     title: "Connect with the community",

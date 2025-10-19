@@ -13,6 +13,7 @@ import { useAppTheme } from "@/theme/context"
 import type { ThemedStyle } from "@/theme/types"
 
 import type { DemoTabParamList } from "./navigationTypes"
+import { HomeScreen } from "@/screens/HomeScreen"
 
 const Tab = createBottomTabNavigator<DemoTabParamList>()
 
@@ -43,53 +44,16 @@ export function DemoNavigator() {
           tabBarItemStyle: themed($tabBarItem),
         }}
       >
-        <Tab.Screen
-          name="DemoShowroom"
-          component={DemoShowroomScreen}
-          options={{
-            tabBarLabel: translate("demoNavigator:componentsTab"),
-            tabBarIcon: ({ focused }) => (
-              <Icon
-                icon="components"
-                color={focused ? colors.tint : colors.tintInactive}
-                size={30}
-              />
-            ),
-          }}
-        />
+      
+        
 
-        <Tab.Screen
-          name="DemoCommunity"
-          component={DemoCommunityScreen}
-          options={{
-            tabBarLabel: translate("demoNavigator:communityTab"),
-            tabBarIcon: ({ focused }) => (
-              <Icon
-                icon="community"
-                color={focused ? colors.tint : colors.tintInactive}
-                size={30}
-              />
-            ),
-          }}
-        />
 
-        <Tab.Screen
-          name="DemoPodcastList"
-          component={DemoPodcastListScreen}
+       
+         <Tab.Screen
+          name="home"
+          component={HomeScreen}
           options={{
-            tabBarAccessibilityLabel: translate("demoNavigator:podcastListTab"),
-            tabBarLabel: translate("demoNavigator:podcastListTab"),
-            tabBarIcon: ({ focused }) => (
-              <Icon icon="podcast" color={focused ? colors.tint : colors.tintInactive} size={30} />
-            ),
-          }}
-        />
-
-        <Tab.Screen
-          name="DemoDebug"
-          component={DemoDebugScreen}
-          options={{
-            tabBarLabel: translate("demoNavigator:debugTab"),
+            tabBarLabel: translate("demoNavigator:homeTab"),
             tabBarIcon: ({ focused }) => (
               <Icon icon="debug" color={focused ? colors.tint : colors.tintInactive} size={30} />
             ),

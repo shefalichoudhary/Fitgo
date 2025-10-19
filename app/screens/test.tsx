@@ -4,26 +4,29 @@ import { Image, ImageStyle, TextStyle, View, ViewStyle } from "react-native"
 import { Button } from "@/components/Button"
 import { Screen } from "@/components/Screen"
 import { Text } from "@/components/Text"
+import { useAuth } from "@/context/AuthContext"
+import { isRTL } from "@/i18n"
+import type { DemoTabScreenProps } from "@/navigators/navigationTypes"
 import { useAppTheme } from "@/theme/context"
 import { $styles } from "@/theme/styles"
 import type { ThemedStyle } from "@/theme/types"
 import { useSafeAreaInsetsStyle } from "@/utils/useSafeAreaInsetsStyle"
-import { isRTL } from "@/i18n"
-import type { AppStackScreenProps } from "@/navigators/navigationTypes"
 
 const welcomeLogo = require("@assets/images/logo.png")
 const welcomeFace = require("@assets/images/welcome-face.png")
 
-interface WelcomeScreenProps extends AppStackScreenProps<"Welcome"> {}
+interface TestScreenProps extends DemoTabScreenProps<"test"> {}
 
-export const WelcomeScreen: FC<WelcomeScreenProps> = ({ navigation }) => {
+export const TestScreen: FC<TestScreenProps> = function TestScreen(_props:any) {
   const { themed, theme } = useAppTheme()
-  const $bottomContainerInsets = useSafeAreaInsetsStyle(["bottom"])
+  const { navigation } = _props
+  const { logout } = useAuth()
 
-  const goHome = () => {
-    // Navigate to Home screen in your stack
-  navigation.navigate("Demo", { screen: "DemoShowroom", params: {} })
+  function goNext() {
+    navigation.navigate("Demo", { screen: "DemoShowroom", params: {} })
   }
+
+  const $bottomContainerInsets = useSafeAreaInsetsStyle(["bottom"])
 
   return (
     <Screen preset="fixed" contentContainerStyle={$styles.flex1}>
@@ -51,14 +54,13 @@ export const WelcomeScreen: FC<WelcomeScreenProps> = ({ navigation }) => {
           testID="next-screen-button"
           preset="reversed"
           tx="welcomeScreen:letsGo"
-          onPress={goHome}
+          onPress={goNext}
         />
       </View>
     </Screen>
   )
 }
 
-// --- Styles ---
 const $topContainer: ThemedStyle<ViewStyle> = ({ spacing }) => ({
   flexShrink: 1,
   flexGrow: 1,

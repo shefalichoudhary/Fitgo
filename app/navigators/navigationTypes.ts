@@ -13,6 +13,8 @@ export type DemoTabParamList = {
   DemoShowroom: { queryIndex?: string; itemIndex?: string }
   DemoDebug: undefined
   DemoPodcastList: undefined
+  test: undefined
+  home: undefined
 }
 
 // App Stack Navigator types
