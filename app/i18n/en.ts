@@ -45,6 +45,10 @@ const en = {
   },
   demoNavigator: {
     homeTab: "Home",
+    componentsTab: "Components",
+    debugTab: "Debug",
+    communityTab: "Community",
+    podcastListTab: "Podcast",
   },
   demoCommunityScreen: {
     title: "Connect with the community",

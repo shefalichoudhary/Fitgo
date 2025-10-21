@@ -14,7 +14,7 @@ export type DemoTabParamList = {
   DemoDebug: undefined
   DemoPodcastList: undefined
   test: undefined
-  home: undefined
+  Home: undefined
 }
 
 // App Stack Navigator types
