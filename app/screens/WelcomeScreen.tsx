@@ -21,7 +21,6 @@ export const WelcomeScreen: FC<WelcomeScreenProps> = ({ navigation }) => {
   const $bottomContainerInsets = useSafeAreaInsetsStyle(["bottom"])
 
   const goHome = () => {
-    // Navigate to Home screen in your stack
   navigation.navigate("Demo", { screen: "DemoShowroom", params: {} })
   }
 
