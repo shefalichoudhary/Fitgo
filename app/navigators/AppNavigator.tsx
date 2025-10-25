@@ -9,14 +9,12 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack"
 
 import Config from "@/config"
 import { useAuth } from "@/context/AuthContext"
-import { ErrorBoundary } from "@/screens/ErrorScreen/ErrorBoundary"
-import { LoginScreen } from "@/screens/LoginScreen"
-import { WelcomeScreen } from "@/screens/WelcomeScreen"
+
 import { useAppTheme } from "@/theme/context"
 
-import { DemoNavigator } from "./DemoNavigator"
 import type { AppStackParamList, NavigationProps } from "./navigationTypes"
 import { navigationRef, useBackButtonHandler } from "./navigationUtilities"
+import { HomeScreen } from "@/screens/HomeScreen"
 
 /**
  * This is a list of all the route names that will exit the app if the back button
@@ -28,7 +26,6 @@ const exitRoutes = Config.exitRoutes
 const Stack = createNativeStackNavigator<AppStackParamList>()
 
 const AppStack = () => {
-  const { isAuthenticated } = useAuth()
 
   const {
     theme: { colors },
@@ -43,19 +40,8 @@ const AppStack = () => {
           backgroundColor: colors.background,
         },
       }}
-      initialRouteName={isAuthenticated ? "Welcome" : "Login"}
     >
-      {isAuthenticated ? (
-        <>
-          <Stack.Screen name="Welcome" component={WelcomeScreen} />
-
-          <Stack.Screen name="Demo" component={DemoNavigator} />
-        </>
-      ) : (
-        <>
-          <Stack.Screen name="Login" component={LoginScreen} />
-        </>
-      )}
+          <Stack.Screen name="Home" component={HomeScreen} />
 
       {/** 🔥 Your screens go here */}
       {/* IGNITE_GENERATOR_ANCHOR_APP_STACK_SCREENS */}
@@ -70,9 +56,7 @@ export const AppNavigator = (props: NavigationProps) => {
 
   return (
     <NavigationContainer ref={navigationRef} theme={navigationTheme} {...props}>
-      <ErrorBoundary catchErrors={Config.catchErrors}>
         <AppStack />
-      </ErrorBoundary>
     </NavigationContainer>
   )
 }

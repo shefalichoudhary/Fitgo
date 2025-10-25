@@ -46,10 +46,7 @@ const es: Translations = {
     hint: "Consejo: puedes usar cualquier email y tu contraseña preferida :)",
   },
   demoNavigator: {
-    componentsTab: "Componentes",
-    debugTab: "Debug",
-    communityTab: "Comunidad",
-    podcastListTab: "Podcasts",
+    homeTab:"Home",
   },
   demoCommunityScreen: {
     title: "Conecta con la comunidad",
