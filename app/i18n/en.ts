@@ -45,6 +45,7 @@ const en = {
   },
   demoNavigator: {
     homeTab: "Home",
+    historyTab: "History"
    
   },
   demoCommunityScreen: {

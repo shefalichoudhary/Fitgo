@@ -11,10 +11,11 @@ import Config from "@/config"
 import { useAuth } from "@/context/AuthContext"
 
 import { useAppTheme } from "@/theme/context"
+import { DemoNavigator } from "./DemoNavigator"
 
 import type { AppStackParamList, NavigationProps } from "./navigationTypes"
 import { navigationRef, useBackButtonHandler } from "./navigationUtilities"
-import { HomeScreen } from "@/screens/HomeScreen"
+import RoutineScreen from "@/screens/Routine"
 
 /**
  * This is a list of all the route names that will exit the app if the back button
@@ -24,9 +25,7 @@ const exitRoutes = Config.exitRoutes
 
 // Documentation: https://reactnavigation.org/docs/stack-navigator/
 const Stack = createNativeStackNavigator<AppStackParamList>()
-
 const AppStack = () => {
-
   const {
     theme: { colors },
   } = useAppTheme()
@@ -41,9 +40,10 @@ const AppStack = () => {
         },
       }}
     >
-          <Stack.Screen name="Home" component={HomeScreen} />
-
-      {/** 🔥 Your screens go here */}
+      {/* Use DemoNavigator as the initial route */}
+      <Stack.Screen name="Demo" component={DemoNavigator} />
+  <Stack.Screen name="Routine" component={RoutineScreen} />
+      {/** 🔥 Your other screens go here */}
       {/* IGNITE_GENERATOR_ANCHOR_APP_STACK_SCREENS */}
     </Stack.Navigator>
   )

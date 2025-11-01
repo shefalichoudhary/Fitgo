@@ -8,7 +8,8 @@ import type { ThemedStyle } from "@/theme/types"
 import { useAppTheme } from "@/theme/context"
 
 import type { DemoTabParamList } from "./navigationTypes"
-import { HomeScreen } from "@/screens/HomeScreen"
+import {HomeScreen } from "@/screens/HomeScreen" // Named export
+import HistoryScreen from "@/screens/HistoryScreen"
 
 const Tab = createBottomTabNavigator<DemoTabParamList>()
 
@@ -27,30 +28,40 @@ export function DemoNavigator() {
   } = useAppTheme()
 
   return (
-      <Tab.Navigator
+  <Tab.Navigator
         screenOptions={{
           headerShown: false,
           tabBarHideOnKeyboard: true,
-          tabBarStyle: themed([$tabBar, { height: bottom + 70 }]),
+          tabBarStyle: themed([$tabBar, { height: bottom + 70}]),
           tabBarActiveTintColor: colors.text,
           tabBarInactiveTintColor: colors.text,
           tabBarLabelStyle: themed($tabBarLabel),
           tabBarItemStyle: themed($tabBarItem),
         }}
       >
-       
-         <Tab.Screen
-          name="Home"
-          component={HomeScreen}
-          options={{
-            tabBarLabel: translate("demoNavigator:homeTab"),
-            tabBarIcon: ({ focused }) => (
-              <Icon icon="debug" color={focused ? colors.tint : colors.tintInactive} size={30} />
-            ),
-          }}
-        />
-        
-      </Tab.Navigator>
+  <Tab.Screen
+    name="Home"
+    component={HomeScreen}
+    options={{
+      tabBarLabel: "Home",
+      tabBarIcon: ({ focused }) => (
+        <Icon icon="debug" color={focused ? colors.tint : colors.tintInactive} size={30} />
+      ),
+    }}
+  />
+
+  <Tab.Screen
+    name="History"
+    component={HistoryScreen}
+    options={{
+      tabBarLabel:"History",
+      tabBarIcon: ({ focused }) => (
+        <Icon icon="debug" color={focused ? colors.tint : colors.tintInactive} size={30} />
+      ),
+    }}
+  />
+</Tab.Navigator>
+
   )
 }
 
@@ -60,7 +71,7 @@ const $tabBar: ThemedStyle<ViewStyle> = ({ colors }) => ({
 })
 
 const $tabBarItem: ThemedStyle<ViewStyle> = ({ spacing }) => ({
-  paddingTop: spacing.md,
+  paddingTop: spacing.xs,
 })
 
 const $tabBarLabel: ThemedStyle<TextStyle> = ({ colors, typography }) => ({

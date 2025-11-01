@@ -18,8 +18,7 @@ if (__DEV__) {
 }
 import "./utils/gestureHandler"
 
-import { useEffect, useState } from "react"
-import { useFonts } from "expo-font"
+
 import * as Linking from "expo-linking"
 import { KeyboardProvider } from "react-native-keyboard-controller"
 import { initialWindowMetrics, SafeAreaProvider } from "react-native-safe-area-context"
@@ -28,7 +27,6 @@ import { AuthProvider } from "./context/AuthContext"
 import { initI18n } from "./i18n"
 import { AppNavigator } from "./navigators/AppNavigator"
 import { ThemeProvider } from "./theme/context"
-import { customFontsToLoad } from "./theme/typography"
 
 export const NAVIGATION_PERSISTENCE_KEY = "NAVIGATION_STATE"
 
