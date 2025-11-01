@@ -9,15 +9,18 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack"
 
 // Demo Tab Navigator types
 export type DemoTabParamList = {
-
   Home: undefined
-  History:undefined
+  History: undefined
+  Profile: undefined
 }
 
 // App Stack Navigator types
 export type AppStackParamList = {
-    Routine: undefined 
-  Demo: NavigatorScreenParams<DemoTabParamList>
+Routines: undefined 
+Measurements: undefined
+CreateRoutine: undefined
+PreMadeRoutines: undefined
+Demo: NavigatorScreenParams<DemoTabParamList>
   // 🔥 Your screens go here
   // IGNITE_GENERATOR_ANCHOR_APP_STACK_PARAM_LIST
 }

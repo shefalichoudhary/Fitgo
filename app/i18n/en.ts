@@ -45,8 +45,8 @@ const en = {
   },
   demoNavigator: {
     homeTab: "Home",
-    historyTab: "History"
-   
+    historyTab: "History",
+    profileTab: "Profile",
   },
   demoCommunityScreen: {
     title: "Connect with the community",

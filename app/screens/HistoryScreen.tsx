@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, FlatList, StyleSheet } from "react-native";
+import { View, Text, FlatList, StyleSheet, ScrollView } from "react-native";
 import { startOfWeek, endOfWeek, format } from "date-fns";
 import { Screen } from "@/components/Screen";
 
@@ -48,9 +48,7 @@ export default function HistoryScreen() {
   });
 
   return (
-    <Screen preset="fixed" safeAreaEdges={["top"]} style={styles.screen}>
-      <Text style={styles.header}>Workout History</Text>
-
+    <Screen preset="fixed"  >
       <FlatList
         data={flatData}
         keyExtractor={(item, index) =>
@@ -74,16 +72,15 @@ export default function HistoryScreen() {
           );
         }}
         contentContainerStyle={styles.listContent}
+       
       />
     </Screen>
   );
 }
 
+
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: "#1a1a1a", // Dark background
-  },
+   
   listContent: {
     padding: 16,
   },
