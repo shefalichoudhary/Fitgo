@@ -9,20 +9,38 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack"
 
 // Demo Tab Navigator types
 export type DemoTabParamList = {
+  Home: NavigatorScreenParams<HomeStackParamList>
+  History: NavigatorScreenParams<HistoryStackParamList>
+  Profile: NavigatorScreenParams<ProfileStackParamList>
+}
+export type HomeStackParamList = {
   Home: undefined
-  History: undefined
-  Profile: undefined
+  Routines: undefined
+CreateRoutine: {
+    selectedExercises?: {
+      id: string;
+      name: string;
+      sets: { reps: number; weight?: number }[]; 
+      muscleGroup: string;
+    }[];
+  };
+  PreMadeRoutines: undefined
+  Measurements: undefined
+  Exercises:undefined
 }
 
+// Stack for History Tab
+export type HistoryStackParamList = {
+  History: undefined
+}
+
+// Stack for Profile Tab
+export type ProfileStackParamList = {
+  Profile: undefined
+}
 // App Stack Navigator types
 export type AppStackParamList = {
-Routines: undefined 
-Measurements: undefined
-CreateRoutine: undefined
-PreMadeRoutines: undefined
-Demo: NavigatorScreenParams<DemoTabParamList>
-  // 🔥 Your screens go here
-  // IGNITE_GENERATOR_ANCHOR_APP_STACK_PARAM_LIST
+  Demo: NavigatorScreenParams<DemoTabParamList>
 }
 
 export type AppStackScreenProps<T extends keyof AppStackParamList> = NativeStackScreenProps<

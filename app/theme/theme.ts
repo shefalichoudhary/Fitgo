@@ -15,7 +15,7 @@ export const lightTheme: Theme = {
   isDark: false,
 }
 export const darkTheme: Theme = {
-  colors: colorsDark,
+  colors: colorsDark,   // ✅ now includes background, text overrides
   spacing: spacingDark,
   typography,
   timing,

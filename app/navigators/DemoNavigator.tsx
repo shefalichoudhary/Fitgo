@@ -1,14 +1,15 @@
 import { TextStyle, ViewStyle } from "react-native"
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
-import { Icon } from "@/components/Icon"
+import { MaterialCommunityIcons } from "@expo/vector-icons"
 import { useAppTheme } from "@/theme/context"
 import type { ThemedStyle } from "@/theme/types"
 import HistoryScreen from "@/screens/HistoryScreen"
 import ProfileScreen from "@/screens/ProfileScreen"
 import type { DemoTabParamList } from "./navigationTypes"
-import { HomeScreen } from "@/screens/HomeScreen"
 import { Header } from "@/components/Header"
+import { HomeStackNavigator } from "./HomeStackNavigator"
+
 const Tab = createBottomTabNavigator<DemoTabParamList>()
 
 export function DemoNavigator() {
@@ -17,77 +18,58 @@ export function DemoNavigator() {
     themed,
     theme: { colors },
   } = useAppTheme()
+  
+const getTabBarIcon = (iconName: React.ComponentProps<typeof MaterialCommunityIcons>['name']) =>
+  ({ focused, color, size }: { focused: boolean; color: string; size: number }) => (
+    <MaterialCommunityIcons
+      name={iconName}
+      size={size * 1.2} // Dynamically increase size
+      color={focused ? "#3B82F6" : color} // Blue-500 when focused
+    />
+  )
 
   return (
     <Tab.Navigator
       screenOptions={{
-        header: ({ navigation, route }) => (
-  <Header
-    title={route.name}
-    leftIcon="back"
-    onLeftPress={navigation.goBack}
-  
-  />
-),
         tabBarHideOnKeyboard: true,
         tabBarStyle: themed([$tabBar, { height: bottom + 70 }]),
-        tabBarActiveTintColor: colors.text,
-        tabBarInactiveTintColor: colors.text,
+        tabBarActiveTintColor: "#3B82F6", // focused icon and label color (blue-500)
+        tabBarInactiveTintColor: colors.text, // default theme text color
         tabBarLabelStyle: themed($tabBarLabel),
         tabBarItemStyle: themed($tabBarItem),
       }}
     >
       {/* 👇 Main Tab Screens */}
       <Tab.Screen
-        name="Home"
-        component={HomeScreen}
-        options={{
-          header: () => (
-      <Header
-        title="Home"
-       
-      />
-    ),
-          tabBarLabel: "Home",
-          tabBarIcon: ({ focused }) => (
-            <Icon icon="debug" color={focused ? colors.tint : colors.tintInactive} size={30} />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="History"
-        component={HistoryScreen}
-        options={{
-            header: () => (
-      <Header
-        title="Workout History"
-       
-      />),
-          tabBarLabel: "History",
-          tabBarIcon: ({ focused }) => (
-            <Icon icon="debug" color={focused ? colors.tint : colors.tintInactive} size={30} />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="Profile"
-        component={ProfileScreen}
-        options={{
-           header: () => (
-      <Header
-        title="Profile"
-       
-      />
-    ),
-          tabBarLabel: "Profile",
-          tabBarIcon: ({ focused }) => (
-            <Icon icon="debug" color={focused ? colors.tint : colors.tintInactive} size={30} />
-          ),
-        }}
-      />
+  name="Home"
+  component={HomeStackNavigator}
+  options={{
+    headerShown: false,
+    tabBarLabel: "Home",
+    tabBarIcon: getTabBarIcon("home-outline"),
+  }}
+/>
 
-     
-     
+<Tab.Screen
+  name="History"
+  component={HistoryScreen}
+  options={{
+    header: () => <Header title="Workout History" />,
+    tabBarLabel: "History",
+    tabBarIcon: getTabBarIcon("history"),
+  }}
+/>
+
+<Tab.Screen
+  name="Profile"
+  component={ProfileScreen}
+  options={{
+    header: () => <Header title="Profile" />,
+    tabBarLabel: "Profile",
+    tabBarIcon: getTabBarIcon("account-outline"),
+  }}
+/>
+
     </Tab.Navigator>
   )
 }
@@ -102,9 +84,8 @@ const $tabBarItem: ThemedStyle<ViewStyle> = ({ spacing }) => ({
   paddingTop: spacing.xs,
 })
 
-const $tabBarLabel: ThemedStyle<TextStyle> = ({ colors, typography }) => ({
+const $tabBarLabel: ThemedStyle<TextStyle> = ({ typography }) => ({
   fontSize: 12,
   fontFamily: typography.primary.medium,
   lineHeight: 16,
-  color: colors.text,
 })
