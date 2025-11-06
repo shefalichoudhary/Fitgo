@@ -3,18 +3,18 @@ import { StyleSheet, Text, Pressable, View, FlatList } from "react-native"
 import { useRouter } from "expo-router"
 import { Ionicons } from "@expo/vector-icons"
 import { Screen } from "@/components/Screen"
+import { useRoutine } from "@/context/RoutineContext"
 
 export default function RoutineScreen() {
   const router = useRouter()
-
-  const routines: any[] = [] // Empty routines list for now
+  const { routines } = useRoutine()
 
   const handleCreateRoutine = () => {
     router.push("/routine/create")
   }
 
   return (
-    <Screen preset="scroll" style={styles.screen}>
+    <Screen preset="scroll" contentContainerStyle={styles.container}>
       {routines.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Ionicons name="fitness-outline" size={72} color="#555" />
@@ -22,6 +22,7 @@ export default function RoutineScreen() {
           <Text style={styles.emptySubtitle}>
             Create your first workout routine and start tracking your progress.
           </Text>
+
          
         </View>
       ) : (
@@ -33,7 +34,12 @@ export default function RoutineScreen() {
               style={styles.routineCard}
               onPress={() => router.push(`/routine/${item.id}`)}
             >
-              <Text style={styles.routineText}>{item.name}</Text>
+              <View>
+                <Text style={styles.routineText}>{item.title}</Text>
+                <Text style={styles.routineSubText}>
+                  {item.exercises.length} exercises
+                </Text>
+              </View>
               <Ionicons name="chevron-forward" size={20} color="#888" />
             </Pressable>
           )}
@@ -45,10 +51,12 @@ export default function RoutineScreen() {
 }
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
+  container: {
+   flexGrow: 1,
+      paddingVertical: 10,
     backgroundColor: "#121212",
   },
+  
   listContainer: {
     paddingHorizontal: 20,
     paddingBottom: 20,
@@ -66,7 +74,12 @@ const styles = StyleSheet.create({
   routineText: {
     color: "#fff",
     fontSize: 16,
-    fontWeight: "500",
+    fontWeight: "600",
+  },
+  routineSubText: {
+    color: "#9CA3AF",
+    fontSize: 13,
+    marginTop: 4,
   },
   // Empty state styles
   emptyContainer: {
@@ -74,7 +87,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 24,
-    paddingVertical:100
+    paddingVertical: 100,
   },
   emptyTitle: {
     color: "#fff",
@@ -90,6 +103,15 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     lineHeight: 20,
   },
- 
-  
+  createButton: {
+    backgroundColor: "#2563EB",
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+  },
+  createButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
+  },
 })

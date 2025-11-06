@@ -17,7 +17,7 @@ if (__DEV__) {
   require("./devtools/ReactotronConfig.ts")
 }
 import "./utils/gestureHandler"
-
+import { RoutineProvider } from "@/context/RoutineContext";
 
 import * as Linking from "expo-linking"
 import { KeyboardProvider } from "react-native-keyboard-controller"
@@ -61,6 +61,8 @@ export function App() {
   return (
     <SafeAreaProvider initialMetrics={initialWindowMetrics}>
       <KeyboardProvider>
+            <RoutineProvider>
+              
         <AuthProvider>
           <ThemeProvider>
             <AppNavigator
@@ -68,6 +70,7 @@ export function App() {
             />
           </ThemeProvider>
         </AuthProvider>
+            </RoutineProvider>
       </KeyboardProvider>
     </SafeAreaProvider>
   )

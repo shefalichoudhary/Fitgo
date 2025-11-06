@@ -20,7 +20,7 @@ CreateRoutine: {
     selectedExercises?: {
       id: string;
       name: string;
-      sets: { reps: number; weight?: number }[]; 
+      sets: { reps: number; weight?: number; id: string }[];
       muscleGroup: string;
     }[];
   };
