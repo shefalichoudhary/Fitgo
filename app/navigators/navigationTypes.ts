@@ -14,8 +14,9 @@ export type DemoTabParamList = {
   Profile: NavigatorScreenParams<ProfileStackParamList>
 }
 export type HomeStackParamList = {
-  Home: undefined
-  Routines: undefined
+  Home: undefined;
+  Routines: undefined;
+  RoutineDetails: { id: string }; 
 CreateRoutine: {
     selectedExercises?: {
       id: string;
@@ -24,19 +25,19 @@ CreateRoutine: {
       muscleGroup: string;
     }[];
   };
-  PreMadeRoutines: undefined
-  Measurements: undefined
-  Exercises:undefined
+  PreMadeRoutines: undefined;
+  Measurements: undefined;
+  Exercises: undefined;
 }
 
 // Stack for History Tab
 export type HistoryStackParamList = {
-  History: undefined
+  History: undefined;
 }
 
 // Stack for Profile Tab
 export type ProfileStackParamList = {
-  Profile: undefined
+  Profile: undefined;
 }
 // App Stack Navigator types
 export type AppStackParamList = {

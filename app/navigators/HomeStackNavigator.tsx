@@ -7,6 +7,7 @@ import PreMadeRoutineScreen from "@/screens/Routine/PreMadeRoutineScreen";
 import MeasurementScreen from "@/screens/MeasurementScreen";
 import { Header } from "@/components/Header";
 import ExercisesScreen from "@/screens/Routine/ExercisesScreen";
+import RoutineDetailsScreen from "@/screens/Routine/[id]";
 
 const Stack = createNativeStackNavigator();
 
@@ -48,6 +49,20 @@ export function HomeStackNavigator() {
       />
     ),
   })}/>
+  
+      <Stack.Screen
+        name="RoutineDetails" // ✅ new screen
+        component={RoutineDetailsScreen}
+        options={({ navigation }) => ({
+          header: () => (
+            <Header
+              title="Routine Details"
+              leftIcon="back"
+              onLeftPress={navigation.goBack}
+            />
+          ),
+        })}
+      />
         <Stack.Screen name="Measurements" component={MeasurementScreen} />
         <Stack.Screen name="Exercises" component={ExercisesScreen} />
     </Stack.Navigator>

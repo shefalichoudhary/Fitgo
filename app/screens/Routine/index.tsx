@@ -9,9 +9,7 @@ export default function RoutineScreen() {
   const router = useRouter()
   const { routines } = useRoutine()
 
-  const handleCreateRoutine = () => {
-    router.push("/routine/create")
-  }
+
 
   return (
     <Screen preset="scroll" contentContainerStyle={styles.container}>

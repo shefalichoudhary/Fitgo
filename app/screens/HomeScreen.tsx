@@ -4,7 +4,7 @@ import { Screen } from "@/components/Screen"
 import { $styles } from "@/theme/styles"
 import { useNavigation } from "@react-navigation/native"
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack"
-import type { AppStackParamList } from "@/navigators/navigationTypes"
+import type { AppStackParamList, HomeStackParamList } from "@/navigators/navigationTypes"
 
 // Type Definitions
 type Exercise = {
@@ -20,7 +20,7 @@ type Workout = {
 }
 
 export const HomeScreen: React.FC = () => {
-  const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList>>()
+  const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList>>()
 
   const workout: Workout = {
     id: "w1",
