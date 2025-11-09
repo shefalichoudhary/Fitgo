@@ -14,7 +14,7 @@ export type DemoTabParamList = {
   Profile: NavigatorScreenParams<ProfileStackParamList>
 }
 export type HomeStackParamList = {
-  Home: undefined;
+  HomeMain: undefined;
   Routines: undefined;
   RoutineDetails: { id: string }; 
 CreateRoutine: {

@@ -26,7 +26,7 @@ export default function MeasurementScreen() {
 
   const handleChange = (key: string, value: string) => {
     setMeasurements({ ...measurements, [key]: value })
-  }
+  } 
 
   const handleSave = () => {
     // TODO: Save to AsyncStorage, SQLite, or server

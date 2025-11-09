@@ -56,16 +56,9 @@ type Props = {
 };
 
 export default function ExerciseBlock({
-  exercise,
   data,
   onChange,
-  showCheckIcon,
-  viewOnly,
-  onOpenRestTimer,
-  onOpenWeight,
-  onOpenRepsType,
-  onToggleSetComplete,
-  onOpenSetType,
+  
 }: Props) {
   // Temporary hardcoded exercise types for testing
   const isWeighted = true;    // Force weighted exercise

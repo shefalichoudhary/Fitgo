@@ -1,3 +1,4 @@
+
 import React from "react"
 import { StyleSheet, Text, Pressable, View, FlatList } from "react-native"
 import { useRouter } from "expo-router"
@@ -5,14 +6,19 @@ import { Ionicons } from "@expo/vector-icons"
 import { Screen } from "@/components/Screen"
 import { useRoutine } from "@/context/RoutineContext"
 
+import { useNavigation } from "@react-navigation/native"
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack"
+
+type RootStackParamList = {
+  RoutineDetails: { id: string }
+}
+
 export default function RoutineScreen() {
-  const router = useRouter()
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>()
   const { routines } = useRoutine()
-
-
-
+console.log("Routines in RoutineScreen:", routines);
   return (
-    <Screen preset="scroll" contentContainerStyle={styles.container}>
+    <Screen  contentContainerStyle={styles.container}>
       {routines.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Ionicons name="fitness-outline" size={72} color="#555" />
@@ -20,8 +26,6 @@ export default function RoutineScreen() {
           <Text style={styles.emptySubtitle}>
             Create your first workout routine and start tracking your progress.
           </Text>
-
-         
         </View>
       ) : (
         <FlatList
@@ -30,7 +34,7 @@ export default function RoutineScreen() {
           renderItem={({ item }) => (
             <Pressable
               style={styles.routineCard}
-              onPress={() => router.push(`/routine/${item.id}`)}
+              onPress={() => navigation.navigate("RoutineDetails", { id: item.id })}
             >
               <View>
                 <Text style={styles.routineText}>{item.title}</Text>
@@ -47,6 +51,7 @@ export default function RoutineScreen() {
     </Screen>
   )
 }
+
 
 const styles = StyleSheet.create({
   container: {
@@ -111,5 +116,4 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     fontWeight: "600",
-  },
-})
+  },})
