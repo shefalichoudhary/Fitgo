@@ -6,6 +6,8 @@ import { navigate } from "@/navigators/navigationUtilities";
 import type { HomeStackParamList } from "@/navigators/navigationTypes";
 import { SetRow } from "@/components/Routines/SetRow";
 import { useRoutine } from "@/context/RoutineContext";
+import { db } from "@/utils/storage";
+import { routines, routineExercises, routineSets } from "@/utils/storage/schema";
 
 type SetItem = {
   id: string;
@@ -13,6 +15,10 @@ type SetItem = {
   weight: string;
   repsType: "reps" | "range";
   unit: "kg" | "lbs";
+  minReps?: string;
+  maxReps?: string;
+  duration?: string;
+  setType?: string;
 };
 
 type Exercise = {
@@ -21,9 +27,6 @@ type Exercise = {
   sets: SetItem[];
 };
 
-type RouteParams = {
-  selectedExercises?: Exercise[];
-};
 
 export default function CreateRoutineScreen() {
   const [title, setTitle] = useState("");
@@ -119,28 +122,52 @@ export default function CreateRoutineScreen() {
   const openRestTimerModal = (setId: string) => {
     Alert.alert("Rest Timer", `Open timer for set ${setId}`);
   };
+const handleSave = async () => {
+  if (!title.trim()) return Alert.alert("Please enter a routine title");
+  if (exercises.length === 0) return Alert.alert("Add at least one exercise");
 
-  const handleSave = () => {
-    if (!title.trim()) {
-      Alert.alert("Please enter a routine title");
-      return;
+  try {
+    // 1️⃣ Insert routine
+    const insertedRoutine = await db.insert(routines).values({ name: title }).returning();
+    const routineId = insertedRoutine[0].id;
+
+    for (const exercise of exercises) {
+      // 2️⃣ Insert routineExercise
+      const insertedRoutineExercise = await db
+        .insert(routineExercises)
+        .values({
+        routineId: routineId,
+  exerciseId: exercise.id,
+  unit: "kg",
+  repsType: "reps",
+  restTimer: 0,
+        })
+        .returning();
+
+      // 3️⃣ Insert sets
+      for (const set of exercise.sets) {
+      await db.insert(routineSets).values({
+   routineId: routineId,
+  exerciseId: exercise.id,
+  reps: Number(set.reps) || 0,
+  weight: set.weight ? Number(set.weight) : 0,
+  minReps: set.repsType === "range" ? Number(set.minReps) || 0 : 0,
+  maxReps: set.repsType === "range" ? Number(set.maxReps) || 0 : 0,
+  duration: set.duration ? Number(set.duration) : 0,
+  setType: set.setType as "W" | "Normal" | "D" | "F"
+});
+      }
     }
-    if (exercises.length === 0) {
-      Alert.alert("Please add at least one exercise");
-      return;
-    }
 
-    const newRoutine = {
-      id: Date.now().toString(),
-      title,
-      exercises,
-    };
-
-    addRoutine(newRoutine);
     Alert.alert("Routine saved!", `Title: ${title}`);
+    navigate("Routines");
 
-    navigate("Routines"); // Navigate to Routines page
-  };
+  } catch (err) {
+    console.error("Failed to save routine:", err);
+    Alert.alert("Error", "Failed to save routine.");
+  }
+};
+
 
   return (
     <View style={styles.container}>

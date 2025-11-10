@@ -22,7 +22,7 @@ CreateRoutine: {
       id: string;
       name: string;
       sets: { reps: number; weight?: number; id: string }[];
-      muscleGroup: string;
+      muscleGroup?: string;
     }[];
   };
   PreMadeRoutines: undefined;

@@ -16,6 +16,7 @@ if (__DEV__) {
   // If you turn it off in metro.config.js, you'll have to manually import it.
   require("./devtools/ReactotronConfig.ts")
 }
+import 'react-native-get-random-values';
 import "./utils/gestureHandler"
 import { RoutineProvider } from "@/context/RoutineContext";
 
@@ -27,29 +28,9 @@ import { AuthProvider } from "./context/AuthContext"
 import { initI18n } from "./i18n"
 import { AppNavigator } from "./navigators/AppNavigator"
 import { ThemeProvider } from "./theme/context"
-
+import RootLayout from "./rootLayout" 
 export const NAVIGATION_PERSISTENCE_KEY = "NAVIGATION_STATE"
 
-// Web linking configuration
-const prefix = Linking.createURL("/")
-const config = {
-  screens: {
-    Login: {
-      path: "",
-    },
-    Welcome: "welcome",
-    Demo: {
-      screens: {
-        DemoShowroom: {
-          path: "showroom/:queryIndex?/:itemIndex?",
-        },
-        DemoDebug: "debug",
-        DemoPodcastList: "podcast",
-        DemoCommunity: "community",
-      },
-    },
-  },
-}
 
 /**
  * This is the root component of our app.
@@ -65,9 +46,8 @@ export function App() {
               
         <AuthProvider>
           <ThemeProvider>
-            <AppNavigator
-       
-            />
+           
+                <RootLayout />
           </ThemeProvider>
         </AuthProvider>
             </RoutineProvider>

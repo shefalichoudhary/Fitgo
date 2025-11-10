@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "4236aeba-c5ff-45ee-aac9-73931dbdd476",
+  "id": "c17ceba9-39f0-4f35-b4fb-8cc9ec50a5ec",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "exercise_muscles": {

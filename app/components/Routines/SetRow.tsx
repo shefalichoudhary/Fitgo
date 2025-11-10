@@ -23,7 +23,6 @@ export const SetRow: React.FC<Props> = ({
   onWeightChange,
   onToggleUnit,
   onToggleRepsType,
-  onOpenRestTimer,
 }) => {
   return (
     <View style={styles.row}>
@@ -55,9 +54,7 @@ export const SetRow: React.FC<Props> = ({
         </Pressable>
       </View>
 
-      <Pressable onPress={onOpenRestTimer} style={styles.rest}>
-        <Text style={styles.restText}>⏱</Text>
-      </Pressable>
+      
     </View>
   );
 };

@@ -60,10 +60,6 @@ export default function ExerciseBlock({
   onChange,
   
 }: Props) {
-  // Temporary hardcoded exercise types for testing
-  const isWeighted = true;    // Force weighted exercise
-  const isBodyweight = false; // Disable bodyweight
-  const isDuration = false;   // Disable duration
 
   const handleSetChange = <T extends keyof Set>(index: number, key: T, value: Set[T]) => {
     const updatedSets = [...data.sets];

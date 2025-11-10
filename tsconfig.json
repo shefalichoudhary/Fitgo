@@ -44,7 +44,10 @@
   "include": [
     "**/*.ts",
     "**/*.tsx"
-, "app/components/Routines/Exercise"  ],
+, "app/components/Routines/Exercise",
+"drizzle",
+ "types/**/*"
+  ],
   "exclude": [
     "node_modules",
     "test/**/*"

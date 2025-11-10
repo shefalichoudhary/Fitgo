@@ -1,10 +1,12 @@
-import React from "react"
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native"
+import React, { useEffect, useState } from "react"
+import { View, Text, TouchableOpacity, StyleSheet , ActivityIndicator} from "react-native"
 import { Screen } from "@/components/Screen"
 import { $styles } from "@/theme/styles"
 import { useNavigation } from "@react-navigation/native"
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack"
 import type { AppStackParamList, HomeStackParamList } from "@/navigators/navigationTypes"
+import { db } from "@/utils/storage"
+import { users, routines } from "@/utils/storage/schema"
 
 // Type Definitions
 type Exercise = {
@@ -21,6 +23,8 @@ type Workout = {
 
 export const HomeScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList>>()
+  const [user, setUser] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
 
   const workout: Workout = {
     id: "w1",
@@ -33,9 +37,37 @@ export const HomeScreen: React.FC = () => {
     ],
   }
 
+  
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Example: get the first user from DB
+        const userData = await db.select().from(users).limit(1).all()
+        setUser(userData[0] || null)
+      } catch (err) {
+        console.error("❌ Failed to fetch user:", err)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [])
+
+   if (loading) {
+    return (
+      <Screen preset="fixed" contentContainerStyle={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="white" />
+        <Text style={{ color: "white", marginTop: 10 }}>Loading...</Text>
+      </Screen>
+    )
+  }
+
   return (
    <Screen preset="scroll" contentContainerStyle={styles.screenContent}>
-  <Text style={styles.screenTitle}>Welcome Back</Text>
+   <Text style={styles.screenTitle}>
+        Welcome Back{user ? `, ${user.name || "Athlete"}` : ""}
+      </Text>
 
   <WorkoutCard workout={workout} />
 
@@ -164,5 +196,10 @@ optionSubText: {
   color: "#cccccc",
   fontSize: 14,
 },optionText: { color: "#fff", fontWeight: "600", fontSize: 17 },
-
+loadingContainer: {
+  flex: 1,
+  justifyContent: "center",
+  alignItems: "center",
+  backgroundColor: "#101010",
+},
 })

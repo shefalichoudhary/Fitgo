@@ -1,22 +1,24 @@
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import { colors } from "@/theme/colors";
 
 type ExerciseItemProps = {
   name: string;
   muscleGroup: string;
   onPress?: () => void;
-  isSelected?: boolean; // ✅ Add this to support multi-select
+  isSelected?: boolean; // ✅ supports multi-select
 };
 
-export const ExerciseItem = ({ name, muscleGroup, onPress, isSelected = false }: ExerciseItemProps) => {
+export const ExerciseItem = ({
+  name,
+  muscleGroup,
+  onPress,
+  isSelected = false,
+}: ExerciseItemProps) => {
   return (
     <TouchableOpacity
-      style={[
-        styles.itemContainer,
-        isSelected && styles.itemContainerSelected, // ✅ Update styles if selected
-      ]}
+      style={[styles.itemContainer, isSelected && styles.itemContainerSelected]}
       onPress={onPress}
+      activeOpacity={0.8}
     >
       <View style={styles.leftSection}>
         <Text style={styles.nameText}>{name}</Text>
@@ -32,15 +34,20 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     padding: 16,
-    backgroundColor: colors.palette.neutral800,
-    borderRadius: 8,
+    backgroundColor: "#111010ff", // dark card background
+    borderRadius: 10,
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: "#2A2A2A", // subtle border
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+    elevation: 2,
   },
   itemContainerSelected: {
-    backgroundColor: colors.palette.neutral700,
-    borderColor: colors.tint,
+    backgroundColor: "#444242ff", // slightly brighter on selection
+    borderColor: "#202020ff", // accent blue border
   },
   leftSection: {
     flex: 1,
@@ -48,10 +55,10 @@ const styles = StyleSheet.create({
   nameText: {
     fontSize: 16,
     fontWeight: "500",
-    color: colors.text,
+    color: "#FFFFFF", // bright text for dark mode
   },
   groupText: {
     fontSize: 14,
-    color: colors.textDim,
+    color: "#AAAAAA", // dimmed secondary text
   },
 });

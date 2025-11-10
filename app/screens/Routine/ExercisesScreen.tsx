@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -6,35 +6,56 @@ import {
   FlatList,
   TouchableOpacity,
   StyleSheet,
+  ActivityIndicator,
 } from "react-native";
 import { ExerciseItem } from "@/components/Routines/ExerciseItem";
-import { colors } from "@/theme/colors"; // Make sure this path is correct
+import { colors } from "@/theme/colors";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { HomeStackParamList } from "@/navigators/navigationTypes";
-
-const exerciseData = [
-  { id: "1", name: "Push Up", muscleGroup: "Chest" },
-  { id: "2", name: "Squat", muscleGroup: "Legs" },
-  { id: "3", name: "Deadlift", muscleGroup: "Back" },
-  { id: "4", name: "Bench Press", muscleGroup: "Chest" },
-  { id: "5", name: "Pull Up", muscleGroup: "Back" },
-  { id: "6", name: "Push Up", muscleGroup: "Back" },
-  { id: "7", name: "Pull Up", muscleGroup: "Back" },
-  { id: "8", name: "Pull Up", muscleGroup: "Back" },
-  { id: "9", name: "Pull Up", muscleGroup: "Back" },
-  { id: "10", name: "Pull Up", muscleGroup: "Back" },
-
-];
+import { db } from "@/utils/storage";
+import { exercises as exercisesTable } from "@/utils/storage/schema";
+import { SearchBar } from "@/components/SearchBar";
+import { Ionicons } from "@expo/vector-icons";
+type Exercise = {
+  id: string;
+  exercise_name: string;
+  muscleGroup?: string;
+};
 
 export default function ExercisesScreen() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedExercises, setSelectedExercises] = useState<string[]>([]);
-const navigation =
-  useNavigation<NativeStackNavigationProp<HomeStackParamList, "Exercises">>();
+  const [exerciseData, setExerciseData] = useState<Exercise[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const navigation =
+    useNavigation<NativeStackNavigationProp<HomeStackParamList, "Exercises">>();
+
+  // Fetch exercises from DB
+  useEffect(() => {
+    const fetchExercises = async () => {
+      try {
+        const result = await db.select().from(exercisesTable).all();
+        setExerciseData(
+          result.map((item) => ({
+            id: item.id,
+            exercise_name: item.exercise_name,
+            muscleGroup: item.type, // you can adjust based on your schema
+          }))
+        );
+      } catch (err) {
+        console.error("❌ Failed to fetch exercises:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchExercises();
+  }, []);
 
   const filteredExercises = exerciseData.filter((exercise) =>
-    exercise.name.toLowerCase().includes(searchQuery.toLowerCase())
+    exercise.exercise_name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const toggleSelect = (id: string) => {
@@ -44,50 +65,65 @@ const navigation =
         : [...prevSelected, id]
     );
   };
-const handleAddExercises = () => {
-  const selectedExerciseObjects = selectedExercises
-    .map((id) =>
-      exerciseData.find((exercise) => exercise.id === id)
-    )
-    .filter(
-      (exercise): exercise is NonNullable<typeof exercise> =>
-        exercise !== undefined
-    )
-    .map((exercise) => ({
-      ...exercise,
-      sets: [], // ✅ Add sets here
-    }));
 
-  navigation.navigate("CreateRoutine", {
-    selectedExercises: selectedExerciseObjects,
-  });
-};
+  const handleAddExercises = () => {
+    const selectedExerciseObjects = selectedExercises
+  .map((id) => exerciseData.find((exercise) => exercise.id === id))
+  .filter(
+    (exercise): exercise is NonNullable<typeof exercise> =>
+      exercise !== undefined
+  )
+  .map((exercise) => ({
+    id: exercise.id,
+    name: exercise.exercise_name,  // map exercise_name → name
+    muscleGroup: exercise.muscleGroup || "Unknown", // ensure non-optional
+    sets: [], // initialize sets
+  }));
 
+    navigation.navigate("CreateRoutine", {
+      selectedExercises: selectedExerciseObjects,
+    });
+  };
+
+  if (loading) {
+    return (
+      <View style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
+        <ActivityIndicator size="large" color={colors.tint} />
+        <Text style={{ color: colors.text, marginTop: 10 }}>Loading exercises...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Exercises</Text>
+      <Text style={styles.header}> Select Exercises</Text>
 
-      <TextInput
-        style={styles.searchBar}
-        placeholder="Search exercises..."
-        placeholderTextColor={colors.textDim}
-        value={searchQuery}
-        onChangeText={setSearchQuery}
-      />
-
+     <SearchBar
+  value={searchQuery}
+  onChangeText={setSearchQuery}
+  placeholder="Search exercises..."
+/>
       <FlatList
         data={filteredExercises}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <ExerciseItem
-            name={item.name}
-            muscleGroup={item.muscleGroup}
+            name={item.exercise_name}
+            muscleGroup={item.muscleGroup || ""}
             onPress={() => toggleSelect(item.id)}
             isSelected={selectedExercises.includes(item.id)}
           />
         )}
         contentContainerStyle={styles.listContainer}
+        ListEmptyComponent={() => (
+          <View style={styles.emptyContainer}>
+            <Ionicons name="search-outline" size={60} color="#777" />
+            <Text style={styles.emptyTitle}>No exercises found</Text>
+            <Text style={styles.emptySubtitle}>
+              Try adjusting your search or check back later.
+            </Text>
+          </View>
+        )}
       />
 
       {selectedExercises.length > 0 && (
@@ -108,26 +144,26 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: colors.background,
+    backgroundColor: "#121212", // dark background
   },
   header: {
     fontSize: 24,
     fontWeight: "600",
-    color: colors.text,
+    color: "#fff", // bright header
     marginBottom: 12,
   },
   searchBar: {
     padding: 12,
-    backgroundColor: colors.palette.neutral800,
+    backgroundColor: "#1F1F1F", // darker input background
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: "#333", // subtle border
     marginBottom: 16,
     fontSize: 16,
-    color: colors.text,
+    color: "#fff", // white text
   },
   listContainer: {
-    paddingBottom: 80, // leave space for bottom bar
+    paddingBottom: 100,
   },
   bottomBar: {
     position: "absolute",
@@ -137,18 +173,37 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   bottomButton: {
-    backgroundColor: colors.tint,
+    backgroundColor: "#2563EB", // blue accent
     paddingVertical: 14,
     paddingHorizontal: 24,
     borderRadius: 8,
     shadowColor: "#000",
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.25,
+    shadowOffset: { width: 0, height: 3 },
     shadowRadius: 6,
     elevation: 4,
   },
   bottomButtonText: {
-    color: colors.background,
+    color: "#fff",
     fontSize: 16,
     fontWeight: "600",
   },
+ emptyContainer: {
+  flex: 1,
+  justifyContent: "center",
+  alignItems: "center",
+  marginTop: 50,
+},
+emptyTitle: {
+  color: "#fff",
+  fontSize: 20,
+  fontWeight: "600",
+  marginTop: 12,
+},
+emptySubtitle: {
+  color: "#aaa",
+  fontSize: 14,
+  marginTop: 4,
+  textAlign: "center",
+  paddingHorizontal: 20,}
 });

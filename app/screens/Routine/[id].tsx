@@ -1,20 +1,105 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, FlatList } from "react-native";
 import { Screen } from "@/components/Screen";
-import { useRoutine } from "@/context/RoutineContext";
 import { Ionicons } from "@expo/vector-icons";
 import { useRoute, RouteProp } from "@react-navigation/native";
+import { db } from "@/utils/storage";
+import { routines, routineExercises, routineSets } from "@/utils/storage/schema";
+import { eq, and } from "drizzle-orm";
 
 type RootStackParamList = {
   RoutineDetails: { id: string };
 };
 
+type RoutineWithExercises = {
+  id: string;
+  title: string;
+  exercises: {
+    id: string;
+    name: string;
+    sets: {
+      id: string;
+      reps: number;
+      weight: number;
+      unit: "lbs" | "kg";
+      repsType: "reps" | "rep range";
+    }[];
+  }[];
+};
+
 export default function RoutineDetailsScreen() {
-  const { routines } = useRoutine();
   const route = useRoute<RouteProp<RootStackParamList, "RoutineDetails">>();
   const { id } = route.params;
 
-  const routine = routines.find((r) => r.id === id);
+  const [routine, setRoutine] = useState<RoutineWithExercises | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchRoutine = async () => {
+      try {
+        // 1️⃣ Get routine
+        const [routineRow] = await db.select().from(routines).where(eq(routines.id, id));
+        if (!routineRow) {
+          setRoutine(null);
+          setLoading(false);
+          return;
+        }
+
+        // 2️⃣ Get exercises
+        const exercisesRows = await db
+          .select()
+          .from(routineExercises)
+          .where(eq(routineExercises.routineId, id));
+
+        const exercisesWithSets = await Promise.all(
+          exercisesRows.map(async (ex) => {
+            const setsRows = await db
+              .select()
+              .from(routineSets)
+              .where(
+                and(
+                  eq(routineSets.routineId, id),
+                  eq(routineSets.exerciseId, ex.exerciseId)
+                )
+              );
+
+            return {
+              id: ex.exerciseId,
+              name: ex.notes || "Exercise", // fallback if you store name elsewhere
+              sets: setsRows.map((s) => ({
+  id: s.id,
+  reps: s.reps ?? 0, // fallback if null
+  weight: s.weight,
+  unit: "kg" as "lbs" | "kg", // assign default, since not in DB
+  repsType: "reps" as "reps" | "rep range", // assign default
+}))
+            };
+          })
+        );
+
+        setRoutine({
+          id: routineRow.id,
+          title: routineRow.name,
+          exercises: exercisesWithSets,
+        });
+      } catch (err) {
+        console.error("Failed to fetch routine:", err);
+        setRoutine(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRoutine();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <Screen contentContainerStyle={styles.centered}>
+        <Text style={{ color: "#fff" }}>Loading...</Text>
+      </Screen>
+    );
+  }
 
   if (!routine) {
     return (
@@ -46,14 +131,14 @@ export default function RoutineDetailsScreen() {
               <Text style={styles.exerciseName}>{item.name}</Text>
               <View style={styles.setBadge}>
                 <Text style={styles.setBadgeText}>
-                  {item.sets?.length || 0} {item.sets?.length === 1 ? "set" : "sets"}
+                  {item.sets.length} {item.sets.length === 1 ? "set" : "sets"}
                 </Text>
               </View>
             </View>
-            {item.sets?.map((set:any, index:any) => (
+            {item.sets.map((set, index) => (
               <View key={set.id} style={styles.setRow}>
                 <Text style={styles.setText}>
-                  Set {index + 1}: {set.repsType === "range" ? `${set.reps} reps` : set.reps}    Volume: {set.weight} {set.unit}
+                  Set {index + 1}: {set.repsType === "rep range" ? `${set.reps} reps` : set.reps} • Volume: {set.weight} {set.unit}
                 </Text>
               </View>
             ))}
@@ -74,7 +159,6 @@ const styles = StyleSheet.create({
   header: {
     marginBottom: 16,
     paddingBottom: 8,
-   
   },
   title: {
     color: "#fff",
@@ -91,11 +175,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     marginBottom: 14,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 4,
-    elevation: 3,
   },
   exerciseHeader: {
     flexDirection: "row",
