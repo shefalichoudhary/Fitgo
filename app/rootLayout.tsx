@@ -2,12 +2,11 @@ import { useEffect, useRef, useState } from "react"
 import { View, ActivityIndicator } from "react-native"
 import * as SplashScreen from "expo-splash-screen"
 import { db, expo_sqlite } from "./utils/storage/index"
-import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator';
+import { useMigrations } from "drizzle-orm/expo-sqlite/migrator"
 import { AppNavigator } from "./navigators/AppNavigator"
-import { useDrizzleStudio } from "expo-drizzle-studio-plugin";
+import { useDrizzleStudio } from "expo-drizzle-studio-plugin"
 // @ts-ignore
 import migrations from "../drizzle/migrations"
-
 
 export default function RootLayout() {
   const { success, error: migrationError } = useMigrations(db, migrations)
@@ -35,7 +34,14 @@ export default function RootLayout() {
 
   if (!appReady) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "black" }}>
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: "black",
+        }}
+      >
         <ActivityIndicator size="large" color="white" />
       </View>
     )
