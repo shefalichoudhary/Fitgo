@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react"
 import {
   View,
   Text,
@@ -7,83 +7,80 @@ import {
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
-} from "react-native";
-import { ExerciseItem } from "@/components/Routines/ExerciseItem";
-import { colors } from "@/theme/colors";
-import { useNavigation } from "@react-navigation/native";
-import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import type { HomeStackParamList } from "@/navigators/navigationTypes";
-import { db } from "@/utils/storage";
-import { exercises as exercisesTable } from "@/utils/storage/schema";
-import { SearchBar } from "@/components/SearchBar";
-import { Ionicons } from "@expo/vector-icons";
+} from "react-native"
+import { ExerciseItem } from "@/components/Routines/ExerciseItem"
+import { colors } from "@/theme/colors"
+import { useNavigation } from "@react-navigation/native"
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack"
+import type { HomeStackParamList } from "@/navigators/navigationTypes"
+import { db } from "@/utils/storage"
+import { exercises as exercisesTable } from "@/utils/storage/schema"
+import { SearchBar } from "@/components/SearchBar"
+import { Ionicons } from "@expo/vector-icons"
+
 type Exercise = {
-  id: string;
-  exercise_name: string;
-  muscleGroup?: string;
-};
+  id: string
+  exercise_name: string
+  muscleGroup?: string
+}
 
 export default function ExercisesScreen() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedExercises, setSelectedExercises] = useState<string[]>([]);
-  const [exerciseData, setExerciseData] = useState<Exercise[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("")
+  const [selectedExercises, setSelectedExercises] = useState<string[]>([])
+  const [exerciseData, setExerciseData] = useState<Exercise[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const navigation =
-    useNavigation<NativeStackNavigationProp<HomeStackParamList, "Exercises">>();
+  const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList, "Exercises">>()
 
   // Fetch exercises from DB
   useEffect(() => {
     const fetchExercises = async () => {
       try {
-        const result = await db.select().from(exercisesTable).all();
+        const result = await db.select().from(exercisesTable).all()
         setExerciseData(
           result.map((item) => ({
             id: item.id,
             exercise_name: item.exercise_name,
             muscleGroup: item.type, // you can adjust based on your schema
-          }))
-        );
+          })),
+        )
       } catch (err) {
-        console.error("❌ Failed to fetch exercises:", err);
+        console.error("❌ Failed to fetch exercises:", err)
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
+    }
 
-    fetchExercises();
-  }, []);
+    fetchExercises()
+  }, [])
 
   const filteredExercises = exerciseData.filter((exercise) =>
-    exercise.exercise_name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+    exercise.exercise_name.toLowerCase().includes(searchQuery.toLowerCase()),
+  )
 
   const toggleSelect = (id: string) => {
     setSelectedExercises((prevSelected) =>
       prevSelected.includes(id)
         ? prevSelected.filter((item) => item !== id)
-        : [...prevSelected, id]
-    );
-  };
+        : [...prevSelected, id],
+    )
+  }
 
   const handleAddExercises = () => {
     const selectedExerciseObjects = selectedExercises
-  .map((id) => exerciseData.find((exercise) => exercise.id === id))
-  .filter(
-    (exercise): exercise is NonNullable<typeof exercise> =>
-      exercise !== undefined
-  )
-  .map((exercise) => ({
-    id: exercise.id,
-    name: exercise.exercise_name,  // map exercise_name → name
-    muscleGroup: exercise.muscleGroup || "Unknown", // ensure non-optional
-    sets: [], // initialize sets
-  }));
+      .map((id) => exerciseData.find((exercise) => exercise.id === id))
+      .filter((exercise): exercise is NonNullable<typeof exercise> => exercise !== undefined)
+      .map((exercise) => ({
+        id: exercise.id,
+        name: exercise.exercise_name, // map exercise_name → name
+        muscleGroup: exercise.muscleGroup || "Unknown", // ensure non-optional
+        sets: [], // initialize sets
+      }))
 
     navigation.navigate("CreateRoutine", {
       selectedExercises: selectedExerciseObjects,
-    });
-  };
+    })
+  }
 
   if (loading) {
     return (
@@ -91,18 +88,18 @@ export default function ExercisesScreen() {
         <ActivityIndicator size="large" color={colors.tint} />
         <Text style={{ color: colors.text, marginTop: 10 }}>Loading exercises...</Text>
       </View>
-    );
+    )
   }
 
   return (
     <View style={styles.container}>
       <Text style={styles.header}> Select Exercises</Text>
 
-     <SearchBar
-  value={searchQuery}
-  onChangeText={setSearchQuery}
-  placeholder="Search exercises..."
-/>
+      <SearchBar
+        value={searchQuery}
+        onChangeText={setSearchQuery}
+        placeholder="Search exercises..."
+      />
       <FlatList
         data={filteredExercises}
         keyExtractor={(item) => item.id}
@@ -119,9 +116,7 @@ export default function ExercisesScreen() {
           <View style={styles.emptyContainer}>
             <Ionicons name="search-outline" size={60} color="#777" />
             <Text style={styles.emptyTitle}>No exercises found</Text>
-            <Text style={styles.emptySubtitle}>
-              Try adjusting your search or check back later.
-            </Text>
+            <Text style={styles.emptySubtitle}>Try adjusting your search or check back later.</Text>
           </View>
         )}
       />
@@ -137,7 +132,7 @@ export default function ExercisesScreen() {
         </View>
       )}
     </View>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
@@ -188,22 +183,23 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
   },
- emptyContainer: {
-  flex: 1,
-  justifyContent: "center",
-  alignItems: "center",
-  marginTop: 50,
-},
-emptyTitle: {
-  color: "#fff",
-  fontSize: 20,
-  fontWeight: "600",
-  marginTop: 12,
-},
-emptySubtitle: {
-  color: "#aaa",
-  fontSize: 14,
-  marginTop: 4,
-  textAlign: "center",
-  paddingHorizontal: 20,}
-});
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 50,
+  },
+  emptyTitle: {
+    color: "#fff",
+    fontSize: 20,
+    fontWeight: "600",
+    marginTop: 12,
+  },
+  emptySubtitle: {
+    color: "#aaa",
+    fontSize: 14,
+    marginTop: 4,
+    textAlign: "center",
+    paddingHorizontal: 20,
+  },
+})

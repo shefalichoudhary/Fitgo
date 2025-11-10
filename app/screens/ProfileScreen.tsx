@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react"
 import {
   View,
   Text,
@@ -7,51 +7,45 @@ import {
   TextInput,
   Alert,
   ActivityIndicator,
-} from "react-native";
-import { db } from "@/utils/storage";
-import { users } from "@/utils/storage/schema";
-import { eq } from "drizzle-orm";
+} from "react-native"
+import { db } from "@/utils/storage"
+import { users } from "@/utils/storage/schema"
+import { eq } from "drizzle-orm"
 
 type Props = {
-  navigation?: any;
-};
+  navigation?: any
+}
 
 export default function ProfileScreen({ navigation }: Props) {
-  const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<any>(null);
-  const [editing, setEditing] = useState(false);
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
-  const [bio, setBio] = useState(
-    "Productive. Passionate. Progress-driven. Always learning."
-  );
+  const [loading, setLoading] = useState(true)
+  const [user, setUser] = useState<any>(null)
+  const [editing, setEditing] = useState(false)
+  const [username, setUsername] = useState("")
+  const [email, setEmail] = useState("")
+  const [bio, setBio] = useState("Productive. Passionate. Progress-driven. Always learning.")
 
   // Fetch user data
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const result = await db
-          .select()
-          .from(users)
-          .where(eq(users.username, "Guest"))
-          .all();
+        const result = await db.select().from(users).where(eq(users.username, "Guest")).all()
         if (result.length > 0) {
-          const userData = result[0];
-          setUser(userData);
-          setUsername(userData.username);
-          setEmail(userData.email);
+          const userData = result[0]
+          setUser(userData)
+          setUsername(userData.username)
+          setEmail(userData.email)
         } else {
-          console.log("⚠️ No user found in DB");
+          console.log("⚠️ No user found in DB")
         }
       } catch (error) {
-        console.error("❌ Failed to fetch user:", error);
+        console.error("❌ Failed to fetch user:", error)
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
+    }
 
-    fetchUser();
-  }, []);
+    fetchUser()
+  }, [])
 
   const onSave = async () => {
     try {
@@ -62,37 +56,35 @@ export default function ProfileScreen({ navigation }: Props) {
           email,
         })
         .where(eq(users.id, user.id))
-        .run();
+        .run()
 
-      setUser({ ...user, username, email, });
-      Alert.alert("Success", "Profile updated successfully!");
-      setEditing(false);
+      setUser({ ...user, username, email })
+      Alert.alert("Success", "Profile updated successfully!")
+      setEditing(false)
     } catch (err) {
-      console.error("❌ Failed to update profile:", err);
-      Alert.alert("Error", "Failed to update profile");
+      console.error("❌ Failed to update profile:", err)
+      Alert.alert("Error", "Failed to update profile")
     }
-  };
+  }
 
   const onCancel = () => {
     // Reset changes
-    setUsername(user.username);
-    setEmail(user.email);
-    setEditing(false);
-  };
+    setUsername(user.username)
+    setEmail(user.email)
+    setEditing(false)
+  }
 
   const onLogout = () => {
-    Alert.alert("Logout", "Perform logout logic here.");
-  };
+    Alert.alert("Logout", "Perform logout logic here.")
+  }
 
   if (loading) {
     return (
       <View style={styles.loaderContainer}>
         <ActivityIndicator size="large" color="#ffffff" />
-        <Text style={{ color: "#9CA3AF", marginTop: 10 }}>
-          Loading profile...
-        </Text>
+        <Text style={{ color: "#9CA3AF", marginTop: 10 }}>Loading profile...</Text>
       </View>
-    );
+    )
   }
 
   if (!user) {
@@ -100,7 +92,7 @@ export default function ProfileScreen({ navigation }: Props) {
       <View style={styles.loaderContainer}>
         <Text style={{ color: "#fff" }}>No user data found.</Text>
       </View>
-    );
+    )
   }
 
   return (
@@ -173,13 +165,10 @@ export default function ProfileScreen({ navigation }: Props) {
           </View>
         ) : (
           <View style={styles.editButtonsRow}>
-          <TouchableOpacity
-            style={styles.primaryButton}
-            onPress={() => setEditing(true)}
-          >
-            <Text style={styles.primaryButtonText}>Edit Profile</Text>
-          </TouchableOpacity>
-        </View>
+            <TouchableOpacity style={styles.primaryButton} onPress={() => setEditing(true)}>
+              <Text style={styles.primaryButtonText}>Edit Profile</Text>
+            </TouchableOpacity>
+          </View>
         )}
 
         <TouchableOpacity style={styles.logoutButton} onPress={onLogout}>
@@ -187,7 +176,7 @@ export default function ProfileScreen({ navigation }: Props) {
         </TouchableOpacity>
       </View>
     </View>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
@@ -240,10 +229,29 @@ const styles = StyleSheet.create({
   statNumber: { fontSize: 20, fontWeight: "700", color: "#F3F4F6", marginBottom: 4 },
   statLabel: { fontSize: 12, color: "#9CA3AF", letterSpacing: 0.2 },
   editButtonsRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 14 },
-  primaryButton: { flex: 1, backgroundColor: "#2563EB", paddingVertical: 14, borderRadius: 10, alignItems: "center", marginRight: 8 },
-  cancelButton: { flex: 1, backgroundColor: "#6B7280", paddingVertical: 14, borderRadius: 10, alignItems: "center" },
+  primaryButton: {
+    flex: 1,
+    backgroundColor: "#2563EB",
+    paddingVertical: 14,
+    borderRadius: 10,
+    alignItems: "center",
+    marginRight: 8,
+  },
+  cancelButton: {
+    flex: 1,
+    backgroundColor: "#6B7280",
+    paddingVertical: 14,
+    borderRadius: 10,
+    alignItems: "center",
+  },
   primaryButtonText: { color: "white", fontWeight: "600", fontSize: 16 },
   cancelButtonText: { color: "white", fontWeight: "600", fontSize: 16 },
-  logoutButton: { paddingVertical: 12, borderRadius: 10, alignItems: "center", borderWidth: 1, borderColor: "#DC2626" },
+  logoutButton: {
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#DC2626",
+  },
   logoutButtonText: { color: "#EF4444", fontWeight: "600", fontSize: 15 },
-});
+})

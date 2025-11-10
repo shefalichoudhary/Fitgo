@@ -1,12 +1,12 @@
-import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import React from "react"
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native"
 
 type ExerciseItemProps = {
-  name: string;
-  muscleGroup: string;
-  onPress?: () => void;
-  isSelected?: boolean; // ✅ supports multi-select
-};
+  name: string
+  muscleGroup: string
+  onPress?: () => void
+  isSelected?: boolean // ✅ supports multi-select
+}
 
 export const ExerciseItem = ({
   name,
@@ -25,8 +25,8 @@ export const ExerciseItem = ({
       </View>
       <Text style={styles.groupText}>{muscleGroup}</Text>
     </TouchableOpacity>
-  );
-};
+  )
+}
 
 const styles = StyleSheet.create({
   itemContainer: {
@@ -61,4 +61,4 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#AAAAAA", // dimmed secondary text
   },
-});
+})

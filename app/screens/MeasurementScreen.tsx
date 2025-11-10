@@ -1,13 +1,5 @@
 import React, { useState } from "react"
-import {
-  View,
-  Text,
-  TextInput,
-  Button,
-  StyleSheet,
-  ScrollView,
-  useColorScheme,
-} from "react-native"
+import { View, Text, TextInput, Button, StyleSheet, ScrollView, useColorScheme } from "react-native"
 
 export default function MeasurementScreen() {
   const colorScheme = useColorScheme()
@@ -26,7 +18,7 @@ export default function MeasurementScreen() {
 
   const handleChange = (key: string, value: string) => {
     setMeasurements({ ...measurements, [key]: value })
-  } 
+  }
 
   const handleSave = () => {
     // TODO: Save to AsyncStorage, SQLite, or server
@@ -61,7 +53,11 @@ export default function MeasurementScreen() {
       ))}
 
       <View style={styles.buttonContainer}>
-        <Button title="Save Measurement" onPress={handleSave} color={isDark ? "#3b82f6" : undefined} />
+        <Button
+          title="Save Measurement"
+          onPress={handleSave}
+          color={isDark ? "#3b82f6" : undefined}
+        />
       </View>
     </ScrollView>
   )

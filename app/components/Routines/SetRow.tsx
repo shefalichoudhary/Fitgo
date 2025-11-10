@@ -1,18 +1,18 @@
 // components/SetRow.tsx
-import React from "react";
-import { View, TextInput, Pressable, Text, StyleSheet } from "react-native";
+import React from "react"
+import { View, TextInput, Pressable, Text, StyleSheet } from "react-native"
 
 type Props = {
-  reps: string;
-  weight: string;
-  repsType: "reps" | "range";
-  unit: "kg" | "lbs";
-  onRepsChange: (text: string) => void;
-  onWeightChange: (text: string) => void;
-  onToggleUnit: () => void;
-  onToggleRepsType: () => void;
-  onOpenRestTimer: () => void;
-};
+  reps: string
+  weight: string
+  repsType: "reps" | "range"
+  unit: "kg" | "lbs"
+  onRepsChange: (text: string) => void
+  onWeightChange: (text: string) => void
+  onToggleUnit: () => void
+  onToggleRepsType: () => void
+  onOpenRestTimer: () => void
+}
 
 export const SetRow: React.FC<Props> = ({
   reps,
@@ -53,11 +53,9 @@ export const SetRow: React.FC<Props> = ({
           <Text style={styles.toggleText}>{unit}</Text>
         </Pressable>
       </View>
-
-      
     </View>
-  );
-};
+  )
+}
 
 const styles = StyleSheet.create({
   row: {
@@ -98,4 +96,4 @@ const styles = StyleSheet.create({
     fontSize: 20,
     color: "#3b82f6",
   },
-});
+})

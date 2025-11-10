@@ -1,39 +1,38 @@
-import React, { useState } from "react";
-import { View, Text, TextInput, FlatList, Pressable, StyleSheet, Alert } from "react-native";
-import { useRoute, RouteProp, useFocusEffect } from "@react-navigation/native";
-import { useCallback } from "react";
-import { navigate } from "@/navigators/navigationUtilities";
-import type { HomeStackParamList } from "@/navigators/navigationTypes";
-import { SetRow } from "@/components/Routines/SetRow";
-import { useRoutine } from "@/context/RoutineContext";
-import { db } from "@/utils/storage";
-import { routines, routineExercises, routineSets } from "@/utils/storage/schema";
+import React, { useState } from "react"
+import { View, Text, TextInput, FlatList, Pressable, StyleSheet, Alert } from "react-native"
+import { useRoute, RouteProp, useFocusEffect } from "@react-navigation/native"
+import { useCallback } from "react"
+import { navigate } from "@/navigators/navigationUtilities"
+import type { HomeStackParamList } from "@/navigators/navigationTypes"
+import { SetRow } from "@/components/Routines/SetRow"
+import { useRoutine } from "@/context/RoutineContext"
+import { db } from "@/utils/storage"
+import { routines, routineExercises, routineSets } from "@/utils/storage/schema"
 
 type SetItem = {
-  id: string;
-  reps: string;
-  weight: string;
-  repsType: "reps" | "range";
-  unit: "kg" | "lbs";
-  minReps?: string;
-  maxReps?: string;
-  duration?: string;
-  setType?: string;
-};
+  id: string
+  reps: string
+  weight: string
+  repsType: "reps" | "range"
+  unit: "kg" | "lbs"
+  minReps?: string
+  maxReps?: string
+  duration?: string
+  setType?: string
+}
 
 type Exercise = {
-  id: string;
-  name: string;
-  sets: SetItem[];
-};
-
+  id: string
+  name: string
+  sets: SetItem[]
+}
 
 export default function CreateRoutineScreen() {
-  const [title, setTitle] = useState("");
-  const [exercises, setExercises] = useState<Exercise[]>([]);
-  const route = useRoute<RouteProp<HomeStackParamList, "CreateRoutine">>();
- const { addRoutine } = useRoutine(); 
- 
+  const [title, setTitle] = useState("")
+  const [exercises, setExercises] = useState<Exercise[]>([])
+  const route = useRoute<RouteProp<HomeStackParamList, "CreateRoutine">>()
+  const { addRoutine } = useRoutine()
+
   useFocusEffect(
     useCallback(() => {
       if (route.params?.selectedExercises) {
@@ -48,11 +47,11 @@ export default function CreateRoutineScreen() {
                 unit: (set as any).unit ?? "kg",
               }))
             : [],
-        }));
-        setExercises(withSets);
+        }))
+        setExercises(withSets)
       }
-    }, [route.params])
-  );
+    }, [route.params]),
+  )
 
   const toggleUnit = (exerciseId: string, setId: string) => {
     setExercises((prev) =>
@@ -61,13 +60,13 @@ export default function CreateRoutineScreen() {
           ? {
               ...ex,
               sets: ex.sets.map((set) =>
-                set.id === setId ? { ...set, unit: set.unit === "kg" ? "lbs" : "kg" } : set
+                set.id === setId ? { ...set, unit: set.unit === "kg" ? "lbs" : "kg" } : set,
               ),
             }
-          : ex
-      )
-    );
-  };
+          : ex,
+      ),
+    )
+  }
 
   const toggleRepsType = (exerciseId: string, setId: string) => {
     setExercises((prev) =>
@@ -76,13 +75,15 @@ export default function CreateRoutineScreen() {
           ? {
               ...ex,
               sets: ex.sets.map((set) =>
-                set.id === setId ? { ...set, repsType: set.repsType === "reps" ? "range" : "reps" } : set
+                set.id === setId
+                  ? { ...set, repsType: set.repsType === "reps" ? "range" : "reps" }
+                  : set,
               ),
             }
-          : ex
-      )
-    );
-  };
+          : ex,
+      ),
+    )
+  }
 
   const addSet = (exerciseId: string) => {
     setExercises((prev) =>
@@ -101,12 +102,17 @@ export default function CreateRoutineScreen() {
                 },
               ],
             }
-          : ex
-      )
-    );
-  };
+          : ex,
+      ),
+    )
+  }
 
-  const updateSetField = (exerciseId: string, setId: string, field: "reps" | "weight", value: string) => {
+  const updateSetField = (
+    exerciseId: string,
+    setId: string,
+    field: "reps" | "weight",
+    value: string,
+  ) => {
     setExercises((prev) =>
       prev.map((ex) =>
         ex.id === exerciseId
@@ -114,60 +120,58 @@ export default function CreateRoutineScreen() {
               ...ex,
               sets: ex.sets.map((set) => (set.id === setId ? { ...set, [field]: value } : set)),
             }
-          : ex
-      )
-    );
-  };
+          : ex,
+      ),
+    )
+  }
 
   const openRestTimerModal = (setId: string) => {
-    Alert.alert("Rest Timer", `Open timer for set ${setId}`);
-  };
-const handleSave = async () => {
-  if (!title.trim()) return Alert.alert("Please enter a routine title");
-  if (exercises.length === 0) return Alert.alert("Add at least one exercise");
-
-  try {
-    // 1️⃣ Insert routine
-    const insertedRoutine = await db.insert(routines).values({ name: title }).returning();
-    const routineId = insertedRoutine[0].id;
-
-    for (const exercise of exercises) {
-      // 2️⃣ Insert routineExercise
-      const insertedRoutineExercise = await db
-        .insert(routineExercises)
-        .values({
-        routineId: routineId,
-  exerciseId: exercise.id,
-  unit: "kg",
-  repsType: "reps",
-  restTimer: 0,
-        })
-        .returning();
-
-      // 3️⃣ Insert sets
-      for (const set of exercise.sets) {
-      await db.insert(routineSets).values({
-   routineId: routineId,
-  exerciseId: exercise.id,
-  reps: Number(set.reps) || 0,
-  weight: set.weight ? Number(set.weight) : 0,
-  minReps: set.repsType === "range" ? Number(set.minReps) || 0 : 0,
-  maxReps: set.repsType === "range" ? Number(set.maxReps) || 0 : 0,
-  duration: set.duration ? Number(set.duration) : 0,
-  setType: set.setType as "W" | "Normal" | "D" | "F"
-});
-      }
-    }
-
-    Alert.alert("Routine saved!", `Title: ${title}`);
-    navigate("Routines");
-
-  } catch (err) {
-    console.error("Failed to save routine:", err);
-    Alert.alert("Error", "Failed to save routine.");
+    Alert.alert("Rest Timer", `Open timer for set ${setId}`)
   }
-};
+  const handleSave = async () => {
+    if (!title.trim()) return Alert.alert("Please enter a routine title")
+    if (exercises.length === 0) return Alert.alert("Add at least one exercise")
 
+    try {
+      // 1️⃣ Insert routine
+      const insertedRoutine = await db.insert(routines).values({ name: title }).returning()
+      const routineId = insertedRoutine[0].id
+
+      for (const exercise of exercises) {
+        // 2️⃣ Insert routineExercise
+        const insertedRoutineExercise = await db
+          .insert(routineExercises)
+          .values({
+            routineId: routineId,
+            exerciseId: exercise.id,
+            unit: "kg",
+            repsType: "reps",
+            restTimer: 0,
+          })
+          .returning()
+
+        // 3️⃣ Insert sets
+        for (const set of exercise.sets) {
+          await db.insert(routineSets).values({
+            routineId: routineId,
+            exerciseId: exercise.id,
+            reps: Number(set.reps) || 0,
+            weight: set.weight ? Number(set.weight) : 0,
+            minReps: set.repsType === "range" ? Number(set.minReps) || 0 : 0,
+            maxReps: set.repsType === "range" ? Number(set.maxReps) || 0 : 0,
+            duration: set.duration ? Number(set.duration) : 0,
+            setType: set.setType as "W" | "Normal" | "D" | "F",
+          })
+        }
+      }
+
+      Alert.alert("Routine saved!", `Title: ${title}`)
+      navigate("Routines")
+    } catch (err) {
+      console.error("Failed to save routine:", err)
+      Alert.alert("Error", "Failed to save routine.")
+    }
+  }
 
   return (
     <View style={styles.container}>
@@ -217,7 +221,11 @@ const handleSave = async () => {
         </Pressable>
 
         <Pressable
-          style={[styles.button, styles.saveButton, (!title.trim() || exercises.some((ex) => ex.sets.length === 0)) && styles.disabled]}
+          style={[
+            styles.button,
+            styles.saveButton,
+            (!title.trim() || exercises.some((ex) => ex.sets.length === 0)) && styles.disabled,
+          ]}
           onPress={handleSave}
           disabled={!title.trim() || exercises.some((ex) => ex.sets.length === 0)}
         >
@@ -225,7 +233,7 @@ const handleSave = async () => {
         </Pressable>
       </View>
     </View>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
@@ -298,4 +306,4 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
   },
-});
+})

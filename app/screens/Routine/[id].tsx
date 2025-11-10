@@ -1,104 +1,99 @@
-import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, FlatList } from "react-native";
-import { Screen } from "@/components/Screen";
-import { Ionicons } from "@expo/vector-icons";
-import { useRoute, RouteProp } from "@react-navigation/native";
-import { db } from "@/utils/storage";
-import { routines, routineExercises, routineSets } from "@/utils/storage/schema";
-import { eq, and } from "drizzle-orm";
+import React, { useEffect, useState } from "react"
+import { View, Text, StyleSheet, FlatList } from "react-native"
+import { Screen } from "@/components/Screen"
+import { Ionicons } from "@expo/vector-icons"
+import { useRoute, RouteProp } from "@react-navigation/native"
+import { db } from "@/utils/storage"
+import { routines, routineExercises, routineSets } from "@/utils/storage/schema"
+import { eq, and } from "drizzle-orm"
 
 type RootStackParamList = {
-  RoutineDetails: { id: string };
-};
+  RoutineDetails: { id: string }
+}
 
 type RoutineWithExercises = {
-  id: string;
-  title: string;
+  id: string
+  title: string
   exercises: {
-    id: string;
-    name: string;
+    id: string
+    name: string
     sets: {
-      id: string;
-      reps: number;
-      weight: number;
-      unit: "lbs" | "kg";
-      repsType: "reps" | "rep range";
-    }[];
-  }[];
-};
+      id: string
+      reps: number
+      weight: number
+      unit: "lbs" | "kg"
+      repsType: "reps" | "rep range"
+    }[]
+  }[]
+}
 
 export default function RoutineDetailsScreen() {
-  const route = useRoute<RouteProp<RootStackParamList, "RoutineDetails">>();
-  const { id } = route.params;
+  const route = useRoute<RouteProp<RootStackParamList, "RoutineDetails">>()
+  const { id } = route.params
 
-  const [routine, setRoutine] = useState<RoutineWithExercises | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [routine, setRoutine] = useState<RoutineWithExercises | null>(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchRoutine = async () => {
       try {
         // 1️⃣ Get routine
-        const [routineRow] = await db.select().from(routines).where(eq(routines.id, id));
+        const [routineRow] = await db.select().from(routines).where(eq(routines.id, id))
         if (!routineRow) {
-          setRoutine(null);
-          setLoading(false);
-          return;
+          setRoutine(null)
+          setLoading(false)
+          return
         }
 
         // 2️⃣ Get exercises
         const exercisesRows = await db
           .select()
           .from(routineExercises)
-          .where(eq(routineExercises.routineId, id));
+          .where(eq(routineExercises.routineId, id))
 
         const exercisesWithSets = await Promise.all(
           exercisesRows.map(async (ex) => {
             const setsRows = await db
               .select()
               .from(routineSets)
-              .where(
-                and(
-                  eq(routineSets.routineId, id),
-                  eq(routineSets.exerciseId, ex.exerciseId)
-                )
-              );
+              .where(and(eq(routineSets.routineId, id), eq(routineSets.exerciseId, ex.exerciseId)))
 
             return {
               id: ex.exerciseId,
               name: ex.notes || "Exercise", // fallback if you store name elsewhere
               sets: setsRows.map((s) => ({
-  id: s.id,
-  reps: s.reps ?? 0, // fallback if null
-  weight: s.weight,
-  unit: "kg" as "lbs" | "kg", // assign default, since not in DB
-  repsType: "reps" as "reps" | "rep range", // assign default
-}))
-            };
-          })
-        );
+                id: s.id,
+                reps: s.reps ?? 0, // fallback if null
+                weight: s.weight,
+                unit: "kg" as "lbs" | "kg", // assign default, since not in DB
+                repsType: "reps" as "reps" | "rep range", // assign default
+              })),
+            }
+          }),
+        )
 
         setRoutine({
           id: routineRow.id,
           title: routineRow.name,
           exercises: exercisesWithSets,
-        });
+        })
       } catch (err) {
-        console.error("Failed to fetch routine:", err);
-        setRoutine(null);
+        console.error("Failed to fetch routine:", err)
+        setRoutine(null)
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
+    }
 
-    fetchRoutine();
-  }, [id]);
+    fetchRoutine()
+  }, [id])
 
   if (loading) {
     return (
       <Screen contentContainerStyle={styles.centered}>
         <Text style={{ color: "#fff" }}>Loading...</Text>
       </Screen>
-    );
+    )
   }
 
   if (!routine) {
@@ -107,7 +102,7 @@ export default function RoutineDetailsScreen() {
         <Ionicons name="alert-circle-outline" size={60} color="#777" />
         <Text style={styles.errorText}>Routine not found</Text>
       </Screen>
-    );
+    )
   }
 
   return (
@@ -138,7 +133,8 @@ export default function RoutineDetailsScreen() {
             {item.sets.map((set, index) => (
               <View key={set.id} style={styles.setRow}>
                 <Text style={styles.setText}>
-                  Set {index + 1}: {set.repsType === "rep range" ? `${set.reps} reps` : set.reps} • Volume: {set.weight} {set.unit}
+                  Set {index + 1}: {set.repsType === "rep range" ? `${set.reps} reps` : set.reps} •
+                  Volume: {set.weight} {set.unit}
                 </Text>
               </View>
             ))}
@@ -146,7 +142,7 @@ export default function RoutineDetailsScreen() {
         )}
       />
     </Screen>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
@@ -220,4 +216,4 @@ const styles = StyleSheet.create({
     fontSize: 18,
     marginTop: 12,
   },
-});
+})

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react"
-import { View, Text, TouchableOpacity, StyleSheet , ActivityIndicator} from "react-native"
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from "react-native"
 import { Screen } from "@/components/Screen"
 import { $styles } from "@/theme/styles"
 import { useNavigation } from "@react-navigation/native"
@@ -37,7 +37,6 @@ export const HomeScreen: React.FC = () => {
     ],
   }
 
-  
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -54,7 +53,7 @@ export const HomeScreen: React.FC = () => {
     fetchData()
   }, [])
 
-   if (loading) {
+  if (loading) {
     return (
       <Screen preset="fixed" contentContainerStyle={styles.loadingContainer}>
         <ActivityIndicator size="large" color="white" />
@@ -64,43 +63,42 @@ export const HomeScreen: React.FC = () => {
   }
 
   return (
-   <Screen preset="scroll" contentContainerStyle={styles.screenContent}>
-   <Text style={styles.screenTitle}>
+    <Screen preset="scroll" contentContainerStyle={styles.screenContent}>
+      <Text style={styles.screenTitle}>
         Welcome Back{user ? `, ${user.name || "Athlete"}` : ""}
       </Text>
 
-  <WorkoutCard workout={workout} />
+      <WorkoutCard workout={workout} />
 
-<View style={styles.optionsContainer}>
-  <TouchableOpacity
-    style={[styles.optionCard, styles.fullWidthCard]}
-    onPress={() => navigation.navigate("Routines")}
-    activeOpacity={0.85}
-  >
-    <Text style={styles.optionMainText}>Routines</Text>
-      <Text style={styles.optionSubText}>View and manage your routines</Text>
-  </TouchableOpacity>
+      <View style={styles.optionsContainer}>
+        <TouchableOpacity
+          style={[styles.optionCard, styles.fullWidthCard]}
+          onPress={() => navigation.navigate("Routines")}
+          activeOpacity={0.85}
+        >
+          <Text style={styles.optionMainText}>Routines</Text>
+          <Text style={styles.optionSubText}>View and manage your routines</Text>
+        </TouchableOpacity>
 
-  <TouchableOpacity
-    style={[styles.optionCard, styles.fullWidthCard]}
-    onPress={() => navigation.navigate("PreMadeRoutines")}
-    activeOpacity={0.85}
-  >
-    <Text style={styles.optionMainText}>Explore Routines</Text>
-    <Text style={styles.optionSubText}>Use expert-designed Routines</Text>
-  </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.optionCard, styles.fullWidthCard]}
+          onPress={() => navigation.navigate("PreMadeRoutines")}
+          activeOpacity={0.85}
+        >
+          <Text style={styles.optionMainText}>Explore Routines</Text>
+          <Text style={styles.optionSubText}>Use expert-designed Routines</Text>
+        </TouchableOpacity>
 
-  <TouchableOpacity
-    style={[styles.optionCard, styles.fullWidthCard]}
-    onPress={() => navigation.navigate("Measurements")}
-    activeOpacity={0.85}
-  >
-    <Text style={styles.optionMainText}>Track Measurements</Text>
-    <Text style={styles.optionSubText}>Log your fitness progress</Text>
-  </TouchableOpacity>
-</View>
-
-</Screen>
+        <TouchableOpacity
+          style={[styles.optionCard, styles.fullWidthCard]}
+          onPress={() => navigation.navigate("Measurements")}
+          activeOpacity={0.85}
+        >
+          <Text style={styles.optionMainText}>Track Measurements</Text>
+          <Text style={styles.optionSubText}>Log your fitness progress</Text>
+        </TouchableOpacity>
+      </View>
+    </Screen>
   )
 }
 
@@ -121,7 +119,6 @@ const WorkoutCard = ({ workout }: { workout: Workout }) => (
     </View>
   </View>
 )
-
 
 // Styles
 const styles = StyleSheet.create({
@@ -164,42 +161,43 @@ const styles = StyleSheet.create({
   exerciseText: { color: "#e5e5e5", fontSize: 15 },
 
   // Bottom Options
-optionsContainer: {
-  gap: 16,
-},
+  optionsContainer: {
+    gap: 16,
+  },
 
-optionCard: {
-  backgroundColor: "#1a1a1a",
-  paddingVertical: 24,
-  paddingHorizontal: 20,
-  borderRadius: 14,
-  shadowColor: "#000",
-  shadowOpacity: 0.3,
-  shadowRadius: 6,
-  elevation: 8,
-  borderWidth: 1,
-  borderColor: "rgba(255, 255, 255, 0.08)",
-},
+  optionCard: {
+    backgroundColor: "#1a1a1a",
+    paddingVertical: 24,
+    paddingHorizontal: 20,
+    borderRadius: 14,
+    shadowColor: "#000",
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 8,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.08)",
+  },
 
-fullWidthCard: {
-  width: "100%",
-},
+  fullWidthCard: {
+    width: "100%",
+  },
 
-optionMainText: {
-  color: "#fff",
-  fontSize: 18,
-  fontWeight: "700",
-  marginBottom: 4,
-},
+  optionMainText: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "700",
+    marginBottom: 4,
+  },
 
-optionSubText: {
-  color: "#cccccc",
-  fontSize: 14,
-},optionText: { color: "#fff", fontWeight: "600", fontSize: 17 },
-loadingContainer: {
-  flex: 1,
-  justifyContent: "center",
-  alignItems: "center",
-  backgroundColor: "#101010",
-},
+  optionSubText: {
+    color: "#cccccc",
+    fontSize: 14,
+  },
+  optionText: { color: "#fff", fontWeight: "600", fontSize: 17 },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#101010",
+  },
 })

@@ -78,14 +78,7 @@ export function Header(props: HeaderProps) {
   const titleContent = titleTx ? translate(titleTx, titleTxOptions) : title
 
   return (
-    <View
-      style={[
-        $container,
-        $containerInsets,
-        { backgroundColor },
-        containerStyle,
-      ]}
-    >
+    <View style={[$container, $containerInsets, { backgroundColor }, containerStyle]}>
       <View style={[$styles.row, $wrapper, style]}>
         <HeaderAction
           tx={leftTx}

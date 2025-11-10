@@ -18,15 +18,16 @@ export function DemoNavigator() {
     themed,
     theme: { colors },
   } = useAppTheme()
-  
-const getTabBarIcon = (iconName: React.ComponentProps<typeof MaterialCommunityIcons>['name']) =>
-  ({ focused, color, size }: { focused: boolean; color: string; size: number }) => (
-    <MaterialCommunityIcons
-      name={iconName}
-      size={size * 1.2} // Dynamically increase size
-      color={focused ? "#3B82F6" : color} // Blue-500 when focused
-    />
-  )
+
+  const getTabBarIcon =
+    (iconName: React.ComponentProps<typeof MaterialCommunityIcons>["name"]) =>
+    ({ focused, color, size }: { focused: boolean; color: string; size: number }) => (
+      <MaterialCommunityIcons
+        name={iconName}
+        size={size * 1.2} // Dynamically increase size
+        color={focused ? "#3B82F6" : color} // Blue-500 when focused
+      />
+    )
 
   return (
     <Tab.Navigator
@@ -41,35 +42,34 @@ const getTabBarIcon = (iconName: React.ComponentProps<typeof MaterialCommunityIc
     >
       {/* 👇 Main Tab Screens */}
       <Tab.Screen
-  name="Home"
-  component={HomeStackNavigator}
-  options={{
-    headerShown: false,
-    tabBarLabel: "Home",
-    tabBarIcon: getTabBarIcon("home-outline"),
-  }}
-/>
+        name="Home"
+        component={HomeStackNavigator}
+        options={{
+          headerShown: false,
+          tabBarLabel: "Home",
+          tabBarIcon: getTabBarIcon("home-outline"),
+        }}
+      />
 
-<Tab.Screen
-  name="History"
-  component={HistoryScreen}
-  options={{
-    header: () => <Header title="Workout History" />,
-    tabBarLabel: "History",
-    tabBarIcon: getTabBarIcon("history"),
-  }}
-/>
+      <Tab.Screen
+        name="History"
+        component={HistoryScreen}
+        options={{
+          header: () => <Header title="Workout History" />,
+          tabBarLabel: "History",
+          tabBarIcon: getTabBarIcon("history"),
+        }}
+      />
 
-<Tab.Screen
-  name="Profile"
-  component={ProfileScreen}
-  options={{
-    header: () => <Header title="Profile" />,
-    tabBarLabel: "Profile",
-    tabBarIcon: getTabBarIcon("account-outline"),
-  }}
-/>
-
+      <Tab.Screen
+        name="Profile"
+        component={ProfileScreen}
+        options={{
+          header: () => <Header title="Profile" />,
+          tabBarLabel: "Profile",
+          tabBarIcon: getTabBarIcon("account-outline"),
+        }}
+      />
     </Tab.Navigator>
   )
 }

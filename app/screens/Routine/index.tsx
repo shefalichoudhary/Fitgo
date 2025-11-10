@@ -6,7 +6,7 @@ import { useNavigation } from "@react-navigation/native"
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack"
 import { db } from "@/utils/storage"
 import { routines, routineExercises, routineSets } from "@/utils/storage/schema"
-import { eq, and } from "drizzle-orm"; 
+import { eq, and } from "drizzle-orm"
 
 type RoutineWithExercises = {
   id: string
@@ -25,55 +25,52 @@ export default function RoutineScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>()
   const [routinesData, setRoutinesData] = useState<RoutineWithExercises[]>([])
 
- useEffect(() => {
-  const fetchRoutines = async () => {
-    try {
-      const routinesRows = await db.select().from(routines);
+  useEffect(() => {
+    const fetchRoutines = async () => {
+      try {
+        const routinesRows = await db.select().from(routines)
 
-      const routinesWithExercises: RoutineWithExercises[] = [];
+        const routinesWithExercises: RoutineWithExercises[] = []
 
-      for (const routine of routinesRows) {
-        // Get exercises for this routine
-        const exercisesRows = await db
-          .select()
-          .from(routineExercises)
-          .where(eq(routineExercises.routineId, routine.id)); // ✅ eq helper
+        for (const routine of routinesRows) {
+          // Get exercises for this routine
+          const exercisesRows = await db
+            .select()
+            .from(routineExercises)
+            .where(eq(routineExercises.routineId, routine.id)) // ✅ eq helper
 
-        const exercisesWithSets = await Promise.all(
-          exercisesRows.map(async (ex) => {
-            // Count sets for each exercise
-            const setsRows = await db
-              .select()
-              .from(routineSets)
-              .where(
-                and(
-                  eq(routineSets.exerciseId, ex.exerciseId),
-                  eq(routineSets.routineId, routine.id)
-                )
-              ); // ✅ combine conditions with and()
+          const exercisesWithSets = await Promise.all(
+            exercisesRows.map(async (ex) => {
+              // Count sets for each exercise
+              const setsRows = await db
+                .select()
+                .from(routineSets)
+                .where(
+                  and(
+                    eq(routineSets.exerciseId, ex.exerciseId),
+                    eq(routineSets.routineId, routine.id),
+                  ),
+                ) // ✅ combine conditions with and()
 
-            return { id: ex.exerciseId, sets: setsRows.length };
+              return { id: ex.exerciseId, sets: setsRows.length }
+            }),
+          )
+
+          routinesWithExercises.push({
+            id: routine.id,
+            title: routine.name,
+            exercises: exercisesWithSets,
           })
-        );
+        }
 
-        routinesWithExercises.push({
-          id: routine.id,
-          title: routine.name,
-          exercises: exercisesWithSets,
-        });
+        setRoutinesData(routinesWithExercises)
+      } catch (err) {
+        console.error("Failed to fetch routines:", err)
       }
-
-      setRoutinesData(routinesWithExercises);
-    } catch (err) {
-      console.error("Failed to fetch routines:", err);
     }
-  };
 
-  fetchRoutines();
-}, []);
-
-
-    
+    fetchRoutines()
+  }, [])
 
   return (
     <Screen contentContainerStyle={styles.container}>
@@ -96,9 +93,7 @@ export default function RoutineScreen() {
             >
               <View>
                 <Text style={styles.routineText}>{item.title}</Text>
-                <Text style={styles.routineSubText}>
-                  {item.exercises.length} exercises
-                </Text>
+                <Text style={styles.routineSubText}>{item.exercises.length} exercises</Text>
               </View>
               <Ionicons name="chevron-forward" size={20} color="#888" />
             </Pressable>
@@ -125,7 +120,20 @@ const styles = StyleSheet.create({
   },
   routineText: { color: "#fff", fontSize: 16, fontWeight: "600" },
   routineSubText: { color: "#9CA3AF", fontSize: 13, marginTop: 4 },
-  emptyContainer: { flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 24, paddingVertical: 100 },
+  emptyContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 24,
+    paddingVertical: 100,
+  },
   emptyTitle: { color: "#fff", fontSize: 22, fontWeight: "700", marginTop: 16 },
-  emptySubtitle: { color: "#aaa", fontSize: 14, textAlign: "center", marginTop: 8, marginBottom: 20, lineHeight: 20 },
+  emptySubtitle: {
+    color: "#aaa",
+    fontSize: 14,
+    textAlign: "center",
+    marginTop: 8,
+    marginBottom: 20,
+    lineHeight: 20,
+  },
 })

@@ -1,18 +1,16 @@
-import React from "react";
-import { View, Text, FlatList, StyleSheet, ScrollView } from "react-native";
-import { startOfWeek, endOfWeek, format } from "date-fns";
-import { Screen } from "@/components/Screen";
+import React from "react"
+import { View, Text, FlatList, StyleSheet, ScrollView } from "react-native"
+import { startOfWeek, endOfWeek, format } from "date-fns"
+import { Screen } from "@/components/Screen"
 
 interface Workout {
-  id: number;
-  date: string;
-  totalVolume: number;
-  totalSets: number;
+  id: number
+  date: string
+  totalVolume: number
+  totalSets: number
 }
 
-type ListItem = 
-  | { type: "header"; title: string }
-  | (Workout & { type: "workout" });
+type ListItem = { type: "header"; title: string } | (Workout & { type: "workout" })
 
 const sampleHistory: Workout[] = [
   { id: 1, date: "2025-10-29T10:30:00Z", totalVolume: 12500, totalSets: 18 },
@@ -21,34 +19,32 @@ const sampleHistory: Workout[] = [
   { id: 4, date: "2025-10-18T07:00:00Z", totalVolume: 10500, totalSets: 16 },
   { id: 5, date: "2025-10-15T11:00:00Z", totalVolume: 11200, totalSets: 17 },
   { id: 8, date: "2025-10-15T11:00:00Z", totalVolume: 1100, totalSets: 19 },
-];
+]
 
 // Helper to format the week range
 const getWeekRange = (date: string) => {
-  const current = new Date(date);
-  const weekStart = startOfWeek(current, { weekStartsOn: 1 });
-  const weekEnd = endOfWeek(current, { weekStartsOn: 1 });
-  return `${format(weekStart, "MMM d")} - ${format(weekEnd, "MMM d, yyyy")}`;
-};
+  const current = new Date(date)
+  const weekStart = startOfWeek(current, { weekStartsOn: 1 })
+  const weekEnd = endOfWeek(current, { weekStartsOn: 1 })
+  return `${format(weekStart, "MMM d")} - ${format(weekEnd, "MMM d, yyyy")}`
+}
 
 export default function HistoryScreen() {
   const groupedData = sampleHistory.reduce((groups: any, workout) => {
-    const week = getWeekRange(workout.date);
-    if (!groups[week]) groups[week] = [];
-    groups[week].push(workout);
-    return groups;
-  }, {});
+    const week = getWeekRange(workout.date)
+    if (!groups[week]) groups[week] = []
+    groups[week].push(workout)
+    return groups
+  }, {})
 
-  const flatData: ListItem[] = [];
+  const flatData: ListItem[] = []
   Object.keys(groupedData).forEach((week) => {
-    flatData.push({ type: "header", title: week });
-    groupedData[week].forEach((workout: Workout) =>
-      flatData.push({ ...workout, type: "workout" })
-    );
-  });
+    flatData.push({ type: "header", title: week })
+    groupedData[week].forEach((workout: Workout) => flatData.push({ ...workout, type: "workout" }))
+  })
 
   return (
-    <Screen preset="fixed"  >
+    <Screen preset="fixed">
       <FlatList
         data={flatData}
         keyExtractor={(item, index) =>
@@ -56,31 +52,26 @@ export default function HistoryScreen() {
         }
         renderItem={({ item }) => {
           if (item.type === "header") {
-            return <Text style={styles.sectionHeader}>{item.title}</Text>;
+            return <Text style={styles.sectionHeader}>{item.title}</Text>
           }
 
           return (
             <View style={styles.card}>
-              <Text style={styles.dateText}>
-                {format(new Date(item.date), "MMM d, yyyy")}
-              </Text>
+              <Text style={styles.dateText}>{format(new Date(item.date), "MMM d, yyyy")}</Text>
               <View style={styles.row}>
                 <Text style={styles.stat}>💪 Volume: {item.totalVolume} kg</Text>
                 <Text style={styles.stat}>📝 Sets: {item.totalSets}</Text>
               </View>
             </View>
-          );
+          )
         }}
         contentContainerStyle={styles.listContent}
-       
       />
     </Screen>
-  );
+  )
 }
 
-
 const styles = StyleSheet.create({
-   
   listContent: {
     padding: 16,
   },
@@ -122,4 +113,4 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#ccc",
   },
-});
+})

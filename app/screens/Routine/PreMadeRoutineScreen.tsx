@@ -29,7 +29,6 @@ export default function PremadeRoutineScreen({ navigation }: any) {
 
   return (
     <SafeAreaView style={styles.container}>
-
       <FlatList
         data={routines}
         keyExtractor={(item) => item.id}
@@ -46,7 +45,7 @@ const styles = StyleSheet.create({
     padding: 16,
     backgroundColor: "#000000", // Black background
   },
- 
+
   card: {
     backgroundColor: "#1A1A1A", // Dark gray card
     borderRadius: 12,
