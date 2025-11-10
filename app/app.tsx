@@ -16,21 +16,15 @@ if (__DEV__) {
   // If you turn it off in metro.config.js, you'll have to manually import it.
   require("./devtools/ReactotronConfig.ts")
 }
-import 'react-native-get-random-values';
+import "react-native-get-random-values"
 import "./utils/gestureHandler"
-import { RoutineProvider } from "@/context/RoutineContext";
-
-import * as Linking from "expo-linking"
+import { RoutineProvider } from "@/context/RoutineContext"
 import { KeyboardProvider } from "react-native-keyboard-controller"
 import { initialWindowMetrics, SafeAreaProvider } from "react-native-safe-area-context"
-
 import { AuthProvider } from "./context/AuthContext"
-import { initI18n } from "./i18n"
-import { AppNavigator } from "./navigators/AppNavigator"
 import { ThemeProvider } from "./theme/context"
-import RootLayout from "./rootLayout" 
+import RootLayout from "./rootLayout"
 export const NAVIGATION_PERSISTENCE_KEY = "NAVIGATION_STATE"
-
 
 /**
  * This is the root component of our app.
@@ -38,19 +32,16 @@ export const NAVIGATION_PERSISTENCE_KEY = "NAVIGATION_STATE"
  * @returns {JSX.Element} The rendered `App` component.
  */
 export function App() {
- 
   return (
     <SafeAreaProvider initialMetrics={initialWindowMetrics}>
       <KeyboardProvider>
-            <RoutineProvider>
-              
-        <AuthProvider>
-          <ThemeProvider>
-           
-                <RootLayout />
-          </ThemeProvider>
-        </AuthProvider>
-            </RoutineProvider>
+        <RoutineProvider>
+          <AuthProvider>
+            <ThemeProvider>
+              <RootLayout />
+            </ThemeProvider>
+          </AuthProvider>
+        </RoutineProvider>
       </KeyboardProvider>
     </SafeAreaProvider>
   )
