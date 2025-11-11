@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react"
 import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from "react-native"
 import { Screen } from "@/components/Screen"
-import { $styles } from "@/theme/styles"
 import { useNavigation } from "@react-navigation/native"
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack"
 import type { AppStackParamList, HomeStackParamList } from "@/navigators/navigationTypes"

@@ -12,6 +12,7 @@ export type DemoTabParamList = {
   Home: NavigatorScreenParams<HomeStackParamList>
   History: NavigatorScreenParams<HistoryStackParamList>
   Profile: NavigatorScreenParams<ProfileStackParamList>
+    Exercises: NavigatorScreenParams<ExercisesStackParamList>
 }
 export type HomeStackParamList = {
   HomeMain: undefined;
@@ -28,6 +29,8 @@ CreateRoutine: {
   PreMadeRoutines: undefined;
   Measurements: undefined;
   Exercises: undefined;
+  AddMeasurement: undefined;
+  LogWorkout: {routineId:string}
 }
 
 // Stack for History Tab
@@ -38,6 +41,9 @@ export type HistoryStackParamList = {
 // Stack for Profile Tab
 export type ProfileStackParamList = {
   Profile: undefined;
+}
+export type ExercisesStackParamList = {
+  Exercises: undefined;
 }
 // App Stack Navigator types
 export type AppStackParamList = {

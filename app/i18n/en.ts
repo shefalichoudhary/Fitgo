@@ -47,6 +47,7 @@ const en = {
     homeTab: "Home",
     historyTab: "History",
     profileTab: "Profile",
+    exercisesTab: "Exercises",
   },
   demoCommunityScreen: {
     title: "Connect with the community",

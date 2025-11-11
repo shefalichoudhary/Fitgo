@@ -1,0 +1,20 @@
+CREATE TABLE `measurements` (
+	`id` text PRIMARY KEY NOT NULL,
+	`user_id` text NOT NULL,
+	`date` text,
+	`weight` real,
+	`body_fat` real,
+	`muscle_mass` real,
+	`waist` real,
+	`chest` real,
+	`shoulders` real,
+	`neck` real,
+	`hips` real,
+	`left_arm` real,
+	`right_arm` real,
+	`left_thigh` real,
+	`right_thigh` real,
+	`left_calf` real,
+	`right_calf` real,
+	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE no action
+);

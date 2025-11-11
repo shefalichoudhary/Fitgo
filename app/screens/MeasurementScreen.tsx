@@ -1,64 +1,101 @@
-import React, { useState } from "react"
-import { View, Text, TextInput, Button, StyleSheet, ScrollView, useColorScheme } from "react-native"
+import React, { useEffect, useState } from "react"
+import { View, Text, StyleSheet, ScrollView, useColorScheme } from "react-native"
+import { db } from "../utils/storage"
+import { measurements } from "../utils/storage/schema"
+import { desc } from "drizzle-orm"
+
+type Measurement = {
+  id: string
+  userId?: string
+  date: string | null
+  weight: number | null
+  bodyFat: number | null
+  muscleMass: number | null
+  waist: number | null
+  chest: number | null
+  shoulders?: number | null
+  neck?: number | null
+  hips?: number | null
+  leftArm?: number | null
+  rightArm?: number | null
+  leftThigh?: number | null
+  rightThigh?: number | null
+  leftCalf?: number | null
+  rightCalf?: number | null
+}
 
 export default function MeasurementScreen() {
   const colorScheme = useColorScheme()
   const isDark = colorScheme === "dark"
-
   const styles = getStyles(isDark)
 
-  const [measurements, setMeasurements] = useState({
-    weight: "",
-    bodyFat: "",
-    muscleMass: "",
-    waist: "",
-    chest: "",
-    date: new Date().toISOString().split("T")[0],
-  })
+  const [data, setData] = useState<Measurement[]>([])
 
-  const handleChange = (key: string, value: string) => {
-    setMeasurements({ ...measurements, [key]: value })
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const result = await db.select().from(measurements).orderBy(desc(measurements.date))
+        setData(result)
+      } catch (error) {
+        console.error("Error fetching measurements:", error)
+      }
+    }
+    fetchData()
+  }, [])
+
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return "No date available"
+    const date = new Date(dateString)
+    return date.toLocaleString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    })
   }
-
-  const handleSave = () => {
-    // TODO: Save to AsyncStorage, SQLite, or server
-    console.log("Measurements saved:", measurements)
-  }
-
-  const fields = [
-    { label: "Weight (kg)", key: "weight" },
-    { label: "Body Fat %", key: "bodyFat" },
-    { label: "Muscle Mass (kg)", key: "muscleMass" },
-    { label: "Waist (cm)", key: "waist" },
-    { label: "Chest (cm)", key: "chest" },
-    { label: "Date (YYYY-MM-DD)", key: "date" },
-  ]
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.heading}>Record Your Measurements</Text>
 
-      {fields.map(({ label, key }) => (
-        <View key={key} style={styles.inputContainer}>
-          <Text style={styles.label}>{label}</Text>
-          <TextInput
-            value={measurements[key as keyof typeof measurements]}
-            onChangeText={(val) => handleChange(key, val)}
-            style={styles.input}
-            placeholder={`Enter ${label.toLowerCase()}`}
-            placeholderTextColor={isDark ? "#888" : "#999"}
-            keyboardType="numeric"
-          />
-        </View>
-      ))}
+      {data.length === 0 ? (
+        <Text style={styles.empty}>No measurements yet</Text>
+      ) : (
+        data.map((m) => (
+          <View key={m.id} style={styles.entry}>
+            {/* Date outside the card */}
+            <Text style={styles.date}>{formatDate(m.date)}</Text>
 
-      <View style={styles.buttonContainer}>
-        <Button
-          title="Save Measurement"
-          onPress={handleSave}
-          color={isDark ? "#3b82f6" : undefined}
-        />
-      </View>
+            {/* Measurement details card */}
+            <View style={styles.card}>
+              <View style={styles.row}>
+                <Text style={styles.label}>Weight:</Text>
+                <Text style={styles.value}>{m.weight ? `${m.weight} kg` : "-"}</Text>
+              </View>
+
+              <View style={styles.row}>
+                <Text style={styles.label}>Body Fat:</Text>
+                <Text style={styles.value}>{m.bodyFat ? `${m.bodyFat}%` : "-"}</Text>
+              </View>
+
+              <View style={styles.row}>
+                <Text style={styles.label}>Muscle Mass:</Text>
+                <Text style={styles.value}>{m.muscleMass ? `${m.muscleMass} kg` : "-"}</Text>
+              </View>
+
+              <View style={styles.row}>
+                <Text style={styles.label}>Waist:</Text>
+                <Text style={styles.value}>{m.waist ? `${m.waist} cm` : "-"}</Text>
+              </View>
+
+              <View style={styles.row}>
+                <Text style={styles.label}>Chest:</Text>
+                <Text style={styles.value}>{m.chest ? `${m.chest} cm` : "-"}</Text>
+              </View>
+            </View>
+          </View>
+        ))
+      )}
     </ScrollView>
   )
 }
@@ -66,36 +103,47 @@ export default function MeasurementScreen() {
 const getStyles = (isDark: boolean) =>
   StyleSheet.create({
     container: {
-      flexGrow: 1,
       padding: 16,
-      backgroundColor: isDark ? "#121212" : "#fff",
+      backgroundColor: isDark ? "#121212" : "#f9f9f9",
     },
-    heading: {
-      fontSize: 22,
-      fontWeight: "bold",
-      marginBottom: 16,
+  
+    empty: {
       textAlign: "center",
-      color: isDark ? "#fff" : "#000",
+      color: isDark ? "#aaa" : "#666",
+      fontSize: 16,
+      marginTop: 32,
     },
-    inputContainer: {
-      marginBottom: 12,
+    entry: {
+      marginBottom: 20,
+    },
+    date: {
+      fontSize: 15,
+      fontWeight: "600",
+      color: isDark ? "#90caf9" : "#007aff",
+      marginBottom: 6,
+      marginLeft: 4,
+    },
+    card: {
+      backgroundColor: isDark ? "#1e1e1e" : "#fff",
+      borderRadius: 12,
+      padding: 16,
+      shadowColor: "#000",
+      shadowOpacity: 0.1,
+      shadowOffset: { width: 0, height: 2 },
+      shadowRadius: 4,
+      elevation: 3,
+    },
+    row: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginBottom: 6,
     },
     label: {
-      fontSize: 14,
-      fontWeight: "600",
-      marginBottom: 4,
-      color: isDark ? "#ccc" : "#333",
+      color: isDark ? "#ccc" : "#444",
+      fontSize: 15,
     },
-    input: {
-      height: 44,
-      borderColor: isDark ? "#444" : "#ccc",
-      borderWidth: 1,
-      borderRadius: 6,
-      paddingHorizontal: 10,
-      backgroundColor: isDark ? "#1e1e1e" : "#f9f9f9",
+    value: {
       color: isDark ? "#fff" : "#000",
-    },
-    buttonContainer: {
-      marginTop: 16,
+      fontWeight: "600",
     },
   })

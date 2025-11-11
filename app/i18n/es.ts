@@ -49,6 +49,8 @@ const es: Translations = {
     homeTab:"Home",
     historyTab:"History",
     profileTab:"Profile",
+    exercisesTab: "Exercises",
+
   },
   demoCommunityScreen: {
     title: "Conecta con la comunidad",

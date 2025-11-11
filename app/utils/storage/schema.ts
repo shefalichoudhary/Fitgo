@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
+import { sqliteTable, text, integer,real  } from "drizzle-orm/sqlite-core";
 import { InferSelectModel } from "drizzle-orm";
 import { sql } from "drizzle-orm";
 import cuid from "cuid";
@@ -45,7 +45,34 @@ export const exerciseMuscles = sqliteTable("exercise_muscles", {
     .references(() => muscles.id),
   role: text("role").notNull(),
 });
+export const measurements = sqliteTable("measurements", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => cuid()),
 
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id),
+
+  date: text("date").$defaultFn(() => new Date().toISOString()),
+
+  weight: real("weight"),
+  bodyFat: real("body_fat"),
+  muscleMass: real("muscle_mass"),
+
+  waist: real("waist"),
+  chest: real("chest"),
+  shoulders: real("shoulders"),
+  neck: real("neck"),
+  hips: real("hips"),
+
+  leftArm: real("left_arm"),
+  rightArm: real("right_arm"),
+  leftThigh: real("left_thigh"),
+  rightThigh: real("right_thigh"),
+  leftCalf: real("left_calf"),
+  rightCalf: real("right_calf"),
+})
 export const routines = sqliteTable("routines", {
   id: text("id")
     .primaryKey()

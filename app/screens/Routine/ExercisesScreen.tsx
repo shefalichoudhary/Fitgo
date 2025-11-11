@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react"
 import {
   View,
   Text,
-  TextInput,
   FlatList,
   TouchableOpacity,
   StyleSheet,
@@ -25,9 +24,9 @@ type Exercise = {
 }
 
 export default function ExercisesScreen() {
-  const [searchQuery, setSearchQuery] = useState("")
   const [selectedExercises, setSelectedExercises] = useState<string[]>([])
   const [exerciseData, setExerciseData] = useState<Exercise[]>([])
+  const [filteredExercises, setFilteredExercises] = useState<Exercise[]>([])
   const [loading, setLoading] = useState(true)
 
   const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList, "Exercises">>()
@@ -37,13 +36,13 @@ export default function ExercisesScreen() {
     const fetchExercises = async () => {
       try {
         const result = await db.select().from(exercisesTable).all()
-        setExerciseData(
-          result.map((item) => ({
-            id: item.id,
-            exercise_name: item.exercise_name,
-            muscleGroup: item.type, // you can adjust based on your schema
-          })),
-        )
+        const formatted = result.map((item) => ({
+          id: item.id,
+          exercise_name: item.exercise_name,
+          muscleGroup: item.type,
+        }))
+        setExerciseData(formatted)
+        setFilteredExercises(formatted)
       } catch (err) {
         console.error("❌ Failed to fetch exercises:", err)
       } finally {
@@ -54,32 +53,24 @@ export default function ExercisesScreen() {
     fetchExercises()
   }, [])
 
-  const filteredExercises = exerciseData.filter((exercise) =>
-    exercise.exercise_name.toLowerCase().includes(searchQuery.toLowerCase()),
-  )
-
   const toggleSelect = (id: string) => {
-    setSelectedExercises((prevSelected) =>
-      prevSelected.includes(id)
-        ? prevSelected.filter((item) => item !== id)
-        : [...prevSelected, id],
+    setSelectedExercises((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
     )
   }
 
   const handleAddExercises = () => {
-    const selectedExerciseObjects = selectedExercises
-      .map((id) => exerciseData.find((exercise) => exercise.id === id))
-      .filter((exercise): exercise is NonNullable<typeof exercise> => exercise !== undefined)
-      .map((exercise) => ({
-        id: exercise.id,
-        name: exercise.exercise_name, // map exercise_name → name
-        muscleGroup: exercise.muscleGroup || "Unknown", // ensure non-optional
-        sets: [], // initialize sets
+    const selected = selectedExercises
+      .map((id) => exerciseData.find((ex) => ex.id === id))
+      .filter((ex): ex is NonNullable<typeof ex> => ex !== undefined)
+      .map((ex) => ({
+        id: ex.id,
+        name: ex.exercise_name,
+        muscleGroup: ex.muscleGroup || "Unknown",
+        sets: [],
       }))
 
-    navigation.navigate("CreateRoutine", {
-      selectedExercises: selectedExerciseObjects,
-    })
+    navigation.navigate("CreateRoutine", { selectedExercises: selected })
   }
 
   if (loading) {
@@ -93,13 +84,16 @@ export default function ExercisesScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}> Select Exercises</Text>
 
+      {/* ✅ Reusable SearchBar */}
       <SearchBar
-        value={searchQuery}
-        onChangeText={setSearchQuery}
+        data={exerciseData}
+        filterKey="exercise_name"
+        onFilteredData={setFilteredExercises}
         placeholder="Search exercises..."
       />
+  <Text style={styles.exerciseCount}>
+    {filteredExercises.length} {filteredExercises.length === 1 ? "exercise" : "exercises"} on search results  </Text>
       <FlatList
         data={filteredExercises}
         keyExtractor={(item) => item.id}
@@ -138,37 +132,29 @@ export default function ExercisesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
-    backgroundColor: "#121212", // dark background
+    paddingHorizontal: 14,
+    paddingTop:8,
+    backgroundColor: "#121212",
   },
-  header: {
-    fontSize: 24,
-    fontWeight: "600",
-    color: "#fff", // bright header
-    marginBottom: 12,
-  },
-  searchBar: {
-    padding: 12,
-    backgroundColor: "#1F1F1F", // darker input background
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#333", // subtle border
-    marginBottom: 16,
-    fontSize: 16,
-    color: "#fff", // white text
-  },
+ 
   listContainer: {
-    paddingBottom: 100,
+    paddingBottom: 3,
   },
   bottomBar: {
     position: "absolute",
-    bottom: 20,
+    bottom: 24,
     left: 0,
     right: 0,
     alignItems: "center",
   },
+  exerciseCount: {
+  color: "#fff",
+  fontSize: 14,
+  fontWeight: "500",
+  marginBottom: 14,
+},
   bottomButton: {
-    backgroundColor: "#2563EB", // blue accent
+    backgroundColor: "#2563EB",
     paddingVertical: 14,
     paddingHorizontal: 24,
     borderRadius: 8,

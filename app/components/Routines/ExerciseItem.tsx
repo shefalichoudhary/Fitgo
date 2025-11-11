@@ -1,64 +1,60 @@
 import React from "react"
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native"
 
-type ExerciseItemProps = {
-  name: string
-  muscleGroup: string
-  onPress?: () => void
-  isSelected?: boolean // ✅ supports multi-select
-}
-
 export const ExerciseItem = ({
   name,
   muscleGroup,
   onPress,
-  isSelected = false,
-}: ExerciseItemProps) => {
+  isSelected,
+  children,
+}: {
+  name?: string
+  muscleGroup?: string
+  onPress?: () => void
+  isSelected?: boolean
+  children?: React.ReactNode
+}) => {
   return (
     <TouchableOpacity
-      style={[styles.itemContainer, isSelected && styles.itemContainerSelected]}
+      disabled={!onPress}
       onPress={onPress}
-      activeOpacity={0.8}
+      style={[
+        styles.card,
+        isSelected ? styles.selectedCard : null,
+      ]}
     >
-      <View style={styles.leftSection}>
-        <Text style={styles.nameText}>{name}</Text>
-      </View>
-      <Text style={styles.groupText}>{muscleGroup}</Text>
+      {name && <Text style={styles.title}>{name}</Text>}
+      {muscleGroup && <Text style={styles.subtitle}>{muscleGroup}</Text>}
+      {children && <View style={{ marginTop: 8 }}>{children}</View>}
     </TouchableOpacity>
   )
 }
 
+
 const styles = StyleSheet.create({
-  itemContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: 16,
-    backgroundColor: "#111010ff", // dark card background
+  card: {
+    backgroundColor: "#000000ff", // default black
     borderRadius: 10,
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: "#2A2A2A", // subtle border
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 4,
-    elevation: 2,
+    padding: 16,
+    marginBottom: 8,
   },
-  itemContainerSelected: {
-    backgroundColor: "#444242ff", // slightly brighter on selection
-    borderColor: "#202020ff", // accent blue border
+  selectedCard: {
+    backgroundColor: "#2b2b2bff", // white background when selected
   },
-  leftSection: {
-    flex: 1,
-  },
-  nameText: {
+  title: {
+    color: "#fff", // default text color
     fontSize: 16,
-    fontWeight: "500",
-    color: "#FFFFFF", // bright text for dark mode
+    fontWeight: "600",
   },
-  groupText: {
-    fontSize: 14,
-    color: "#AAAAAA", // dimmed secondary text
+  subtitle: {
+    color: "#aaa",
+    fontSize: 13,
+    marginTop: 4,
+  },
+  selectedText: {
+    color: "#000", // title color when selected
+  },
+  selectedSubtitle: {
+    color: "#555", // subtitle color when selected
   },
 })

@@ -1,7 +1,7 @@
 import { TextStyle, ViewStyle } from "react-native"
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
-import { MaterialCommunityIcons } from "@expo/vector-icons"
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons"
 import { useAppTheme } from "@/theme/context"
 import type { ThemedStyle } from "@/theme/types"
 import HistoryScreen from "@/screens/HistoryScreen"
@@ -9,6 +9,7 @@ import ProfileScreen from "@/screens/ProfileScreen"
 import type { DemoTabParamList } from "./navigationTypes"
 import { Header } from "@/components/Header"
 import { HomeStackNavigator } from "./HomeStackNavigator"
+import ExercisesScreen from "@/screens/Routine/ExercisesScreen"
 
 const Tab = createBottomTabNavigator<DemoTabParamList>()
 
@@ -50,6 +51,16 @@ export function DemoNavigator() {
           tabBarIcon: getTabBarIcon("home-outline"),
         }}
       />
+      <Tab.Screen
+    name="Exercises"
+    component={ExercisesScreen} // 👈 New one
+     options={{
+        header: () => <Header title="All Exercises" />,
+        tabBarLabel: "Exercises",
+        tabBarIcon: getTabBarIcon("dumbbell"),
+      }}
+
+  />
 
       <Tab.Screen
         name="History"
@@ -75,11 +86,10 @@ export function DemoNavigator() {
 }
 
 // Styles
-const $tabBar: ThemedStyle<ViewStyle> = ({ colors }) => ({
-  backgroundColor: colors.background,
-  borderTopColor: colors.transparent,
+const $tabBar: ThemedStyle<ViewStyle> = () => ({
+  backgroundColor: "#161616ff",
+  borderTopColor: "transparent",
 })
-
 const $tabBarItem: ThemedStyle<ViewStyle> = ({ spacing }) => ({
   paddingTop: spacing.xs,
 })

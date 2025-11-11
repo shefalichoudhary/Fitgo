@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react"
-import { StyleSheet, Text, Pressable, View, FlatList } from "react-native"
+import { StyleSheet, Text, Pressable, View, FlatList, TouchableOpacity } from "react-native"
 import { Ionicons } from "@expo/vector-icons"
 import { Screen } from "@/components/Screen"
 import { useNavigation } from "@react-navigation/native"
@@ -95,7 +95,16 @@ export default function RoutineScreen() {
                 <Text style={styles.routineText}>{item.title}</Text>
                 <Text style={styles.routineSubText}>{item.exercises.length} exercises</Text>
               </View>
-              <Ionicons name="chevron-forward" size={20} color="#888" />
+        <TouchableOpacity
+        style={styles.startButton}
+        onPress={() => {
+          // Navigate to workout screen or start workout logic
+         navigation.navigate("Log Workout" as any, { routineId: item.id })
+
+        }}
+      >
+        <Text style={styles.startButtonText}>Start</Text>
+      </TouchableOpacity>
             </Pressable>
           )}
           contentContainerStyle={styles.listContainer}
@@ -136,4 +145,17 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     lineHeight: 20,
   },
+  startButton: {
+  backgroundColor: "#2563EB",
+  paddingVertical: 8,
+  paddingHorizontal: 14,
+  borderRadius: 8,
+  marginLeft: 12,
+  alignSelf: "center",
+},
+startButtonText: {
+  color: "#fff",
+  fontWeight: "600",
+  fontSize: 14,
+},
 })

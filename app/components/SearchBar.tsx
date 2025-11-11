@@ -1,51 +1,45 @@
-import React from "react";
-import { View, TextInput, TouchableOpacity, StyleSheet } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { colors } from "@/theme/colors";
+import React, { useEffect, useMemo, useState } from "react";
+import { InputField } from "@/components/InputField";
 
-type SearchBarProps = {
-  value: string;
-  onChangeText: (text: string) => void;
+type SearchBarProps<T> = {
+  data: T[];
+  filterKey: keyof T;
+  onFilteredData: (filtered: T[]) => void;
   placeholder?: string;
+  autoFocus?: boolean;
 };
 
-export const SearchBar = ({ value, onChangeText, placeholder }: SearchBarProps) => {
+export function SearchBar<T>({
+  data,
+  filterKey,
+  onFilteredData,
+  placeholder = "Search...",
+  autoFocus = false,
+}: SearchBarProps<T>) {
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // ✅ Use useMemo for efficient filtering (avoids re-filtering unless needed)
+  const filteredData = useMemo(() => {
+    if (!searchQuery.trim()) return data;
+    return data.filter((item) => {
+      const value = String(item[filterKey] ?? "").toLowerCase();
+      return value.includes(searchQuery.toLowerCase());
+    });
+  }, [searchQuery, data, filterKey]);
+
+  // ✅ Send filtered data to parent only when it changes
+  useEffect(() => {
+    onFilteredData(filteredData);
+  }, [filteredData]);
+
   return (
-    <View style={styles.container}>
-      <TextInput
-        style={styles.input}
-        value={value}
-        onChangeText={onChangeText}
-        placeholder={placeholder || "Search..."}
-        placeholderTextColor="#AAAAAA"
-      />
-      {value.length > 0 && (
-        <TouchableOpacity onPress={() => onChangeText("")} style={styles.clearButton}>
-          <Ionicons name="close-circle" size={26} color="#aaaaaaff" />
-        </TouchableOpacity>
-      )}
-    </View>
+    <InputField
+      placeholder={placeholder}
+      value={searchQuery}
+      onChangeText={setSearchQuery}
+      leftIcon="search" // 👈 shows search icon
+      keyboardType="default"
+      secureTextEntry={false}
+    />
   );
-};
-
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#1F1F1F",
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#333",
-    marginBottom: 16,
-    paddingHorizontal: 12,
-  },
-  input: {
-    flex: 1,
-    height: 44,
-    color: "#fff",
-    fontSize: 16,
-  },
-  clearButton: {
-    marginLeft: 8,
-  },
-});
+}
