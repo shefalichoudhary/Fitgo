@@ -61,14 +61,20 @@ export default function ExerciseBlock({ data, onChange }: Props) {
 
   const [visibleSets, setVisibleSets] = useState(data.sets.length > 0 ? data.sets.length : 1)
 
-  const handleAddSet = () => {
-    if (visibleSets < data.sets.length) {
-      setVisibleSets((prev) => prev + 1)
-      return
-    }
-
-    // ... rest of your handleAddSet logic ...
+const handleAddSet = () => {
+  if (visibleSets < data.sets.length) {
+    setVisibleSets((prev) => prev + 1)
+    return
   }
+   const newSet: Set = {
+    reps: null,
+    weight: null,
+    unit: data.unit,
+    repsType: data.repsType,
+  }
+  const updatedSets = [...data.sets, newSet]
+  onChange({ ...data, sets: updatedSets })
+  setVisibleSets(updatedSets.length)
+}
 
-  // ... rest of your component JSX ...
 }

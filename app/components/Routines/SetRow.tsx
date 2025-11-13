@@ -1,6 +1,7 @@
 // components/SetRow.tsx
 import React from "react"
 import { View, TextInput, Pressable, Text, StyleSheet } from "react-native"
+import { Ionicons } from "@expo/vector-icons"
 
 type Props = {
   reps: string
@@ -12,17 +13,17 @@ type Props = {
   onToggleUnit: () => void
   onToggleRepsType: () => void
   onOpenRestTimer: () => void
+  onDelete?: () => void // NEW: delete callback
 }
 
 export const SetRow: React.FC<Props> = ({
   reps,
   weight,
   repsType,
-  unit,
   onRepsChange,
   onWeightChange,
-  onToggleUnit,
-  onToggleRepsType,
+
+  onDelete,
 }) => {
   return (
     <View style={styles.row}>
@@ -35,9 +36,7 @@ export const SetRow: React.FC<Props> = ({
           style={styles.input}
           keyboardType="numeric"
         />
-        <Pressable onPress={onToggleRepsType} style={styles.toggle}>
-          <Text style={styles.toggleText}>{repsType === "reps" ? "R" : "Rng"}</Text>
-        </Pressable>
+       
       </View>
 
       <View style={styles.inputWrapper}>
@@ -49,20 +48,34 @@ export const SetRow: React.FC<Props> = ({
           style={styles.input}
           keyboardType="numeric"
         />
-        <Pressable onPress={onToggleUnit} style={styles.toggle}>
-          <Text style={styles.toggleText}>{unit}</Text>
-        </Pressable>
+       
       </View>
+
+      {/* Delete button */}
+      {onDelete && (
+        <Pressable
+  onPress={onDelete}
+  style={({ pressed }) => [
+    { padding: 6, opacity: pressed ? 0.6 : 1 }
+  ]}
+>
+  <Ionicons name="trash-outline" size={20} color="#EF4444" />
+</Pressable>
+
+      )}
     </View>
   )
 }
 
 const styles = StyleSheet.create({
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 12,
-  },
+row: {
+  flexDirection: "row",
+  alignItems: "center",
+  marginBottom: 12,
+  backgroundColor: "#1F1F1F",
+  borderRadius: 8,
+  padding: 4,
+},
   inputWrapper: {
     flex: 1,
     flexDirection: "row",
@@ -88,12 +101,7 @@ const styles = StyleSheet.create({
     color: "#3b82f6",
     fontWeight: "600",
   },
-  rest: {
-    width: 40,
-    alignItems: "center",
-  },
-  restText: {
-    fontSize: 20,
-    color: "#3b82f6",
+  deleteButton: {
+    padding: 6,
   },
 })
