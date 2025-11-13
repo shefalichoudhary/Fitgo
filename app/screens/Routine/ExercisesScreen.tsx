@@ -1,12 +1,5 @@
 import React, { useEffect, useState } from "react"
-import {
-  View,
-  Text,
-  FlatList,
-  TouchableOpacity,
-  StyleSheet,
-  ActivityIndicator,
-} from "react-native"
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator } from "react-native"
 import { ExerciseItem } from "@/components/Routines/ExerciseItem"
 import { colors } from "@/theme/colors"
 import { useNavigation } from "@react-navigation/native"
@@ -27,7 +20,7 @@ export default function ExercisesScreen() {
   const [filteredExercises, setFilteredExercises] = useState<Exercise[]>([])
   const [loading, setLoading] = useState(true)
 
-const navigation = useNavigation<DemoTabScreenProps<"Exercises">["navigation"]>()
+  const navigation = useNavigation<DemoTabScreenProps<"Exercises">["navigation"]>()
 
   // Fetch exercises from DB
   useEffect(() => {
@@ -57,23 +50,22 @@ const navigation = useNavigation<DemoTabScreenProps<"Exercises">["navigation"]>(
     )
   }
 
- const handleAddExercises = () => {
-  const selected = selectedExercises
-    .map((id) => exerciseData.find((ex) => ex.id === id))
-    .filter((ex): ex is NonNullable<typeof ex> => ex !== undefined)
-    .map((ex) => ({
-      id: ex.id,
-      name: ex.exercise_name,
-      muscleGroup: ex.muscleGroup || "Unknown",
-      sets: [],
-    }))
+  const handleAddExercises = () => {
+    const selected = selectedExercises
+      .map((id) => exerciseData.find((ex) => ex.id === id))
+      .filter((ex): ex is NonNullable<typeof ex> => ex !== undefined)
+      .map((ex) => ({
+        id: ex.id,
+        name: ex.exercise_name,
+        muscleGroup: ex.muscleGroup || "Unknown",
+        sets: [],
+      }))
 
-  navigation.navigate("Home", {
-    screen: "CreateRoutine",
-    params: { selectedExercises: selected },
-  })
-}
-
+    navigation.navigate("Home", {
+      screen: "CreateRoutine",
+      params: { selectedExercises: selected },
+    })
+  }
 
   if (loading) {
     return (
@@ -86,16 +78,16 @@ const navigation = useNavigation<DemoTabScreenProps<"Exercises">["navigation"]>(
 
   return (
     <View style={styles.container}>
-
-      {/* ✅ Reusable SearchBar */}
       <SearchBar
         data={exerciseData}
         filterKey="exercise_name"
         onFilteredData={setFilteredExercises}
         placeholder="Search exercises..."
       />
-  <Text style={styles.exerciseCount}>
-    {filteredExercises.length} {filteredExercises.length === 1 ? "exercise" : "exercises"} on search results  </Text>
+      <Text style={styles.exerciseCount}>
+        {filteredExercises.length} {filteredExercises.length === 1 ? "exercise" : "exercises"} on
+        search results{" "}
+      </Text>
       <FlatList
         data={filteredExercises}
         keyExtractor={(item) => item.id}
@@ -135,10 +127,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 14,
-    paddingTop:8,
+    paddingTop: 8,
     backgroundColor: "#121212",
   },
- 
+
   listContainer: {
     paddingBottom: 3,
   },
@@ -150,11 +142,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   exerciseCount: {
-  color: "#fff",
-  fontSize: 14,
-  fontWeight: "500",
-  marginBottom: 14,
-},
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "500",
+    marginBottom: 14,
+  },
   bottomButton: {
     backgroundColor: "#2563EB",
     paddingVertical: 14,
