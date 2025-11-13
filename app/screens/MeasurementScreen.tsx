@@ -122,13 +122,13 @@ export default function MeasurementScreen() {
       )}
 
       {/* Delete Confirmation Modal */}
-        <ConfirmModal
-  visible={!!selectedMeasurement}
-  title="Delete Measurement?"
-  message="Are you sure you want to delete this measurement?"
-  onCancel={closePopup}
-  onConfirm={() => selectedMeasurement && handleDelete(selectedMeasurement.id)}
-/>
+      <ConfirmModal
+        visible={!!selectedMeasurement}
+        title="Delete Measurement?"
+        message="Are you sure you want to delete this measurement?"
+        onCancel={closePopup}
+        onConfirm={() => selectedMeasurement && handleDelete(selectedMeasurement.id)}
+      />
     </ScrollView>
   )
 }
@@ -158,6 +158,4 @@ const getStyles = (isDark: boolean) =>
     row: { flexDirection: "row", justifyContent: "space-between", marginBottom: 6 },
     label: { color: isDark ? "#ccc" : "#444", fontSize: 15 },
     value: { color: isDark ? "#fff" : "#000", fontWeight: "600" },
-   
-    
   })

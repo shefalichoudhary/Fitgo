@@ -177,7 +177,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#111111ff",
   },
-  optionsContainer: { gap: 14 ,marginBottom:14,},
+  optionsContainer: { gap: 14, marginBottom: 14 },
   optionCard: {
     flexDirection: "row",
     alignItems: "center",
