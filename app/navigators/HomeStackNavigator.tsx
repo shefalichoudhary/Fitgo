@@ -81,7 +81,21 @@ export function HomeStackNavigator() {
           ),
         })}
       />
-      <Stack.Screen name="Exercises" component={ExercisesScreen} />
+<Stack.Screen
+  name="CreateRoutineExercises"
+  component={ExercisesScreen}
+  initialParams={{ fromCreateRoutine: true }}
+  options={({ navigation }) => ({
+    header: () => (
+      <Header
+        title="Select Exercises"
+        leftIcon="back"
+        onLeftPress={navigation.goBack}
+      />
+    ),
+  })}
+/>
+
       <Stack.Screen name="Add Measurement" component={AddMeasurementScreen} />
  <Stack.Screen
   name="Log Workout"

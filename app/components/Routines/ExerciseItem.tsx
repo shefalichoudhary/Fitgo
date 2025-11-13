@@ -1,5 +1,7 @@
 import React from "react"
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native"
+import Sound from "react-native-sound"
+
 
 export const ExerciseItem = ({
   name,
@@ -14,6 +16,7 @@ export const ExerciseItem = ({
   isSelected?: boolean
   children?: React.ReactNode
 }) => {
+ 
   return (
     <TouchableOpacity
       disabled={!onPress}

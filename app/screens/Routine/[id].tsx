@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react"
-import { View, Text, StyleSheet, FlatList } from "react-native"
+import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity } from "react-native"
 import { Screen } from "@/components/Screen"
 import { Ionicons } from "@expo/vector-icons"
 import { useRoute, RouteProp } from "@react-navigation/native"
 import { db } from "@/utils/storage"
-import { routines, routineExercises, routineSets } from "@/utils/storage/schema"
+import { routines, routineExercises, routineSets, exercises } from "@/utils/storage/schema"
 import { eq, and } from "drizzle-orm"
-
+import AntDesign from "@expo/vector-icons/AntDesign"
 type RootStackParamList = {
   RoutineDetails: { id: string }
 }
@@ -30,14 +30,15 @@ type RoutineWithExercises = {
 export default function RoutineDetailsScreen() {
   const route = useRoute<RouteProp<RootStackParamList, "RoutineDetails">>()
   const { id } = route.params
-
+  const [showConfirmModal, setShowConfirmModal] = useState(false)
   const [routine, setRoutine] = useState<RoutineWithExercises | null>(null)
   const [loading, setLoading] = useState(true)
+  const [titleEditing, setTitleEditing] = useState(false)
+  const [title, setTitle] = useState("")
 
   useEffect(() => {
     const fetchRoutine = async () => {
       try {
-        // 1️⃣ Get routine
         const [routineRow] = await db.select().from(routines).where(eq(routines.id, id))
         if (!routineRow) {
           setRoutine(null)
@@ -45,7 +46,6 @@ export default function RoutineDetailsScreen() {
           return
         }
 
-        // 2️⃣ Get exercises
         const exercisesRows = await db
           .select()
           .from(routineExercises)
@@ -53,6 +53,11 @@ export default function RoutineDetailsScreen() {
 
         const exercisesWithSets = await Promise.all(
           exercisesRows.map(async (ex) => {
+            const [exerciseRow] = await db
+              .select()
+              .from(exercises)
+              .where(eq(exercises.id, ex.exerciseId))
+
             const setsRows = await db
               .select()
               .from(routineSets)
@@ -60,13 +65,13 @@ export default function RoutineDetailsScreen() {
 
             return {
               id: ex.exerciseId,
-              name: ex.notes || "Exercise", // fallback if you store name elsewhere
+              name: exerciseRow?.exercise_name || "Unnamed Exercise",
               sets: setsRows.map((s) => ({
                 id: s.id,
-                reps: s.reps ?? 0, // fallback if null
+                reps: s.reps ?? 0,
                 weight: s.weight,
-                unit: "kg" as "lbs" | "kg", // assign default, since not in DB
-                repsType: "reps" as "reps" | "rep range", // assign default
+                unit: "kg" as "lbs" | "kg",
+                repsType: "reps" as "reps" | "rep range",
               })),
             }
           }),
@@ -77,6 +82,7 @@ export default function RoutineDetailsScreen() {
           title: routineRow.name,
           exercises: exercisesWithSets,
         })
+        setTitle(routineRow.name)
       } catch (err) {
         console.error("Failed to fetch routine:", err)
         setRoutine(null)
@@ -95,6 +101,33 @@ export default function RoutineDetailsScreen() {
       </Screen>
     )
   }
+  const saveTitle = () => {
+    if (!routine) return
+    if (title === routine.title) {
+      setTitleEditing(false)
+      return
+    }
+    setShowConfirmModal(true)
+  }
+
+  const confirmUpdate = async () => {
+    if (!routine) return
+    try {
+      await db.update(routines).set({ name: title }).where(eq(routines.id, routine.id))
+      setRoutine({ ...routine, title })
+    } catch (err) {
+      console.error("Failed to update title:", err)
+    } finally {
+      setShowConfirmModal(false)
+      setTitleEditing(false)
+    }
+  }
+
+  const cancelUpdate = () => {
+    setTitle(routine?.title || "")
+    setShowConfirmModal(false)
+    setTitleEditing(false)
+  }
 
   if (!routine) {
     return (
@@ -109,7 +142,29 @@ export default function RoutineDetailsScreen() {
     <Screen contentContainerStyle={styles.container}>
       {/* Routine Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>{routine.title}</Text>
+        <View
+          style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}
+        >
+          {titleEditing ? (
+            <TextInput
+              style={styles.titleInput}
+              value={title}
+              onChangeText={setTitle}
+              onBlur={saveTitle}
+              onSubmitEditing={saveTitle}
+              autoFocus
+            />
+          ) : (
+            <Text style={styles.title}>{routine.title}</Text>
+          )}
+
+          {/* Edit Button */}
+          {!titleEditing && (
+            <TouchableOpacity onPress={() => setTitleEditing(true)}>
+              <AntDesign name="edit" size={24} color="#2563EB" />
+            </TouchableOpacity>
+          )}
+        </View>
         <Text style={styles.subtitle}>
           {routine.exercises.length} {routine.exercises.length === 1 ? "exercise" : "exercises"}
         </Text>
@@ -141,6 +196,23 @@ export default function RoutineDetailsScreen() {
           </View>
         )}
       />
+      {showConfirmModal && (
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>Confirm Update</Text>
+            <Text style={styles.modalMessage}>Do you want to update the routine title?</Text>
+
+          <View style={styles.modalButtons}>
+  <TouchableOpacity style={[styles.modalButton, styles.modalButtonCancel]} onPress={cancelUpdate}>
+    <Text style={styles.modalButtonText}>Cancel</Text>
+  </TouchableOpacity>
+  <TouchableOpacity style={[styles.modalButton, styles.modalButtonUpdate]} onPress={confirmUpdate}>
+    <Text style={styles.modalButtonText}>Update</Text>
+  </TouchableOpacity>
+</View>
+          </View>
+        </View>
+      )}
     </Screen>
   )
 }
@@ -161,6 +233,16 @@ const styles = StyleSheet.create({
     fontSize: 26,
     fontWeight: "700",
     marginBottom: 4,
+  },
+  titleInput: {
+    color: "#fff",
+    fontSize: 26,
+    fontWeight: "700",
+    marginBottom: 4,
+    borderBottomWidth: 1,
+    borderBottomColor: "#2563EB",
+    paddingVertical: 2,
+    flex: 1,
   },
   subtitle: {
     color: "#9CA3AF",
@@ -216,4 +298,54 @@ const styles = StyleSheet.create({
     fontSize: 18,
     marginTop: 12,
   },
+  modalOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 1000,
+  },
+  modalContainer: {
+    width: "80%",
+    backgroundColor: "#1F1F1F",
+    borderRadius: 16,
+    padding: 20,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#fff",
+    marginBottom: 8,
+  },
+  modalMessage: {
+    color: "#ccc",
+    fontSize: 14,
+    marginBottom: 16,
+  },
+  modalButtons: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    gap: 10,
+  },
+
+  modalButtonText: {
+    color: "#fff",
+    fontWeight: "600",
+  },
+  modalButton: {
+  paddingVertical: 8,
+  paddingHorizontal: 16,
+  borderRadius: 8,
+},
+modalButtonCancel: {
+  marginRight: 10,
+  backgroundColor: "#777",
+},
+modalButtonUpdate: {
+  backgroundColor: "#2563EB",
+},
 })

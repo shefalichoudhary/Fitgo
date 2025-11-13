@@ -6,6 +6,7 @@ import { DemoNavigator } from "./DemoNavigator"
 import type { AppStackParamList, NavigationProps } from "./navigationTypes"
 import { navigationRef } from "./navigationUtilities"
 
+
 const Stack = createNativeStackNavigator<AppStackParamList>()
 const exitRoutes = Config.exitRoutes
 

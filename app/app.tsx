@@ -24,6 +24,8 @@ import { initialWindowMetrics, SafeAreaProvider } from "react-native-safe-area-c
 import { AuthProvider } from "./context/AuthContext"
 import { ThemeProvider } from "./theme/context"
 import RootLayout from "./rootLayout"
+import { GestureHandlerRootView } from "react-native-gesture-handler"
+
 export const NAVIGATION_PERSISTENCE_KEY = "NAVIGATION_STATE"
 
 /**
@@ -33,6 +35,8 @@ export const NAVIGATION_PERSISTENCE_KEY = "NAVIGATION_STATE"
  */
 export function App() {
   return (
+        <GestureHandlerRootView style={{ flex: 1 }}>
+
     <SafeAreaProvider initialMetrics={initialWindowMetrics}>
       <KeyboardProvider>
         <RoutineProvider>
@@ -44,5 +48,7 @@ export function App() {
         </RoutineProvider>
       </KeyboardProvider>
     </SafeAreaProvider>
+        </GestureHandlerRootView>
+
   )
 }

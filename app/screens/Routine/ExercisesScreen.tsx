@@ -10,13 +10,11 @@ import {
 import { ExerciseItem } from "@/components/Routines/ExerciseItem"
 import { colors } from "@/theme/colors"
 import { useNavigation } from "@react-navigation/native"
-import type { NativeStackNavigationProp } from "@react-navigation/native-stack"
-import type { HomeStackParamList } from "@/navigators/navigationTypes"
 import { db } from "@/utils/storage"
 import { exercises as exercisesTable } from "@/utils/storage/schema"
 import { SearchBar } from "@/components/SearchBar"
 import { Ionicons } from "@expo/vector-icons"
-
+import type { DemoTabScreenProps } from "@/navigators/navigationTypes"
 type Exercise = {
   id: string
   exercise_name: string
@@ -29,7 +27,7 @@ export default function ExercisesScreen() {
   const [filteredExercises, setFilteredExercises] = useState<Exercise[]>([])
   const [loading, setLoading] = useState(true)
 
-  const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList, "Exercises">>()
+const navigation = useNavigation<DemoTabScreenProps<"Exercises">["navigation"]>()
 
   // Fetch exercises from DB
   useEffect(() => {
@@ -59,19 +57,23 @@ export default function ExercisesScreen() {
     )
   }
 
-  const handleAddExercises = () => {
-    const selected = selectedExercises
-      .map((id) => exerciseData.find((ex) => ex.id === id))
-      .filter((ex): ex is NonNullable<typeof ex> => ex !== undefined)
-      .map((ex) => ({
-        id: ex.id,
-        name: ex.exercise_name,
-        muscleGroup: ex.muscleGroup || "Unknown",
-        sets: [],
-      }))
+ const handleAddExercises = () => {
+  const selected = selectedExercises
+    .map((id) => exerciseData.find((ex) => ex.id === id))
+    .filter((ex): ex is NonNullable<typeof ex> => ex !== undefined)
+    .map((ex) => ({
+      id: ex.id,
+      name: ex.exercise_name,
+      muscleGroup: ex.muscleGroup || "Unknown",
+      sets: [],
+    }))
 
-    navigation.navigate("CreateRoutine", { selectedExercises: selected })
-  }
+  navigation.navigate("Home", {
+    screen: "CreateRoutine",
+    params: { selectedExercises: selected },
+  })
+}
+
 
   if (loading) {
     return (

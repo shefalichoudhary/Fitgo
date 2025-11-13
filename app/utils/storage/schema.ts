@@ -49,23 +49,18 @@ export const measurements = sqliteTable("measurements", {
   id: text("id")
     .primaryKey()
     .$defaultFn(() => cuid()),
-
   userId: text("user_id")
     .notNull()
     .references(() => users.id),
-
   date: text("date").$defaultFn(() => new Date().toISOString()),
-
   weight: real("weight"),
   bodyFat: real("body_fat"),
   muscleMass: real("muscle_mass"),
-
   waist: real("waist"),
   chest: real("chest"),
   shoulders: real("shoulders"),
   neck: real("neck"),
   hips: real("hips"),
-
   leftArm: real("left_arm"),
   rightArm: real("right_arm"),
   leftThigh: real("left_thigh"),
@@ -80,6 +75,9 @@ export const routines = sqliteTable("routines", {
   name: text("name").notNull(),
   createdBy: text("created_by"),
   createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
+   isPreMade: integer("is_pre_made").default(0),
+     level: text("level").default("beginner"),
+       description: text("description").default(""),
 });
 
 export const routineExercises = sqliteTable("routine_exercises", {

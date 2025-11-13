@@ -1,115 +1,127 @@
-import React, { useEffect, useState } from "react"
-import { StyleSheet, Text, Pressable, View, FlatList, TouchableOpacity } from "react-native"
-import { Ionicons } from "@expo/vector-icons"
+import React from "react"
+import { View, Text, StyleSheet } from "react-native"
 import { Screen } from "@/components/Screen"
-import { useNavigation } from "@react-navigation/native"
-import type { NativeStackNavigationProp } from "@react-navigation/native-stack"
+import DraggableFlatList from "react-native-draggable-flatlist"
+import { RoutineCard } from "./../../components/Routines/RoutineCard"
+import { useRoutines, RoutineWithExercises } from "../../../hooks/useRoutines"
 import { db } from "@/utils/storage"
 import { routines, routineExercises, routineSets } from "@/utils/storage/schema"
-import { eq, and } from "drizzle-orm"
-
-type RoutineWithExercises = {
-  id: string
-  title: string
-  exercises: {
-    id: string
-    sets: number
-  }[]
-}
-
-type RootStackParamList = {
-  RoutineDetails: { id: string }
-}
+import { sql } from "drizzle-orm"
+import cuid from "cuid";
 
 export default function RoutineScreen() {
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>()
-  const [routinesData, setRoutinesData] = useState<RoutineWithExercises[]>([])
+  const { routinesData, setRoutinesData, loading } = useRoutines()
+  const handleDelete = async (id: string) => {
+    try {
+      // Delete all sets related to this routine
+      await db.delete(routineSets).where(sql`${routineSets.routineId} = ${id}`)
 
-  useEffect(() => {
-    const fetchRoutines = async () => {
-      try {
-        const routinesRows = await db.select().from(routines)
+      // Delete all exercises related to this routine
+      await db.delete(routineExercises).where(sql`${routineExercises.routineId} = ${id}`)
 
-        const routinesWithExercises: RoutineWithExercises[] = []
+      // Delete the routine itself
+      await db.delete(routines).where(sql`${routines.id} = ${id}`)
 
-        for (const routine of routinesRows) {
-          // Get exercises for this routine
-          const exercisesRows = await db
-            .select()
-            .from(routineExercises)
-            .where(eq(routineExercises.routineId, routine.id)) // ✅ eq helper
+      // Update local state
+      setRoutinesData(routinesData.filter((r) => r.id !== id))
+    } catch (error) {
+      console.error("Failed to delete routine:", error)
+    }
+  }
 
-          const exercisesWithSets = await Promise.all(
-            exercisesRows.map(async (ex) => {
-              // Count sets for each exercise
-              const setsRows = await db
-                .select()
-                .from(routineSets)
-                .where(
-                  and(
-                    eq(routineSets.exerciseId, ex.exerciseId),
-                    eq(routineSets.routineId, routine.id),
-                  ),
-                ) // ✅ combine conditions with and()
 
-              return { id: ex.exerciseId, sets: setsRows.length }
-            }),
-          )
+const handleDuplicate = async (routine: RoutineWithExercises) => {
+  try {
+    const newRoutineId = cuid();
 
-          routinesWithExercises.push({
-            id: routine.id,
-            title: routine.name,
-            exercises: exercisesWithSets,
-          })
+    // Insert routine in DB
+    await db.insert(routines).values({
+      id: newRoutineId,
+      name: routine.title + " (Copy)", // map `title` to DB `name`
+      createdBy: null,
+      isPreMade: 0,
+      level: "beginner",
+      description: "",
+    });
+
+    // Insert routine exercises and sets
+    for (const ex of routine.exercises) {
+      const newExId = cuid();
+
+      // Insert routine exercise
+      await db.insert(routineExercises).values({
+        id: newExId,
+        routineId: newRoutineId,
+        exerciseId: ex.id, // map ex.id to exerciseId
+        notes: "",          // default
+        unit: "kg",         // default
+        repsType: "reps",   // default
+        restTimer: 0,
+      });
+
+      // Insert sets
+      // Make sure ex.sets is an array, not a number
+      if (Array.isArray(ex.sets)) {
+        for (const set of ex.sets) {
+          await db.insert(routineSets).values({
+            id: cuid(),
+            routineId: newRoutineId,
+            exerciseId: newExId,
+            weight: set.weight ?? 0,
+            reps: set.reps ?? 0,
+            minReps: set.minReps ?? 0,
+            maxReps: set.maxReps ?? 0,
+            duration: set.duration ?? 0,
+            setType: set.setType ?? "Normal",
+          });
         }
-
-        setRoutinesData(routinesWithExercises)
-      } catch (err) {
-        console.error("Failed to fetch routines:", err)
       }
     }
 
-    fetchRoutines()
-  }, [])
+    // Update local state
+    setRoutinesData([
+      {
+        ...routine,
+        id: newRoutineId,
+        title: routine.title + " (Copy)",
+      },
+      ...routinesData,
+    ]);
+  } catch (error) {
+    console.error("Failed to duplicate routine:", error);
+  }
+};
+
+
+  if (loading) {
+    return (
+      <Screen contentContainerStyle={styles.center}>
+        <Text style={{ color: "#121212" }}>Loading routines...</Text>
+      </Screen>
+    )
+  }
+
+  if (!routinesData.length) {
+    return (
+      <Screen contentContainerStyle={styles.center}>
+        <Text style={{ color: "#121212" }}>No routines yet 💪</Text>
+      </Screen>
+    )
+  }
 
   return (
     <Screen contentContainerStyle={styles.container}>
-      {routinesData.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <Ionicons name="fitness-outline" size={72} color="#555" />
-          <Text style={styles.emptyTitle}>No Routines Yet</Text>
-          <Text style={styles.emptySubtitle}>
-            Create your first workout routine and start tracking your progress.
-          </Text>
-        </View>
-      ) : (
-        <FlatList
-          data={routinesData}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <Pressable
-              style={styles.routineCard}
-              onPress={() => navigation.navigate("RoutineDetails", { id: item.id })}
-            >
-              <View>
-                <Text style={styles.routineText}>{item.title}</Text>
-                <Text style={styles.routineSubText}>{item.exercises.length} exercises</Text>
-              </View>
-        <TouchableOpacity
-        style={styles.startButton}
-        onPress={() => {
-          // Navigate to workout screen or start workout logic
-         navigation.navigate("Log Workout" as any, { routineId: item.id })
-
-        }}
-      >
-        <Text style={styles.startButtonText}>Start</Text>
-      </TouchableOpacity>
-            </Pressable>
-          )}
-          contentContainerStyle={styles.listContainer}
-        />
-      )}
+      <DraggableFlatList
+        data={routinesData}
+        keyExtractor={(item) => item.id}
+        renderItem={(params) => (
+          <RoutineCard {...params} onDelete={handleDelete} onDuplicate={handleDuplicate} />
+        )}
+        onDragEnd={({ data }) => setRoutinesData(data)}
+        activationDistance={10}
+        animationConfig={{ damping: 20, mass: 0.8, stiffness: 120 }}
+        contentContainerStyle={styles.listContainer}
+      />
     </Screen>
   )
 }
@@ -117,45 +129,5 @@ export default function RoutineScreen() {
 const styles = StyleSheet.create({
   container: { flexGrow: 1, paddingVertical: 10, backgroundColor: "#121212" },
   listContainer: { paddingHorizontal: 20, paddingBottom: 20 },
-  routineCard: {
-    backgroundColor: "#1E1E1E",
-    paddingVertical: 18,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  routineText: { color: "#fff", fontSize: 16, fontWeight: "600" },
-  routineSubText: { color: "#9CA3AF", fontSize: 13, marginTop: 4 },
-  emptyContainer: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 24,
-    paddingVertical: 100,
-  },
-  emptyTitle: { color: "#fff", fontSize: 22, fontWeight: "700", marginTop: 16 },
-  emptySubtitle: {
-    color: "#aaa",
-    fontSize: 14,
-    textAlign: "center",
-    marginTop: 8,
-    marginBottom: 20,
-    lineHeight: 20,
-  },
-  startButton: {
-  backgroundColor: "#2563EB",
-  paddingVertical: 8,
-  paddingHorizontal: 14,
-  borderRadius: 8,
-  marginLeft: 12,
-  alignSelf: "center",
-},
-startButtonText: {
-  color: "#fff",
-  fontWeight: "600",
-  fontSize: 14,
-},
+  center: { flex: 1, justifyContent: "center", alignItems: "center" },
 })
