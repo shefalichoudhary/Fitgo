@@ -180,7 +180,7 @@ export default function ProfileScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#080808ff", padding: 20 },
+  container: { flex: 1, backgroundColor: "#080808ff", padding: 12 },
   loaderContainer: {
     flex: 1,
     justifyContent: "center",

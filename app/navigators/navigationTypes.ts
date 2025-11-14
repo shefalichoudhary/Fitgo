@@ -31,11 +31,14 @@ CreateRoutine: {
   Exercises: undefined;
   AddMeasurement: undefined;
   LogWorkout: {routineId:string}
+  WorkoutDetails :{id:string};
+
 }
 
 // Stack for History Tab
 export type HistoryStackParamList = {
   History: undefined;
+    WorkoutDetails: { id: string }
 }
 
 // Stack for Profile Tab

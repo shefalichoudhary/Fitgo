@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react"
-import { FlatList, StyleSheet, Text, Alert } from "react-native"
+import { FlatList, StyleSheet, Text, Alert, View } from "react-native"
 import { Screen } from "@/components/Screen"
 import { useRoute, useNavigation } from "@react-navigation/native"
 import { useWorkoutData } from "../../../hooks/useWorkoutData"
@@ -71,20 +71,25 @@ export default function LogWorkoutScreen() {
 
   return (
     <Screen contentContainerStyle={styles.container}>
-      <Text style={styles.title}>{routineTitle}</Text>
+      <View style={styles.titleContainer}>
+        <Text style={styles.title}>{routineTitle}</Text>
+      </View>
+
       <WorkoutSummary
         completedSets={completedSets}
         totalSets={totalSets}
         totalVolume={totalVolume}
         duration={duration}
       />
+
       <FlatList
         data={exercisesData}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <ExerciseCard exercise={item} onToggleSet={(setId) => toggleSetCompletion(item.id, setId)} />
         )}
-        contentContainerStyle={{ paddingBottom: 20 }}
+        contentContainerStyle={{ paddingBottom: 30 }}
+        showsVerticalScrollIndicator={false}
       />
     </Screen>
   )
@@ -92,5 +97,6 @@ export default function LogWorkoutScreen() {
 
 const styles = StyleSheet.create({
   container: { flexGrow: 1, padding: 16, backgroundColor: "#121212" },
-  title: { color: "#fff", fontSize: 22, fontWeight: "700", marginBottom: 16, marginLeft: 10 },
+  titleContainer: { marginBottom: 16 },
+  title: { color: "#fff", fontSize: 24, fontWeight: "bold" },
 })

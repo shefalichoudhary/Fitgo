@@ -11,6 +11,7 @@ import RoutineDetailsScreen from "@/screens/Routine/[id]"
 import Entypo from '@expo/vector-icons/Entypo';
 import AddMeasurementScreen from "@/screens/AddMeasurementScreen"
 import LogWorkoutScreen from "@/screens/Routine/LogWorkoutScreen"
+import WorkoutDetailsScreen from "@/screens/workout/[id]"
 
 const Stack = createNativeStackNavigator()
 
@@ -109,6 +110,19 @@ export function HomeStackNavigator() {
          rightText="Save"
               onRightPress={() => navigation.navigate("History")}
        
+      />
+    ),
+  })}
+/>
+ <Stack.Screen
+  name="WorkoutDetails"
+  component={WorkoutDetailsScreen}
+  options={({ navigation }) => ({
+    header: () => (
+      <Header
+        title="Workout Details"
+        leftIcon="back"
+        onLeftPress={navigation.goBack}
       />
     ),
   })}

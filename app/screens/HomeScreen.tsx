@@ -4,11 +4,10 @@ import { Screen } from "@/components/Screen"
 import { useNavigation } from "@react-navigation/native"
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack"
 import { db } from "@/utils/storage"
-import { users, routines } from "@/utils/storage/schema" // add premade routines table
+import {  routines } from "@/utils/storage/schema" // add premade routines table
 import { Ionicons, MaterialIcons, FontAwesome5 } from "@expo/vector-icons"
 import { eq } from "drizzle-orm"
 
-type Exercise = { name: string; sets: number }
 
 export const HomeScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<any>>()

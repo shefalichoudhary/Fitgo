@@ -15,13 +15,35 @@ export const ExerciseCard = ({
 }) => (
   <View style={styles.card}>
     <Text style={styles.title}>{exercise.name}</Text>
-    {exercise.sets.map((set, idx) => (
-      <SetRow key={set.id} idx={idx} set={set} onToggle={() => onToggleSet(set.id)} />
-    ))}
+    <View style={styles.setsContainer}>
+      {exercise.sets.map((set, idx) => (
+        <SetRow key={set.id} idx={idx} set={set} onToggle={() => onToggleSet(set.id)} />
+      ))}
+    </View>
   </View>
 )
 
 const styles = StyleSheet.create({
-  card: { marginBottom: 16, padding: 12, backgroundColor: "#1E1E1E", borderRadius: 10 },
-  title: { color: "#fff", fontSize: 16, fontWeight: "600", marginBottom: 8 },
+  card: {
+    marginBottom: 16,
+    padding: 20,
+    backgroundColor: "#1F1F1F",
+    borderRadius: 20,
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 6,
+  },
+  title: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "700",
+    marginBottom: 16,
+  },
+  setsContainer: {
+    borderTopWidth: 1,
+    borderTopColor: "#2E2E2E",
+    paddingTop: 10,
+  },
 })

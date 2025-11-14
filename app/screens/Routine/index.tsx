@@ -13,16 +13,9 @@ export default function RoutineScreen() {
   const { routinesData, setRoutinesData, loading } = useRoutines()
   const handleDelete = async (id: string) => {
     try {
-      // Delete all sets related to this routine
       await db.delete(routineSets).where(sql`${routineSets.routineId} = ${id}`)
-
-      // Delete all exercises related to this routine
       await db.delete(routineExercises).where(sql`${routineExercises.routineId} = ${id}`)
-
-      // Delete the routine itself
       await db.delete(routines).where(sql`${routines.id} = ${id}`)
-
-      // Update local state
       setRoutinesData(routinesData.filter((r) => r.id !== id))
     } catch (error) {
       console.error("Failed to delete routine:", error)
@@ -37,18 +30,16 @@ const handleDuplicate = async (routine: RoutineWithExercises) => {
     // Insert routine in DB
     await db.insert(routines).values({
       id: newRoutineId,
-      name: routine.title + " (Copy)", // map `title` to DB `name`
+      name: routine.title + " (Copy)", 
       createdBy: null,
       isPreMade: 0,
       level: "beginner",
       description: "",
     });
 
-    // Insert routine exercises and sets
     for (const ex of routine.exercises) {
       const newExId = cuid();
 
-      // Insert routine exercise
       await db.insert(routineExercises).values({
         id: newExId,
         routineId: newRoutineId,
@@ -59,7 +50,6 @@ const handleDuplicate = async (routine: RoutineWithExercises) => {
         restTimer: 0,
       });
 
-      // Insert sets
       // Make sure ex.sets is an array, not a number
       if (Array.isArray(ex.sets)) {
         for (const set of ex.sets) {
