@@ -1,64 +1,115 @@
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { View, Text, StyleSheet, useColorScheme } from "react-native"
 import { InputField } from "@/components/InputField"
 import { Screen } from "@/components/Screen"
 import { Button } from "@/components/Button"
-import { navigate } from "@/navigators/navigationUtilities"
 import { db } from "../utils/storage"
-import { measurements } from "../utils/storage/schema" // drizzle table
+import { measurements } from "../utils/storage/schema"
+import { RouteProp, useNavigation, useRoute } from "@react-navigation/native"
+import { NativeStackNavigationProp } from "@react-navigation/native-stack"
+import { HomeStackParamList } from "@/navigators/navigationTypes"
 import { eq } from "drizzle-orm"
 
 export default function AddMeasurementScreen() {
   const colorScheme = useColorScheme()
   const isDark = colorScheme === "dark"
+const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList>>()
+
+const route = useRoute<RouteProp<HomeStackParamList, "AddMeasurement">>()
+  const editData = route.params?.editData || null
   const styles = getStyles(isDark)
-const initialFormData = {
-  weight: "",
-  bodyFat: "",
-  muscleMass: "",
-  waist: "",
-  chest: "",
-  shoulders: "",
-  neck: "",
-  hips: "",
-  leftArm: "",
-  rightArm: "",
-  leftThigh: "",
-  rightThigh: "",
-  leftCalf: "",
-  rightCalf: "",
-}
+
+  const initialFormData = {
+    weight: "",
+    bodyFat: "",
+    muscleMass: "",
+    waist: "",
+    chest: "",
+    shoulders: "",
+    neck: "",
+    hips: "",
+    leftArm: "",
+    rightArm: "",
+    leftThigh: "",
+    rightThigh: "",
+    leftCalf: "",
+    rightCalf: "",
+  }
+
   const [formData, setFormData] = useState(initialFormData)
+
+  /** 🔥 Prefill Form When Editing */
+  useEffect(() => {
+    if (editData) {
+      setFormData({
+        weight: editData.weight?.toString() || "",
+        bodyFat: editData.bodyFat?.toString() || "",
+        muscleMass: editData.muscleMass?.toString() || "",
+        waist: editData.waist?.toString() || "",
+        chest: editData.chest?.toString() || "",
+        shoulders: "",
+        neck: "",
+        hips: "",
+        leftArm: "",
+        rightArm: "",
+        leftThigh: "",
+        rightThigh: "",
+        leftCalf: "",
+        rightCalf: "",
+      })
+    }
+  }, [editData])
 
   const handleChange = (key: string, value: string) => {
     setFormData((prev) => ({ ...prev, [key]: value }))
   }
 
+  /** ✅ Save New Measurement */
   const handleSave = async () => {
     try {
-      const cleanedMeasurements = Object.fromEntries(
+      const cleaned = Object.fromEntries(
         Object.entries(formData).map(([key, value]) => [
           key,
           value.trim() === "" ? null : parseFloat(value),
-        ])
+        ]),
       )
 
-      const userId = "guest-user-id" // replace with actual user ID
-
       await db.insert(measurements).values({
-        userId,
+        userId: "guest-user-id",
         date: new Date().toISOString(),
-        ...cleanedMeasurements,
+        ...cleaned,
       })
 
-      console.log("✅ Measurements saved to DB:", cleanedMeasurements)
-      navigate("Measurements")
+      navigation.goBack()
     } catch (error) {
-      console.error("❌ Error saving measurements:", error)
+      console.error("❌ Error saving:", error)
     }
   }
 
-  const isAllEmpty = Object.values(formData).every((val) => val.trim() === "")
+  /** ✨ Update Existing Measurement */
+ const handleUpdate = async () => {
+  if (!editData) return; // <-- solves the error
+
+  try {
+    const cleaned = Object.fromEntries(
+      Object.entries(formData).map(([key, value]) => [
+        key,
+        value.trim() === "" ? null : parseFloat(value),
+      ]),
+    )
+
+    await db
+      .update(measurements)
+      .set(cleaned)
+      .where(eq(measurements.id, editData.id))
+
+    navigation.goBack()
+  } catch (error) {
+    console.error("❌ Error updating:", error)
+  }
+}
+
+  const isAllEmpty = Object.values(formData).every((v) => v.trim() === "")
 
   const fields = [
     { label: "Weight (kg)", key: "weight" },
@@ -66,20 +117,13 @@ const initialFormData = {
     { label: "Muscle Mass (kg)", key: "muscleMass" },
     { label: "Waist (cm)", key: "waist" },
     { label: "Chest (cm)", key: "chest" },
-    { label: "Shoulders (cm)", key: "shoulders" },
-    { label: "Neck (cm)", key: "neck" },
-    { label: "Hips (cm)", key: "hips" },
-    { label: "Left Arm (cm)", key: "leftArm" },
-    { label: "Right Arm (cm)", key: "rightArm" },
-    { label: "Left Thigh (cm)", key: "leftThigh" },
-    { label: "Right Thigh (cm)", key: "rightThigh" },
-    { label: "Left Calf (cm)", key: "leftCalf" },
-    { label: "Right Calf (cm)", key: "rightCalf" },
   ]
 
   return (
     <Screen preset="scroll" contentContainerStyle={styles.container}>
-      <Text style={styles.heading}>Record Your Full-Body Measurements</Text>
+      <Text style={styles.heading}>
+        {editData ? "Edit Measurement" : "Record Your Full-Body Measurements"}
+      </Text>
 
       {fields.map(({ label, key }) => (
         <View key={key}>
@@ -93,16 +137,33 @@ const initialFormData = {
         </View>
       ))}
 
-      <Button
-        text="Save Measurements"
-        preset="filled"
-        onPress={handleSave}
-        disabled={isAllEmpty}
-        style={[
-          styles.btn,
-          { backgroundColor: isAllEmpty ? "#94A3B8" : "#3B82F6" },
-        ]}
-      />
+      {/* 🔥 If Editing → Show UPDATE & CANCEL */}
+      {editData ? (
+        <>
+          <Button
+            text="Update Measurement"
+            preset="filled"
+            onPress={handleUpdate}
+            style={[styles.btn, { backgroundColor: "#3B82F6" }]}
+          />
+
+          <Button
+            text="Cancel"
+            preset="default"
+            onPress={() => navigation.goBack()}
+            style={[styles.btn, { borderColor: "#888" }]}
+          />
+        </>
+      ) : (
+        // 🆕 Normal Save Button
+        <Button
+          text="Save Measurements"
+          preset="filled"
+          onPress={handleSave}
+          disabled={isAllEmpty}
+          style={[styles.btn, { backgroundColor: isAllEmpty ? "#94A3B8" : "#3B82F6" }]}
+        />
+      )}
     </Screen>
   )
 }

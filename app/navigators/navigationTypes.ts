@@ -6,6 +6,7 @@ import {
   NavigatorScreenParams,
 } from "@react-navigation/native"
 import { NativeStackScreenProps } from "@react-navigation/native-stack"
+import { Measurement } from "../../types/Measurement"
 
 // Demo Tab Navigator types
 export type DemoTabParamList = {
@@ -29,16 +30,17 @@ CreateRoutine: {
   PreMadeRoutines: undefined;
   Measurements: undefined;
   Exercises: undefined;
-  AddMeasurement: undefined;
+AddMeasurement: {
+  editData?: Measurement;
+};
   LogWorkout: {routineId:string}
-  WorkoutDetails :{id:string};
 
 }
 
 // Stack for History Tab
 export type HistoryStackParamList = {
   History: undefined;
-    WorkoutDetails: { id: string }
+   WorkoutDetails: { id: string }; 
 }
 
 // Stack for Profile Tab

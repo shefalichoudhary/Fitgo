@@ -16,16 +16,12 @@ import { measurements } from "../utils/storage/schema"
 import { sql } from "drizzle-orm"
 import { ConfirmModal } from "../components/ConfirmModal"
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons"
+import { useNavigation } from "@react-navigation/native"
+import { NativeStackNavigationProp } from "@react-navigation/native-stack"
+import { HomeStackParamList } from "../navigators/navigationTypes"
+import { RouteProp,useRoute } from "@react-navigation/native"
+import { Measurement } from "../../types/Measurement"
 
-type Measurement = {
-  id: string
-  date: string | null
-  weight: number | null
-  bodyFat: number | null
-  muscleMass: number | null
-  waist: number | null
-  chest: number | null
-}
 
 export default function MeasurementScreen() {
   const colorScheme = useColorScheme()
@@ -34,7 +30,8 @@ export default function MeasurementScreen() {
   const [data, setData] = useState<Measurement[]>([])
   const [selectedMeasurement, setSelectedMeasurement] = useState<Measurement | null>(null)
   const fadeAnim = useRef(new Animated.Value(0)).current
-
+const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
+const route = useRoute<RouteProp<HomeStackParamList, "AddMeasurement">>();
   useEffect(() => {
     fetchMeasurements()
   }, [])
@@ -133,7 +130,17 @@ export default function MeasurementScreen() {
                 },
               ]}
             >
-              <Text style={styles.date}>{formatDate(m.date)}</Text>
+                 <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+            <Text style={styles.date}>{formatDate(m.date)}</Text>
+
+            {/* EDIT ICON */}
+            {/* <TouchableOpacity
+              onPress={() => navigation.navigate("AddMeasurement", { editData: m })
+}
+            >
+              <Ionicons name="create-outline" size={22} color="#3B82F6" />
+            </TouchableOpacity> */}
+          </View>
               {metrics.map((metric) => (
                 <View key={metric.key} style={styles.row}>
                   <View style={styles.rowLabel}>

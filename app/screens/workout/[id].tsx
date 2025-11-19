@@ -1,13 +1,12 @@
-import { Text } from "react-native"
-import { useRoute, RouteProp } from "@react-navigation/native"
-
-type RootStackParamList = {
-  WorkoutDetails: { id: string }
-}
+import { Text } from "react-native";
+import { useLocalSearchParams } from "expo-router";
 
 export default function WorkoutDetailsScreen() {
-  const route = useRoute<RouteProp<RootStackParamList, "WorkoutDetails">>()
-  const { id } = route.params
+  const { id } = useLocalSearchParams();
 
-  return <Text style={{ color: "white", margin: 20 }}>Workout Details ID: {id}</Text>
+  return (
+    <Text style={{ color: "white", margin: 20 }}>
+      Workout Details ID: {id}
+    </Text>
+  );
 }
