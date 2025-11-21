@@ -25,7 +25,8 @@ import { AuthProvider } from "./context/AuthContext"
 import { ThemeProvider } from "./theme/context"
 import RootLayout from "./rootLayout"
 import { GestureHandlerRootView } from "react-native-gesture-handler"
-
+import { useEffect } from "react";
+import { runSeedersOnce } from "@/utils/storage/runSeederOnce";
 export const NAVIGATION_PERSISTENCE_KEY = "NAVIGATION_STATE"
 
 /**
@@ -34,6 +35,9 @@ export const NAVIGATION_PERSISTENCE_KEY = "NAVIGATION_STATE"
  * @returns {JSX.Element} The rendered `App` component.
  */
 export function App() {
+    useEffect(() => {
+    runSeedersOnce();  // 🔥 Runs on first app start
+  }, []);
   return (
         <GestureHandlerRootView style={{ flex: 1 }}>
 

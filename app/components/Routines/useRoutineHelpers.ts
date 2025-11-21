@@ -27,6 +27,23 @@ export const useRoutineHelpers = (setExercises: any) => {
       ...ex,
       sets: ex.sets.map((s:any) => (s.id === sid ? { ...s, [field]: val } : s)),
     }))
+ const updateNote = (eid: string, text: string) =>
+    updateExercise(eid, (ex) => ({
+      ...ex,
+      note: text,
+    }))
 
-  return { updateExercise, addSet, toggleUnit, toggleRepsType, updateSetField }
+  // ✨ ➤ NEW: UPDATE REST TIMER
+  const updateRestTimer = (eid: string, value?: number) =>
+    updateExercise(eid, (ex) => ({
+      ...ex,
+      restTimer:
+        typeof value === "number"
+          ? value
+          : ex.restTimer === 0
+          ? 60
+          : 0, // Default toggle: Off → 60s → Off
+    }))
+
+  return { updateExercise, addSet, toggleUnit, toggleRepsType, updateSetField, updateNote, updateRestTimer }
 }

@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react"
-import { FlatList, ActivityIndicator, Text } from "react-native"
+import { FlatList, ActivityIndicator, Text ,View} from "react-native"
 import { Screen } from "@/components/Screen"
 import { db } from "@/utils/storage"
 import {
   workouts,
   workoutExercises,
+  workoutSets,
   exercises,
   exerciseMuscles,
   muscles,
@@ -19,7 +20,8 @@ import { CompositeNavigationProp } from "@react-navigation/native"
 import { BottomTabNavigationProp } from "@react-navigation/bottom-tabs"
 import { NativeStackNavigationProp } from "@react-navigation/native-stack"
 import { DemoTabParamList, HomeStackParamList } from "@/navigators/navigationTypes"
-
+import { Ionicons } from "@expo/vector-icons"
+import { and } from "drizzle-orm";
 type HistoryNavProp = CompositeNavigationProp<
   BottomTabNavigationProp<DemoTabParamList, "History">,
   NativeStackNavigationProp<HomeStackParamList>
@@ -56,32 +58,61 @@ export default function HistoryScreen() {
       const result = await db.select().from(workouts).all()
       const records: any[] = []
 
-      for (const w of result) {
-        const exerciseRows = await db
-          .select()
-          .from(workoutExercises)
-          .where(eq(workoutExercises.workoutId, w.id))
-          .all()
+     for (const w of result) {
+  const exerciseRows = await db
+    .select()
+    .from(workoutExercises)
+    .where(eq(workoutExercises.workoutId, w.id))
+    .all();
 
-        const exerciseCount = exerciseRows.length
+  let totalSets = 0;
+  let totalVolume = 0;
 
-        const muscleRows = await db
-          .select({ name: muscles.name })
-          .from(workoutExercises)
-          .leftJoin(exercises, eq(workoutExercises.exerciseId, exercises.id))
-          .leftJoin(exerciseMuscles, eq(exerciseMuscles.exercise_id, exercises.id))
-          .leftJoin(muscles, eq(muscles.id, exerciseMuscles.muscle_id))
-          .where(eq(workoutExercises.workoutId, w.id))
-          .all()
+  for (const ex of exerciseRows) {
+const setsRows = await db
+  .select()
+  .from(workoutSets)
+  .where(
+    and(
+      eq(workoutSets.workoutId, w.id),
+      eq(workoutSets.exerciseId, ex.exerciseId)
+    )
+  )
+  .all();
 
-        const muscleList = [...new Set(muscleRows.map((m) => m.name).filter(Boolean))]
-        const muscleGroups =
-          muscleList.length > 3
-            ? [...muscleList.slice(0, 3), "..."].join(", ")
-            : muscleList.join(", ")
+    totalSets += setsRows.length;
+    totalVolume += setsRows.reduce(
+      (sum, s) => sum + ((s.weight ?? 0) * (s.reps ?? 0)), // volume = weight × reps
+      0
+    );
+  }
 
-        records.push({ ...w, exerciseCount, muscleGroups })
-      }
+  const exerciseCount = exerciseRows.length;
+
+  const muscleRows = await db
+    .select({ name: muscles.name })
+    .from(workoutExercises)
+    .leftJoin(exercises, eq(workoutExercises.exerciseId, exercises.id))
+    .leftJoin(exerciseMuscles, eq(exerciseMuscles.exercise_id, exercises.id))
+    .leftJoin(muscles, eq(muscles.id, exerciseMuscles.muscle_id))
+    .where(eq(workoutExercises.workoutId, w.id))
+    .all();
+
+  const muscleList = [...new Set(muscleRows.map((m) => m.name).filter(Boolean))];
+  const muscleGroups =
+    muscleList.length > 3
+      ? [...muscleList.slice(0, 3), "..."].join(", ")
+      : muscleList.join(", ");
+
+  records.push({
+    ...w,
+    exerciseCount,
+    muscleGroups,
+    totalSets,
+    totalVolume,
+  });
+}
+
 
       setHistory(records)
       setLoading(false)
@@ -89,6 +120,7 @@ export default function HistoryScreen() {
 
     loadHistory()
   }, [])
+
   const handlePressWorkout = (id: string) => {
     navigation.getParent()?.navigate("Home", {
       screen: "WorkoutDetails",
@@ -98,19 +130,64 @@ export default function HistoryScreen() {
 
   if (loading) {
     return (
-      <Screen preset="fixed" style={{ flex: 1, backgroundColor: "#111111ff", padding: 12 }}>
+      <Screen preset="fixed" style={{ flex: 1,   backgroundColor: "#000000ff", padding: 12 }}>
         <ActivityIndicator size="large" color="#f5f6f8ff" />
       </Screen>
     )
   }
 
-  if (!history.length) {
-    return (
-      <Screen preset="fixed" style={{ flex: 1, backgroundColor: "#111111ff", padding: 12 }}>
-        <Text>No workout history yet</Text>
-      </Screen>
-    )
-  }
+if (!history.length) {
+  return (
+     <Screen
+        contentContainerStyle={[
+          { flex: 1, justifyContent: "center", alignItems: "center",paddingHorizontal: 20,   backgroundColor: "#000000ff", },
+        ]}
+      >
+  <View
+    style={{
+      flex: 1,
+      justifyContent: "center", // vertical centering
+      alignItems: "center",     // horizontal centering
+      paddingHorizontal: 20,
+    }}
+  >
+    {/* Icon */}
+    <Ionicons
+      name="fitness-outline"
+      size={80}
+      color="#888"
+    />
+
+    {/* Title */}
+    <Text
+      style={{
+        color: "#fff",
+        fontSize: 22,
+        fontWeight: "bold",
+        marginBottom: 8,
+        textAlign: "center",
+      }}
+    >
+      No Workout History
+    </Text>
+
+    {/* Subtitle */}
+    <Text
+      style={{
+        color: "#ccc",
+        fontSize: 16,
+        textAlign: "center",
+        lineHeight: 20,
+      }}
+    >
+      Start your first workout to track your progress and stay consistent.
+    </Text>
+  </View>
+</Screen>
+
+  );
+}
+
 
   // SORT LATEST
   const sorted = [...history].sort(

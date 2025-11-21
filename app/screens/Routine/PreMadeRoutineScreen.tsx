@@ -12,6 +12,7 @@ import { db } from "@/utils/storage"
 import { routines } from "@/utils/storage/schema"
 import { eq } from "drizzle-orm"
 import { seedPreMadeRoutines } from "@/utils/storage/SeedPreMadeRoutines"
+import { Screen } from "@/components/Screen"
 
 export default function PremadeRoutineScreen({ navigation }: any) {
   const [loading, setLoading] = useState(true)
@@ -72,14 +73,14 @@ export default function PremadeRoutineScreen({ navigation }: any) {
 
   if (loading) {
     return (
-      <SafeAreaView style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
+      <Screen style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
         <ActivityIndicator size="large" color="#3B82F6" />
-      </SafeAreaView>
+      </Screen>
     )
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <Screen style={styles.container}>
       {routineList.length === 0 ? (
         <View style={styles.emptyState}>
           <Text style={styles.emptyEmoji}>💪</Text>
@@ -97,7 +98,7 @@ export default function PremadeRoutineScreen({ navigation }: any) {
           showsVerticalScrollIndicator={false}
         />
       )}
-    </SafeAreaView>
+    </Screen>
   )
 }
 
@@ -105,7 +106,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: "#000000",
+    backgroundColor: "#000000ff",
   },
   card: {
     backgroundColor: "#121212",

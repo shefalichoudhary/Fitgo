@@ -11,6 +11,7 @@ import {
 import { db } from "@/utils/storage"
 import { users } from "@/utils/storage/schema"
 import { eq } from "drizzle-orm"
+import { Ionicons } from "@expo/vector-icons"
 
 type Props = {
   navigation?: any
@@ -87,14 +88,40 @@ export default function ProfileScreen({ navigation }: Props) {
     )
   }
 
-  if (!user) {
-    return (
-      <View style={styles.loaderContainer}>
-        <Text style={{ color: "#fff" }}>No user data found.</Text>
-      </View>
-    )
-  }
+if (!user) {
+  return (
+    <View style={styles.loaderContainer}>
+      {/* Icon */}
+      <Ionicons
+        name="person-circle-outline"
+        size={100}
+        color="#6B7280"
+        style={{ marginBottom: 20 }}
+      />
 
+      {/* Title */}
+      <Text style={{ color: "#fff", fontSize: 22, fontWeight: "bold", marginBottom: 10 }}>
+        Profile Not Found
+      </Text>
+
+      {/* Description */}
+      <Text
+        style={{
+          color: "#9CA3AF",
+          fontSize: 15,
+          textAlign: "center",
+          marginBottom: 25,
+          paddingHorizontal: 20,
+        }}
+      >
+        We couldn’t find your profile information. Please make sure you’re logged in
+        or create a new profile to get started.
+      </Text>
+
+    
+    </View>
+  )
+}
   return (
     <View style={styles.container}>
       <View style={styles.card}>
@@ -171,21 +198,18 @@ export default function ProfileScreen({ navigation }: Props) {
           </View>
         )}
 
-        <TouchableOpacity style={styles.logoutButton} onPress={onLogout}>
-          <Text style={styles.logoutButtonText}>Log out</Text>
-        </TouchableOpacity>
       </View>
     </View>
   )
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#080808ff", padding: 12 },
+  container: { flex: 1,   backgroundColor: "#000000ff", padding: 12 },
   loaderContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#000",
+     backgroundColor: "#000000ff",
   },
   card: {
     backgroundColor: "#101111ff",
@@ -246,12 +270,6 @@ const styles = StyleSheet.create({
   },
   primaryButtonText: { color: "white", fontWeight: "600", fontSize: 16 },
   cancelButtonText: { color: "white", fontWeight: "600", fontSize: 16 },
-  logoutButton: {
-    paddingVertical: 12,
-    borderRadius: 10,
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#DC2626",
-  },
+
   logoutButtonText: { color: "#EF4444", fontWeight: "600", fontSize: 15 },
 })

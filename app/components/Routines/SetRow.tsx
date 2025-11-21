@@ -14,6 +14,10 @@ type Props = {
   onToggleRepsType: () => void
   onOpenRestTimer: () => void
   onDelete?: () => void // NEW: delete callback
+  note: string
+onChangeNote: (text: string) => void
+restTimer: number
+onChangeRestTimer: (value: number) => void
 }
 
 export const SetRow: React.FC<Props> = ({

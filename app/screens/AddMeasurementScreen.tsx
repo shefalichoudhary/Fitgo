@@ -9,11 +9,14 @@ import { RouteProp, useNavigation, useRoute } from "@react-navigation/native"
 import { NativeStackNavigationProp } from "@react-navigation/native-stack"
 import { HomeStackParamList } from "@/navigators/navigationTypes"
 import { eq } from "drizzle-orm"
+import { AppAlert } from "@/components/AppAlert"
 
 export default function AddMeasurementScreen() {
   const colorScheme = useColorScheme()
   const isDark = colorScheme === "dark"
 const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList>>()
+  const [alertVisible, setAlertVisible] = useState(false)
+  const [alertMessage, setAlertMessage] = useState("")
 
 const route = useRoute<RouteProp<HomeStackParamList, "AddMeasurement">>()
   const editData = route.params?.editData || null
@@ -81,8 +84,13 @@ const route = useRoute<RouteProp<HomeStackParamList, "AddMeasurement">>()
       })
 
       navigation.goBack()
+      
+      setAlertMessage("Measurement saved successfully!")
+      setAlertVisible(true)
     } catch (error) {
       console.error("❌ Error saving:", error)
+        setAlertMessage("Failed to save measurement. Please try again.")
+      setAlertVisible(true)
     }
   }
 
@@ -104,8 +112,12 @@ const route = useRoute<RouteProp<HomeStackParamList, "AddMeasurement">>()
       .where(eq(measurements.id, editData.id))
 
     navigation.goBack()
+     setAlertMessage("Measurement updated successfully!")
+      setAlertVisible(true)
   } catch (error) {
     console.error("❌ Error updating:", error)
+    setAlertMessage("Failed to update measurement. Please try again.")
+      setAlertVisible(true)
   }
 }
 
@@ -164,6 +176,15 @@ const route = useRoute<RouteProp<HomeStackParamList, "AddMeasurement">>()
           style={[styles.btn, { backgroundColor: isAllEmpty ? "#94A3B8" : "#3B82F6" }]}
         />
       )}
+       {/* AppAlert for save/update feedback */}
+      <AppAlert
+        visible={alertVisible}
+        message={alertMessage}
+        onHide={() => {
+          setAlertVisible(false)
+          navigation.goBack()
+        }}
+      />
     </Screen>
   )
 }

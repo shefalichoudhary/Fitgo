@@ -8,6 +8,7 @@ import { db } from "@/utils/storage"
 import { routines, routineExercises, routineSets } from "@/utils/storage/schema"
 import { sql } from "drizzle-orm"
 import cuid from "cuid";
+import { Ionicons } from "@expo/vector-icons"
 
 export default function RoutineScreen() {
   const { routinesData, setRoutinesData, loading } = useRoutines()
@@ -92,12 +93,51 @@ const handleDuplicate = async (routine: RoutineWithExercises) => {
   }
 
   if (!routinesData.length) {
-    return (
-      <Screen contentContainerStyle={styles.center}>
-        <Text style={{ color: "#121212" }}>No routines yet 💪</Text>
-      </Screen>
-    )
-  }
+  return (
+    <Screen
+      contentContainerStyle={[
+        styles.center,
+        { paddingHorizontal: 20,backgroundColor: "#000000ff", },
+      ]}
+    >
+      {/* Icon */}
+      <Ionicons
+        name="barbell-outline"
+        size={90}
+        color="#666"
+        style={{ marginBottom: 20 }}
+      />
+
+      {/* Title */}
+      <Text
+        style={{
+          color: "#fff",
+          fontSize: 24,
+          fontWeight: "bold",
+          marginBottom: 8,
+        }}
+      >
+        No Routines Yet
+      </Text>
+
+      {/* Subtitle */}
+      <Text
+        style={{
+          color: "#aaa",
+          fontSize: 16,
+          textAlign: "center",
+          marginBottom: 25,
+          width: "85%",
+        }}
+      >
+        Create your first workout routine and start building consistency!
+      </Text>
+
+      {/* CTA Button */}
+     
+    </Screen>
+  )
+}
 
   return (
     <Screen contentContainerStyle={styles.container}>
@@ -117,7 +157,7 @@ const handleDuplicate = async (routine: RoutineWithExercises) => {
 }
 
 const styles = StyleSheet.create({
-  container: { flexGrow: 1, paddingVertical: 10, backgroundColor: "#121212" },
+  container: { flexGrow: 1, paddingVertical: 10, backgroundColor: "#000000ff", },
   listContainer: { paddingHorizontal: 20, paddingBottom: 20 },
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
 })

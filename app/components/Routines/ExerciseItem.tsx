@@ -18,7 +18,7 @@ export const ExerciseItem = ({
   isSelected,
   children,
   onDelete,
-    disablePress = false, 
+    disabled = false, 
 }: {
   name?: string;
   muscleGroup?: string;
@@ -27,6 +27,7 @@ export const ExerciseItem = ({
   children?: React.ReactNode;
   onDelete?: () => void;
     disablePress?: boolean;
+      disabled?: boolean  
 }) => {
   const [showPopup, setShowPopup] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -54,11 +55,11 @@ export const ExerciseItem = ({
     closePopup();
     onDelete?.();
   };
-  const Container = disablePress ? View : TouchableOpacity;
+  const Container = disabled ? View : TouchableOpacity;
   return (
        <Container
       activeOpacity={0.8}
-      onPress={disablePress ? undefined : onPress}
+      onPress={disabled ? undefined : onPress}
       style={[styles.card, isSelected && styles.selectedCard]}
     >
       <View style={styles.header}>
@@ -102,7 +103,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 4,
   },
-  selectedCard: { backgroundColor: "#2563EB", shadowOpacity: 0.35 },
+  selectedCard: { backgroundColor: "#4c4d4eff", shadowOpacity: 0.35 },
   header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   title: { color: "#F9FAFB", fontSize: 16, fontWeight: "700" },
   subtitle: { color: "#9CA3AF", fontSize: 13, marginTop: 2 },

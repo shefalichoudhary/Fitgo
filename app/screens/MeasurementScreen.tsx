@@ -105,12 +105,7 @@ const route = useRoute<RouteProp<HomeStackParamList, "AddMeasurement">>();
           <Text style={styles.emptyText}>
             Track your body stats to monitor progress. Add your first measurement to get started!
           </Text>
-          <TouchableOpacity
-            style={styles.addButton}
-            onPress={() => console.log("Navigate to Add Measurement Screen")}
-          >
-            <Text style={styles.addButtonText}>+ Add Measurement</Text>
-          </TouchableOpacity>
+         
         </View>
       ) : (
         data.map((m) => (
@@ -179,6 +174,7 @@ const getStyles = (isDark: boolean) =>
     container: {
       padding: 16,
       paddingBottom: 32,
+        backgroundColor: "#000000ff",
     },
     emptyContainer: {
       justifyContent: "center",

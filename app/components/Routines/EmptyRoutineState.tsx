@@ -4,7 +4,7 @@ import { Ionicons } from "@expo/vector-icons"
 
 export const EmptyRoutineState = () => (
   <View style={styles.container}>
-    <Ionicons name="barbell-outline" size={48} color="#6B7280" style={{ marginBottom: 8 }} />
+    <Ionicons name="barbell-outline" size={50} color="#6B7280" style={{ marginBottom: 4 }} />
     <Text style={styles.text}>No exercises added yet</Text>
     <Text style={styles.subText}>Tap “Add Exercise” below to start building your routine.</Text>
   </View>

@@ -8,8 +8,12 @@ import { ExerciseCard } from "@/components/logWorkout/ExerciseCard"
 import { saveWorkoutSession } from "@/utils/workout"
 import { Header } from "@/components/Header"
 import { getCurrentUser } from "@/utils/user"
+import { AppAlert } from "@/components/AppAlert";
 
 export default function LogWorkoutScreen() {
+  const [alertVisible, setAlertVisible] = useState(false)
+  const [alertMessage, setAlertMessage] = useState("")
+  const [navigateAfterAlert, setNavigateAfterAlert] = useState(false)
   const route = useRoute<any>()
   const navigation = useNavigation<any>()
   const { routineId } = route.params
@@ -31,11 +35,11 @@ export default function LogWorkoutScreen() {
   )
 
   const handleSave = async () => {
-    if (!user) {
-      Alert.alert("Error", "User not found. Please log in first.")
+        if (!user) {
+      setAlertMessage("User not found. Please log in first.")
+      setAlertVisible(true)
       return
     }
-
     const workoutId = await saveWorkoutSession({
       userId: user.id,
       routineId,
@@ -47,13 +51,10 @@ export default function LogWorkoutScreen() {
       exercises: exercisesData,
     })
 
-    Alert.alert("Workout Saved!", "Your workout has been added to History.", [
-      {
-        text: "OK",
-        onPress: () => navigation.navigate("History"),
-      },
-    ])
-  }
+      setAlertMessage("Workout Saved! Your workout has been added to History.")
+    setNavigateAfterAlert(true)
+    setAlertVisible(true)
+      }
 
   React.useLayoutEffect(() => {
     navigation.setOptions({
@@ -91,12 +92,23 @@ export default function LogWorkoutScreen() {
         contentContainerStyle={{ paddingBottom: 30 }}
         showsVerticalScrollIndicator={false}
       />
+            <AppAlert
+        visible={alertVisible}
+        message={alertMessage}
+        onHide={() => {
+          setAlertVisible(false)
+          if (navigateAfterAlert) {
+            navigation.navigate("History")
+            setNavigateAfterAlert(false)
+          }
+        }}
+      />
     </Screen>
   )
 }
 
 const styles = StyleSheet.create({
-  container: { flexGrow: 1, padding: 16, backgroundColor: "#121212" },
+  container: { flexGrow: 1, padding: 16, backgroundColor: "#000000ff", },
   titleContainer: { marginBottom: 16 },
   title: { color: "#fff", fontSize: 24, fontWeight: "bold" },
 })

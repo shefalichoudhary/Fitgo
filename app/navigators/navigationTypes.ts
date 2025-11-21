@@ -23,13 +23,14 @@ CreateRoutine: {
     selectedExercises?: {
       id: string;
       name: string;
+        restTimer?: number | null  ;
       sets: { reps: number; weight?: number; id: string }[];
       muscleGroup?: string;
     }[];
   };
   PreMadeRoutines: undefined;
   Measurements: undefined;
-  Exercises: undefined;
+  Exercises: { alreadyAdded?: string[] };
 AddMeasurement: {
   editData?: Measurement;
 };
@@ -48,7 +49,7 @@ export type ProfileStackParamList = {
   Profile: undefined;
 }
 export type ExercisesStackParamList = {
-  Exercises: undefined;
+Exercises: { alreadyAdded?: string[] };
 }
 // App Stack Navigator types
 export type AppStackParamList = {

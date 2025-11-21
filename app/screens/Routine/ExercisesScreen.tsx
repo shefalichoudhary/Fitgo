@@ -1,13 +1,14 @@
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useState, useCallback } from "react"
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator } from "react-native"
 import { ExerciseItem } from "@/components/Routines/ExerciseItem"
 import { colors } from "@/theme/colors"
-import { useNavigation } from "@react-navigation/native"
+import { useNavigation, useFocusEffect, RouteProp, useRoute } from "@react-navigation/native"
 import { db } from "@/utils/storage"
 import { exercises as exercisesTable } from "@/utils/storage/schema"
 import { SearchBar } from "@/components/SearchBar"
 import { Ionicons } from "@expo/vector-icons"
-import type { DemoTabScreenProps } from "@/navigators/navigationTypes"
+import type { DemoTabScreenProps, HomeStackParamList } from "@/navigators/navigationTypes"
+
 type Exercise = {
   id: string
   exercise_name: string
@@ -19,9 +20,10 @@ export default function ExercisesScreen() {
   const [exerciseData, setExerciseData] = useState<Exercise[]>([])
   const [filteredExercises, setFilteredExercises] = useState<Exercise[]>([])
   const [loading, setLoading] = useState(true)
+  const [addedExerciseIds, setAddedExerciseIds] = useState<string[]>([])
 
   const navigation = useNavigation<DemoTabScreenProps<"Exercises">["navigation"]>()
-
+  const route = useRoute<RouteProp<HomeStackParamList, "Exercises">>()
   // Fetch exercises from DB
   useEffect(() => {
     const fetchExercises = async () => {
@@ -44,7 +46,22 @@ export default function ExercisesScreen() {
     fetchExercises()
   }, [])
 
+  // Handle already added exercises from params
+  useEffect(() => {
+    if (route.params?.alreadyAdded) {
+      setAddedExerciseIds(route.params.alreadyAdded)
+    }
+  }, [route.params?.alreadyAdded])
+
+  // Clear selection every time screen is focused
+  useFocusEffect(
+    useCallback(() => {
+      setSelectedExercises([])
+    }, []),
+  )
+
   const toggleSelect = (id: string) => {
+    if (addedExerciseIds.includes(id)) return // disable already added
     setSelectedExercises((prev) =>
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
     )
@@ -97,6 +114,7 @@ export default function ExercisesScreen() {
             muscleGroup={item.muscleGroup || ""}
             onPress={() => toggleSelect(item.id)}
             isSelected={selectedExercises.includes(item.id)}
+            disabled={addedExerciseIds.includes(item.id)}
           />
         )}
         contentContainerStyle={styles.listContainer}
@@ -128,7 +146,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 14,
     paddingTop: 8,
-    backgroundColor: "#121212",
+    backgroundColor: "#000000ff",   
   },
 
   listContainer: {

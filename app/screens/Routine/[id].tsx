@@ -1,5 +1,13 @@
 import React, { useEffect, useState } from "react"
-import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity } from "react-native"
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+} from "react-native"
 import { Screen } from "@/components/Screen"
 import { Ionicons } from "@expo/vector-icons"
 import { useRoute, RouteProp } from "@react-navigation/native"
@@ -7,6 +15,7 @@ import { db } from "@/utils/storage"
 import { routines, routineExercises, routineSets, exercises } from "@/utils/storage/schema"
 import { eq, and } from "drizzle-orm"
 import AntDesign from "@expo/vector-icons/AntDesign"
+
 type RootStackParamList = {
   RoutineDetails: { id: string }
 }
@@ -17,6 +26,7 @@ type RoutineWithExercises = {
   exercises: {
     id: string
     name: string
+    notes?: string
     sets: {
       id: string
       reps: number
@@ -101,6 +111,7 @@ export default function RoutineDetailsScreen() {
       </Screen>
     )
   }
+
   const saveTitle = () => {
     if (!routine) return
     if (title === routine.title) {
@@ -142,9 +153,7 @@ export default function RoutineDetailsScreen() {
     <Screen contentContainerStyle={styles.container}>
       {/* Routine Header */}
       <View style={styles.header}>
-        <View
-          style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}
-        >
+        <View style={styles.headerRow}>
           {titleEditing ? (
             <TextInput
               style={styles.titleInput}
@@ -157,8 +166,6 @@ export default function RoutineDetailsScreen() {
           ) : (
             <Text style={styles.title}>{routine.title}</Text>
           )}
-
-          {/* Edit Button */}
           {!titleEditing && (
             <TouchableOpacity onPress={() => setTitleEditing(true)}>
               <AntDesign name="edit" size={24} color="#2563EB" />
@@ -171,45 +178,47 @@ export default function RoutineDetailsScreen() {
       </View>
 
       {/* Exercises List */}
-      <FlatList
-        data={routine.exercises}
-        keyExtractor={(item) => item.id.toString()}
-        contentContainerStyle={{ paddingBottom: 20 }}
-        renderItem={({ item }) => (
-          <View style={styles.exerciseCard}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
+        {routine.exercises.map((ex) => (
+          <View key={ex.id} style={styles.exerciseCard}>
             <View style={styles.exerciseHeader}>
-              <Text style={styles.exerciseName}>{item.name}</Text>
+              
+              <Text style={styles.exerciseName}>{ex.name}</Text>
+              <Text style={styles.notesText}>{ex.notes}</Text>
               <View style={styles.setBadge}>
                 <Text style={styles.setBadgeText}>
-                  {item.sets.length} {item.sets.length === 1 ? "set" : "sets"}
+                  {ex.sets.length} {ex.sets.length === 1 ? "set" : "sets"}
                 </Text>
               </View>
             </View>
-            {item.sets.map((set, index) => (
+
+
+            {ex.sets.map((set, i) => (
               <View key={set.id} style={styles.setRow}>
                 <Text style={styles.setText}>
-                  Set {index + 1}: {set.repsType === "rep range" ? `${set.reps} reps` : set.reps} •
-                  Volume: {set.weight} {set.unit}
+                  Set {i + 1}: {set.repsType === "rep range" ? `${set.reps} reps` : set.reps} •{" "}
+                  {set.weight} {set.unit}
                 </Text>
               </View>
             ))}
           </View>
-        )}
-      />
+        ))}
+      </ScrollView>
+
+      {/* Confirm Modal */}
       {showConfirmModal && (
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>Confirm Update</Text>
+            <Text style={styles.modalTitle}>Update Routine</Text>
             <Text style={styles.modalMessage}>Do you want to update the routine title?</Text>
-
-          <View style={styles.modalButtons}>
-  <TouchableOpacity style={[styles.modalButton, styles.modalButtonCancel]} onPress={cancelUpdate}>
-    <Text style={styles.modalButtonText}>Cancel</Text>
-  </TouchableOpacity>
-  <TouchableOpacity style={[styles.modalButton, styles.modalButtonUpdate]} onPress={confirmUpdate}>
-    <Text style={styles.modalButtonText}>Update</Text>
-  </TouchableOpacity>
-</View>
+            <View style={styles.modalButtons}>
+              <TouchableOpacity style={[styles.modalButton, styles.modalButtonCancel]} onPress={cancelUpdate}>
+                <Text style={styles.modalButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.modalButton, styles.modalButtonUpdate]} onPress={confirmUpdate}>
+                <Text style={styles.modalButtonText}>Update</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       )}
@@ -220,7 +229,7 @@ export default function RoutineDetailsScreen() {
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
-    backgroundColor: "#121212",
+   backgroundColor: "#000000ff",
     paddingHorizontal: 20,
     paddingVertical: 16,
   },
@@ -228,18 +237,21 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     paddingBottom: 8,
   },
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
   title: {
     color: "#fff",
-    fontSize: 26,
+    fontSize: 28,
     fontWeight: "700",
-    marginBottom: 4,
   },
   titleInput: {
     color: "#fff",
-    fontSize: 26,
+    fontSize: 28,
     fontWeight: "700",
-    marginBottom: 4,
-    borderBottomWidth: 1,
+    borderBottomWidth: 2,
     borderBottomColor: "#2563EB",
     paddingVertical: 2,
     flex: 1,
@@ -247,18 +259,19 @@ const styles = StyleSheet.create({
   subtitle: {
     color: "#9CA3AF",
     fontSize: 14,
+    marginTop: 4,
   },
   exerciseCard: {
     backgroundColor: "#1F1F1F",
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 16,
-    marginBottom: 14,
+    marginBottom: 16,
   },
   exerciseHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 8,
+    marginBottom: 12,
   },
   exerciseName: {
     color: "#fff",
@@ -267,9 +280,9 @@ const styles = StyleSheet.create({
   },
   setBadge: {
     backgroundColor: "#2563EB",
-    borderRadius: 8,
-    paddingVertical: 2,
-    paddingHorizontal: 8,
+    borderRadius: 12,
+    paddingVertical: 4,
+    paddingHorizontal: 10,
   },
   setBadgeText: {
     color: "#fff",
@@ -277,11 +290,13 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   setRow: {
-    marginTop: 4,
-    paddingVertical: 4,
-    paddingHorizontal: 8,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingVertical: 8,
+    paddingHorizontal: 12,
     backgroundColor: "#2A2A2A",
-    borderRadius: 8,
+    borderRadius: 12,
+    marginBottom: 6,
   },
   setText: {
     color: "#E5E5E5",
@@ -298,54 +313,64 @@ const styles = StyleSheet.create({
     fontSize: 18,
     marginTop: 12,
   },
+  notesText: {
+  color: "#D1D5DB", // lighter gray
+  fontSize: 13,
+  marginBottom: 8,
+  fontStyle: "italic",
+},
   modalOverlay: {
     position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: "rgba(0,0,0,0.5)",
+    backgroundColor: "rgba(0,0,0,0.6)",
     justifyContent: "center",
     alignItems: "center",
     zIndex: 1000,
+    paddingHorizontal: 20,
   },
   modalContainer: {
-    width: "80%",
+    width: "100%",
+    maxWidth: 320,
     backgroundColor: "#1F1F1F",
     borderRadius: 16,
-    padding: 20,
+    padding: 24,
   },
   modalTitle: {
     fontSize: 18,
     fontWeight: "700",
     color: "#fff",
     marginBottom: 8,
+    textAlign: "center",
   },
   modalMessage: {
     color: "#ccc",
     fontSize: 14,
-    marginBottom: 16,
+    marginBottom: 20,
+    textAlign: "center",
   },
   modalButtons: {
     flexDirection: "row",
-    justifyContent: "flex-end",
-    gap: 10,
+    justifyContent: "space-between",
+    gap: 12,
   },
-
+  modalButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 12,
+    alignItems: "center",
+  },
+  modalButtonCancel: {
+    backgroundColor: "#4B5563",
+  },
+  modalButtonUpdate: {
+    backgroundColor: "#2563EB",
+  },
   modalButtonText: {
     color: "#fff",
     fontWeight: "600",
+    fontSize: 16,
   },
-  modalButton: {
-  paddingVertical: 8,
-  paddingHorizontal: 16,
-  borderRadius: 8,
-},
-modalButtonCancel: {
-  marginRight: 10,
-  backgroundColor: "#777",
-},
-modalButtonUpdate: {
-  backgroundColor: "#2563EB",
-},
 })

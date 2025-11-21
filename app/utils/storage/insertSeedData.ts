@@ -63,5 +63,3 @@ export const InsertSeedDataOnce = async () => {
   }
 };
 
-// Auto-run on first launch
-InsertSeedDataOnce();

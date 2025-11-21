@@ -4,10 +4,9 @@ import { Screen } from "@/components/Screen"
 import { useNavigation } from "@react-navigation/native"
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack"
 import { db } from "@/utils/storage"
-import {  routines } from "@/utils/storage/schema" // add premade routines table
+import { routines } from "@/utils/storage/schema" // add premade routines table
 import { Ionicons, MaterialIcons, FontAwesome5 } from "@expo/vector-icons"
 import { eq } from "drizzle-orm"
-
 
 export const HomeScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<any>>()
@@ -161,7 +160,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 24,
     paddingBottom: 40,
-    backgroundColor: "#0a0a0aff",
+    backgroundColor: "#000000ff",
     flexGrow: 1,
   },
   screenTitle: {
