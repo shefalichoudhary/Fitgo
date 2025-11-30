@@ -1,6 +1,6 @@
 import React from "react"
 import { View, Text, TextInput, Pressable, TouchableOpacity, StyleSheet } from "react-native"
-import { SetRow } from "@/components/Routines/SetRow"
+import  SetRow from "@/components/Routines/SetRow"
 import { ExerciseItem } from "./ExerciseItem"
 import { Ionicons } from "@expo/vector-icons"
 
@@ -55,8 +55,8 @@ export const ExerciseList = ({
         <SetRow
           key={set.id}
           {...set}
-          onRepsChange={(t) => updateSetField(exercise.id, set.id, "reps", t)}
-          onWeightChange={(t) => updateSetField(exercise.id, set.id, "weight", t)}
+          onRepsChange={(t:any) => updateSetField(exercise.id, set.id, "reps", t)}
+          onWeightChange={(t:any) => updateSetField(exercise.id, set.id, "weight", t)}
           onToggleUnit={() => toggleUnit(exercise.id, set.id)}
           onToggleRepsType={() => toggleRepsType(exercise.id, set.id)}
           onDelete={() => deleteSet(exercise.id, set.id)}

@@ -1,80 +1,347 @@
-import React, { useState } from "react"
-
-type Set = {
-  weight?: number | null
-  reps?: number | null
-  minReps?: number | null
-  maxReps?: number | null
-  duration?: number | null
-  isRangeReps?: boolean
-  previousWeight?: number | null
-  previousReps?: number | null
-  previousMinReps?: number | null
-  previousMaxReps?: number | null
-  previousUnit?: "kg" | "lbs"
-  previousRepsType?: "reps" | "rep range"
-  previousDuration?: number | null
-  isCompleted?: boolean
-  setType?: "W" | "Normal" | "D" | "F" | string
-  unit?: "kg" | "lbs"
-  repsType?: "reps" | "rep range"
-}
+import React, { useMemo, useState, useEffect, useCallback } from "react";
+import { View, TextInput, FlatList, Text, StyleSheet, TouchableOpacity } from "react-native";
+import type { Exercise, DataShape, Set, Unit, RepsType } from "./types";
+import SetRow from "./SetRow";
+import Header from "./Header";
+import { narrowUnit, narrowRepsType, normalizeSet } from "./utils";
 
 type Props = {
-  exercise: {
-    id: string
-    exercise_name: string
-    exercise_type: string | null
-    equipment: string
-  }
-  data: {
-    notes: string
-    restTimer: number
-    sets: Set[]
-    unit: "lbs" | "kg"
-    repsType: "reps" | "rep range"
-  }
-  onChange: (newData: {
-    notes: string
-    restTime?: number
-    sets: Set[]
-    unit: "lbs" | "kg"
-    repsType: "reps" | "rep range"
-  }) => void
-  onStartTimer?: () => void
-  onOpenRepRange: (exerciseId: string, setIndex: number) => void
-  showCheckIcon?: boolean
-  viewOnly?: boolean
-  onOpenWeight?: (exerciseId: string) => void
-  onOpenSetType: (exerciseId: string, setIndex?: number) => void
-  onOpenRepsType?: (exerciseId: string) => void
-  onOpenRestTimer: (exerciseId: string) => void
-  onToggleSetComplete: (exerciseId: string, setIndex: number, completed: boolean) => void
+  exercise: Exercise;
+  data: DataShape;
+  onChange: (newData: DataShape) => void;
+  onStartTimer?: () => void;
+  onOpenRepRange: (exerciseId: string, setIndex: number) => void;
+  showCheckIcon?: boolean;
+  viewOnly?: boolean;
+  onOpenWeight?: (exerciseId: string) => void;
+  onOpenSetType: (exerciseId: string, setIndex?: number) => void;
+  onOpenRepsType?: (exerciseId: string) => void;
+  onOpenRestTimer: (exerciseId: string) => void;
+  onToggleSetComplete: (exerciseId: string, setIndex: number, completed: boolean) => void;
+  onDeleteExercise: (exerciseId: string) => void;
+
+};
+
+export default function ExerciseBlock({
+  exercise,
+  data,
+  onChange,
+  onStartTimer,
+  onOpenRepRange,
+  showCheckIcon = true,
+  viewOnly = false,
+  onOpenWeight,
+  onOpenSetType,
+  onOpenRepsType,
+  onOpenRestTimer,
+  onToggleSetComplete,
+  onDeleteExercise
+
+
+}: Props) {
+  const [visibleSets, setVisibleSets] = useState<number>(Math.max(1, data.sets.length));
+
+  useEffect(() => {
+    setVisibleSets((prev) => Math.max(prev, data.sets.length, 1));
+  }, [data.sets.length]);
+
+  // normalized sets with narrowed unit/repsType
+  const sets = useMemo(
+    () => data.sets.map((s) => normalizeSet(s, data.unit, data.repsType)),
+    [data.sets, data.unit, data.repsType]
+  );
+
+  // update a single set field and send normalized data up
+  const handleChangeField = useCallback(
+    <K extends keyof Set>(index: number, key: K, value: Set[K]) => {
+      const next = [...sets];
+      next[index] = { ...next[index], [key]: value };
+      const normalizedNext = next.map((s) => normalizeSet(s, data.unit, data.repsType));
+      onChange({ ...data, sets: normalizedNext });
+    },
+    [sets, onChange, data]
+  );
+
+  const handleAddSet = useCallback(() => {
+    if (visibleSets < sets.length) {
+      setVisibleSets((v) => v + 1);
+      return;
+    }
+    const newSet: Set = {
+      reps: null,
+      weight: null,
+      unit: narrowUnit(data.unit),
+      repsType: narrowRepsType(data.repsType),
+      isCompleted: false,
+      setType: "Normal",
+    };
+    const next = [...sets, newSet].map((s) => normalizeSet(s, data.unit, data.repsType));
+    onChange({ ...data, sets: next });
+    setVisibleSets(next.length);
+  }, [visibleSets, sets, onChange, data]);
+
+  const handleRemoveSet = useCallback(
+    (index: number) => {
+      const next = sets.filter((_, i) => i !== index).map((s) => normalizeSet(s, data.unit, data.repsType));
+      const nextVisible = Math.max(1, Math.min(visibleSets, next.length));
+      onChange({ ...data, sets: next });
+      setVisibleSets(nextVisible);
+    },
+    [sets, onChange, visibleSets, data]
+  );
+
+  const handleNotes = useCallback((text: string) => onChange({ ...data, notes: text }), [data, onChange]);
+
+  // ---------- Rest-timer handlers ----------
+  const setRestTimer = useCallback(
+    (seconds: number) => {
+      const safe = Math.max(0, Math.round(seconds));
+      onChange({ ...data, restTimer: safe });
+    },
+    [data, onChange]
+  );
+
+  const changeRestBy = useCallback(
+    (delta: number) => {
+      setRestTimer((data.restTimer ?? 0) + delta);
+    },
+    [data.restTimer, setRestTimer]
+  );
+
+  const openRestModal = useCallback(() => {
+    onOpenRestTimer && onOpenRestTimer(exercise.id);
+  }, [onOpenRestTimer, exercise.id]);
+
+  // ---------- Exercise-level handlers for labels ----------
+  // Toggle unit for all sets (exercise-level)
+  const handleToggleUnitAll = useCallback(() => {
+    const nextUnit: Unit = data.unit === "kg" ? "lbs" : "kg";
+    // If you want conversion of weight values, add conversion logic here.
+    const next = sets.map((s) => ({ ...s, unit: nextUnit })).map((s) => normalizeSet(s, nextUnit, data.repsType));
+    onChange({ ...data, unit: nextUnit, sets: next });
+  }, [data, sets, onChange]);
+
+  // Toggle reps type for entire exercise (reps <-> rep range)
+  const handleToggleRepsTypeAll = useCallback(() => {
+    const nextReps: RepsType = data.repsType === "reps" ? "rep range" : "reps";
+    const next = sets.map((s) => ({ ...s, repsType: nextReps })).map((s) => normalizeSet(s, data.unit, nextReps));
+    onChange({ ...data, repsType: nextReps, sets: next });
+    if (onOpenRepsType) onOpenRepsType(exercise.id);
+  }, [data, sets, onChange, onOpenRepsType, exercise.id]);
+
+  // toggle unit for a single set (used by SetRow)
+  const handleToggleUnitForSet = useCallback(
+    (setIndex: number) => {
+      const next = sets.map((s) => ({ ...s }));
+      const s = next[setIndex];
+      if (!s) return;
+      const newUnit: Unit = s.unit === "kg" ? "lbs" : "kg";
+      s.unit = newUnit;
+      const normalizedNext = next.map((x) => normalizeSet(x, x.unit ?? newUnit, data.repsType));
+      onChange({ ...data, sets: normalizedNext });
+    },
+    [sets, data, onChange]
+  );
+
+  const handleToggleComplete = useCallback(
+    (index: number) => {
+      const prev = sets[index]?.isCompleted ?? false;
+      handleChangeField(index, "isCompleted", !prev);
+    },
+    [sets, handleChangeField]
+  );
+
+  const renderSet = useCallback(
+    ({ item, index }: { item: Set; index: number }) => (
+      <SetRow
+        idx={index}
+        set={item}
+        onChangeField={handleChangeField}
+        onRemove={handleRemoveSet}
+        onOpenWeight={() => onOpenWeight && onOpenWeight(exercise.id)}
+        onOpenSetType={() => onOpenSetType && onOpenSetType(exercise.id, index)}
+        onOpenRepRange={() => onOpenRepRange(exercise.id, index)}
+        disabled={viewOnly}
+        onAddSet={handleAddSet}
+        onToggleUnit={() => handleToggleUnitForSet(index)}
+        onOpenRepsType={() => onOpenRepsType && onOpenRepsType(exercise.id)}
+        onToggleComplete={() => handleToggleComplete(index)}
+      />
+    ),
+    [
+      handleChangeField,
+      handleRemoveSet,
+      onOpenWeight,
+      onOpenSetType,
+      onOpenRepRange,
+      viewOnly,
+      handleAddSet,
+      handleToggleUnitForSet,
+      onOpenRepsType,
+      handleToggleComplete,
+      exercise.id,
+    ]
+  );
+
+  return (
+    <View style={styles.container}>
+      <Header exercise={exercise} data={data} onDelete={() => onDeleteExercise(exercise.id)} />
+
+      {/* Notes */}
+      <TextInput
+        style={styles.notesInput}
+        placeholder="Notes about this exercise..."
+        placeholderTextColor="#94a3b8"
+        value={data.notes}
+        editable={!viewOnly}
+        onChangeText={handleNotes}
+      />
+
+      {/* Rest timer UI (shown after notes) */}
+      <View style={styles.restRow}>
+        <View style={styles.restLeft}>
+          <Text style={styles.restLabel}>Rest</Text>
+          <Text style={styles.restValue}>{(data.restTimer ?? 0) > 0 ? `${data.restTimer}s` : "OFF"}</Text>
+        </View>
+
+        <View style={styles.restControls}>
+          <TouchableOpacity style={styles.restBtn} onPress={() => changeRestBy(-15)} disabled={viewOnly}>
+            <Text style={styles.restBtnText}>-15s</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.restBtn} onPress={() => setRestTimer(30)} disabled={viewOnly}>
+            <Text style={styles.restBtnText}>30s</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.restBtn} onPress={() => changeRestBy(15)} disabled={viewOnly}>
+            <Text style={styles.restBtnText}>+15s</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.openRest} onPress={openRestModal}>
+            <Text style={styles.openRestText}>Edit</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* Single labels row — only once (dark labels) */}
+      {sets.length > 0 && (
+        <View style={styles.labelsRow}>
+           <View style={styles.right}>
+            <Text style={styles.columnLabel}>SET</Text>
+          </View>
+          <View style={styles.setLeft} />
+
+          <View style={[styles.setCenter, { paddingLeft: 0 }]}>
+            <View style={styles.rowInputs}>
+              <TouchableOpacity onPress={handleToggleUnitAll} style={styles.weightWrap}>
+                <Text style={styles.columnLabel}>{data.unit?.toUpperCase() ?? "KG"}</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity onPress={handleToggleRepsTypeAll} accessibilityLabel="Toggle reps type" accessibilityRole="button" style={[styles.repsWrap, { flex: 1 }]}>
+                <Text style={styles.columnLabel}>{data.repsType === "rep range" ? "REP — RANGE" : "REPS"}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+        
+        </View>
+      )}
+
+      <FlatList
+        data={sets.slice(0, visibleSets)}
+        keyExtractor={(_, idx) => `${exercise.id}-set-${idx}`}
+        renderItem={renderSet}
+        scrollEnabled={false}
+        ListEmptyComponent={<Text style={styles.empty}>No sets — add one.</Text>}
+      />
+
+      <TouchableOpacity onPress={handleAddSet} style={styles.addBtn}>
+        <Text style={styles.addBtnText}>+ Add Set</Text>
+      </TouchableOpacity>
+    </View>
+  );
 }
 
-export default function ExerciseBlock({ data, onChange }: Props) {
-  const handleSetChange = <T extends keyof Set>(index: number, key: T, value: Set[T]) => {
-    const updatedSets = [...data.sets]
-    updatedSets[index] = { ...updatedSets[index], [key]: value }
-    onChange({ ...data, sets: updatedSets })
-  }
+const styles = StyleSheet.create({
+  // overall
+  container: {
+    marginBottom: 12,
+    padding: 12,
+    borderRadius: 12,
+    backgroundColor: "#0b1220", // dark card
+    borderWidth: 1,
+    borderColor: "#111827",
+  },
 
-  const [visibleSets, setVisibleSets] = useState(data.sets.length > 0 ? data.sets.length : 1)
+  notesInput: {
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: "#1f2937",
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 16,
+    backgroundColor: "#071026",
+    color: "#e6eef8",
+  },
 
-const handleAddSet = () => {
-  if (visibleSets < data.sets.length) {
-    setVisibleSets((prev) => prev + 1)
-    return
-  }
-   const newSet: Set = {
-    reps: null,
-    weight: null,
-    unit: data.unit,
-    repsType: data.repsType,
-  }
-  const updatedSets = [...data.sets, newSet]
-  onChange({ ...data, sets: updatedSets })
-  setVisibleSets(updatedSets.length)
-}
+  empty: { textAlign: "center", paddingVertical: 12, color: "#94a3b8" },
 
-}
+  // rest row
+  restRow: {
+    marginTop: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 8,
+    paddingHorizontal: 6,
+    borderRadius: 8,
+    backgroundColor: "#071826",
+    borderColor: "#122032",
+    borderWidth: 1,
+  },
+  restLeft: { flexDirection: "column" },
+  restLabel: { fontSize: 12, color: "#94a3b8" },
+  restValue: { fontSize: 14, fontWeight: "700", marginTop: 4, color: "#e6eef8" },
+  restControls: { flexDirection: "row", alignItems: "center" },
+  restBtn: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    backgroundColor: "#0f1724",
+    borderWidth: 1,
+    borderColor: "#1f2a44",
+    marginRight: 8,
+  },
+  restBtnText: { fontSize: 12, fontWeight: "600", color: "#cbd5e1" },
+  openRest: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    backgroundColor: "#071026",
+    borderWidth: 1,
+    borderColor: "#182033",
+  },
+  openRestText: { fontSize: 12, color: "#cbd5e1" },
+
+  // add set button
+  addBtn: {
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    backgroundColor: "#183b8a",
+    borderRadius: 10,
+    marginTop: 12,
+    alignItems: "center",
+  },
+  addBtnText: { color: "#fff", fontWeight: "700" },
+
+  // labels row + alignment helpers
+  labelsRow: { marginTop: 10, flexDirection: "row", alignItems: "center", paddingHorizontal: 6, paddingBottom: 6 },
+  columnLabel: { fontSize: 12, color: "#94a3b8", fontWeight: "600" },
+
+  setLeft: { width: 48, alignItems: "center" },
+  setCenter: { flex: 1, paddingRight: 8 },
+  rowInputs: { flexDirection: "row", alignItems: "center" },
+  weightWrap: { flex: 0.5, marginRight: 8 },
+  repsWrap: { flex: 1 },
+  right: { width: 56, alignItems: "center", justifyContent: "flex-start" },
+});
