@@ -142,7 +142,7 @@ export default function RoutineDetailsScreen() {
 
   if (!routine) {
     return (
-      <Screen contentContainerStyle={styles.centered}>
+      <Screen  preset="fixed" contentContainerStyle={styles.centered}>
         <Ionicons name="alert-circle-outline" size={60} color="#777" />
         <Text style={styles.errorText}>Routine not found...</Text>
       </Screen>

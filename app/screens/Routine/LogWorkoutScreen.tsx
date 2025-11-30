@@ -71,7 +71,7 @@ export default function LogWorkoutScreen() {
   }, [navigation, routineTitle, duration, totalSets, completedSets, totalVolume, user])
 
   return (
-    <Screen contentContainerStyle={styles.container}>
+    <Screen preset="fixed" contentContainerStyle={styles.container}>
       <View style={styles.titleContainer}>
         <Text style={styles.title}>{routineTitle}</Text>
       </View>
