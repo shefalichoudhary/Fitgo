@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState,useCallback } from "react"
 import { db } from "@/utils/storage"
-import { routines, routineExercises, routineSets, exercises } from "@/utils/storage/schema"
-import { eq } from "drizzle-orm"
+import { routines, routineExercises, routineSets, exercises,workoutExercises,workoutSets } from "@/utils/storage/schema"
+import { and, eq } from "drizzle-orm"
 
 export type ExerciseLog = {
   id: string
@@ -21,6 +21,7 @@ export function useWorkoutData(routineId: string) {
   const [duration, setDuration] = useState(0)
 
   // Fetch routine and exercises
+  
   useEffect(() => {
     const fetchRoutineData = async () => {
       try {
@@ -71,6 +72,11 @@ export function useWorkoutData(routineId: string) {
     return () => clearInterval(interval)
   }, [workoutStartTime])
 
+  const removeExercise = (exerciseId: string) => {
+  setExercisesData((prev) => prev.filter((ex) => ex.id !== exerciseId));
+};
+
+
   const toggleSetCompletion = (exerciseId: string, setId: string) => {
     setExercisesData((prev) =>
       prev.map((ex) =>
@@ -86,5 +92,5 @@ export function useWorkoutData(routineId: string) {
     )
   }
 
-  return { routineTitle, exercisesData, setExercisesData, duration, toggleSetCompletion }
+  return { routineTitle, exercisesData, removeExercise, setExercisesData, duration, toggleSetCompletion }
 }

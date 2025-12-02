@@ -43,25 +43,20 @@ export default function CreateRoutineScreen() {
     setTitle,
     exercises,
     setExercises,
-    deleteSet,
     deleteExercise,
     saveRoutine,
   } = useCreateRoutine([]);
 
   // NOTE: we create a typed adapter below to satisfy TypeScript for SetField
   const {
-    addSet,
     toggleRepsType,
-    toggleUnit,
     updateSetField: rawUpdateSetField,
-    updateNote,
     updateRestTimer,
   } = useRoutineHelpers(setExercises);
 
   // adapter with explicit SetField typing (casts original to the wider type)
   const updateSetField = React.useCallback(
     (exerciseId: string, setId: string, field: SetField, value: any) => {
-      // cast the raw helper to the expected signature and call it
       (rawUpdateSetField as unknown as (eId: string, sId: string, f: SetField, v: any) => void)(
         exerciseId,
         setId,
@@ -115,7 +110,6 @@ export default function CreateRoutineScreen() {
 
   useEffect(() => {
     const unsubscribe = navigation.addListener("beforeRemove", () => {
-      // Reset your state before leaving
       setExercises([]);
       setTitle("");
     });
@@ -125,9 +119,7 @@ export default function CreateRoutineScreen() {
 
   const saveDisabled = !title.trim() || exercises.some((ex: any) => (ex.sets || []).length === 0);
 
-  // -----------------------
-  // Adapters to map ExerciseBlock callbacks -> your helpers/state
-  // -----------------------
+
 
   // Generic onChange from ExerciseBlock: replace that exercise's data
   const handleExerciseChange = (exerciseId: string, newData: any) => {
@@ -137,7 +129,6 @@ export default function CreateRoutineScreen() {
   };
 
   // onOpenRepRange: ExerciseBlock gives (exerciseId, setIndex)
-  // use toggleRepsType which expects (exerciseId, setId) in your helpers
   const handleOpenRepRange = (exerciseId: string, setIndex: number) => {
     const ex = exercises.find((e: any) => e.id === exerciseId);
     const setId = ex?.sets?.[setIndex]?.id;
@@ -154,6 +145,7 @@ export default function CreateRoutineScreen() {
       updateSetField(exerciseId, setId, "isCompleted", completed);
     }
   };
+
 
   // onOpenSetType: cycle set type (W -> Normal -> D -> F -> W)
   const handleOpenSetType = (exerciseId: string, setIndex?: number) => {
@@ -198,7 +190,6 @@ export default function CreateRoutineScreen() {
 
 
 
-
   // delete exercise adapter
   const handleDeleteExercise = (exerciseId: string) => {
     deleteExercise(exerciseId);
@@ -233,7 +224,7 @@ export default function CreateRoutineScreen() {
               /* optionally start a timer UI */
             }}
             onOpenRepRange={(exerciseId, setIndex) => handleOpenRepRange(exerciseId, setIndex)}
-            showCheckIcon={true}
+            showCheckIcon={false}
             onDeleteExercise={(exerciseId)=> handleDeleteExercise(exerciseId)}
             viewOnly={false}
             onOpenSetType={(exerciseId, setIndex) => handleOpenSetType(exerciseId, setIndex)}

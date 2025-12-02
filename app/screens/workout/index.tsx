@@ -43,7 +43,8 @@ export default function HistoryScreen() {
   const [loading, setLoading] = useState(true)
   const [selectedWorkoutId, setSelectedWorkoutId] = useState<string | null>(null)
   const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList>>()
-  const handleDelete = async () => {
+
+    const handleDelete = async () => {
     if (!selectedWorkoutId) return
 
     await db.delete(workoutExercises).where(eq(workoutExercises.workoutId, selectedWorkoutId)).run()

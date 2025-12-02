@@ -28,7 +28,7 @@ export default function ExerciseBlock({
   onChange,
   onStartTimer,
   onOpenRepRange,
-  showCheckIcon = true,
+  showCheckIcon ,
   viewOnly = false,
   onOpenWeight,
   onOpenSetType,
@@ -68,6 +68,7 @@ export default function ExerciseBlock({
       return;
     }
     const newSet: Set = {
+        id: `${exercise.id}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
       reps: null,
       weight: null,
       unit: narrowUnit(data.unit),
@@ -143,13 +144,21 @@ export default function ExerciseBlock({
     [sets, data, onChange]
   );
 
-  const handleToggleComplete = useCallback(
-    (index: number) => {
-      const prev = sets[index]?.isCompleted ?? false;
-      handleChangeField(index, "isCompleted", !prev);
-    },
-    [sets, handleChangeField]
-  );
+const handleToggleComplete = useCallback(
+  (index: number) => {
+    const prev = sets[index]?.isCompleted ?? false;
+    const next = !prev;
+
+    // update local set field
+    handleChangeField(index, "isCompleted", next);
+
+    // also notify parent that a set was toggled (so higher-level state / DB can update)
+    if (onToggleSetComplete) {
+      onToggleSetComplete(exercise.id, index, next);
+    }
+  },
+  [sets, handleChangeField, onToggleSetComplete, exercise.id]
+);
 
   const renderSet = useCallback(
     ({ item, index }: { item: Set; index: number }) => (
@@ -163,6 +172,7 @@ export default function ExerciseBlock({
         onOpenRepRange={() => onOpenRepRange(exercise.id, index)}
         disabled={viewOnly}
         onAddSet={handleAddSet}
+        showCheckIcon={showCheckIcon}
         onToggleUnit={() => handleToggleUnitForSet(index)}
         onOpenRepsType={() => onOpenRepsType && onOpenRepsType(exercise.id)}
         onToggleComplete={() => handleToggleComplete(index)}

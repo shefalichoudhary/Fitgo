@@ -8,6 +8,7 @@ import {
   AccessibilityRole,
   Modal,
   Pressable,
+  Vibration,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import type { Set } from "./types";
@@ -32,7 +33,7 @@ export default function SetRow({
   idx,
   set,
   disabled = false,
-  showCheckIcon = false,
+  showCheckIcon,
   onChangeField,
   onRemove,
   onOpenWeight,
@@ -41,6 +42,8 @@ export default function SetRow({
 }: Props) {
   const [menuVisible, setMenuVisible] = useState(false);
   const showRange = set.repsType === "rep range" || !!set.isRangeReps;
+  const isCompleted = !!set.isCompleted;
+  const editable = !disabled && !isCompleted;
 
   const openIndexMenu = () => {
     if (disabled) return;
@@ -50,7 +53,6 @@ export default function SetRow({
   const closeMenu = () => setMenuVisible(false);
 
   const selectType = (type: string) => {
-    // map friendly types to your stored setType values
     const value = type === "Warmup" ? "W" : type === "Failure" ? "F" : (type as any);
     onChangeField(idx, "setType", value as any);
     closeMenu();
@@ -61,47 +63,41 @@ export default function SetRow({
     onRemove(idx);
   };
 
+  const handleToggle = () => {
+    Vibration.vibrate(40);
+    onToggleComplete && onToggleComplete();
+  };
+
   return (
-    <View style={styles.row} accessibilityRole={"listitem" as AccessibilityRole}>
-      {/* left: index and optional checkbox */}
+    <View
+      style={[
+        styles.row,
+        isCompleted ? styles.rowCompleted : null,
+      ]}
+      accessibilityRole={"listitem" as AccessibilityRole}
+    >
+      {/* left: index tappable to open menu */}
       <View style={styles.left}>
-        {showCheckIcon ? (
-          <TouchableOpacity
-            onPress={onToggleComplete}
-            disabled={disabled}
-            style={[styles.checkbox, set.isCompleted && styles.checkboxActive]}
-            accessibilityLabel={set.isCompleted ? "Mark incomplete" : "Mark complete"}
-            accessibilityRole="button"
-          >
-            {set.isCompleted ? (
-              <Ionicons name="checkmark" size={14} color="#071026" />
-            ) : (
-              <Ionicons name="ellipse-outline" size={14} color="#94a3b8" />
-            )}
-          </TouchableOpacity>
-        ) : (
-          // index tappable to open menu
-          <TouchableOpacity
-            onPress={openIndexMenu}
-            disabled={disabled}
-            style={styles.indexWrap}
-            accessibilityRole="button"
-            accessibilityLabel="Open set actions"
-          >
-            <Text style={styles.indexText}>
-              {set.setType === "Normal" ? idx + 1 : set.setType}
-            </Text>
-          </TouchableOpacity>
-        )}
+        <TouchableOpacity
+          onPress={openIndexMenu}
+          disabled={disabled}
+          style={styles.indexWrap}
+          accessibilityRole="button"
+          accessibilityLabel="Open set actions"
+        >
+          <Text style={[styles.indexText,]}>
+            {set.setType === "Normal" ? idx + 1 : set.setType}
+          </Text>
+        </TouchableOpacity>
       </View>
 
-      {/* center: inputs (NO LABELS here) */}
+      {/* center: inputs */}
       <View style={styles.center}>
         <View style={styles.inputsRow}>
           {/* weight input */}
           <TouchableOpacity
             onPress={onOpenWeight}
-            disabled={disabled}
+            disabled={!editable}
             style={styles.weightWrap}
             accessibilityLabel="Edit weight"
             accessibilityRole="button"
@@ -109,13 +105,13 @@ export default function SetRow({
             <TextInput
               value={set.weight != null ? String(set.weight) : ""}
               keyboardType="numeric"
-              editable={!disabled}
+              editable={editable}
               placeholder={set.unit === "lbs" ? "lbs" : "kg"}
               onChangeText={(v) => {
                 const n = v === "" ? null : Number(v);
                 onChangeField(idx, "weight", Number.isNaN(n) ? null : n);
               }}
-              style={styles.input}
+              style={[styles.input, ]}
               placeholderTextColor="#6b7280"
             />
           </TouchableOpacity>
@@ -127,7 +123,7 @@ export default function SetRow({
                 <TextInput
                   value={set.minReps != null ? String(set.minReps) : ""}
                   keyboardType="numeric"
-                  editable={!disabled}
+                  editable={editable}
                   placeholder="min"
                   onChangeText={(v) => {
                     const n = v === "" ? null : Number(v);
@@ -136,17 +132,17 @@ export default function SetRow({
                   style={[styles.input, styles.rangeInput]}
                   placeholderTextColor="#6b7280"
                 />
-                <Text style={styles.rangeSep}>-</Text>
+                <Text style={[styles.rangeSep]}>-</Text>
                 <TextInput
                   value={set.maxReps != null ? String(set.maxReps) : ""}
                   keyboardType="numeric"
-                  editable={!disabled}
+                  editable={editable}
                   placeholder="max"
                   onChangeText={(v) => {
                     const n = v === "" ? null : Number(v);
                     onChangeField(idx, "maxReps", Number.isNaN(n) ? null : n);
                   }}
-                  style={[styles.input, styles.rangeInput]}
+                  style={[styles.input, styles.rangeInput, ]}
                   placeholderTextColor="#6b7280"
                 />
               </View>
@@ -154,13 +150,13 @@ export default function SetRow({
               <TextInput
                 value={set.reps != null ? String(set.reps) : ""}
                 keyboardType="numeric"
-                editable={!disabled}
+                editable={editable}
                 placeholder="0"
                 onChangeText={(v) => {
                   const n = v === "" ? null : Number(v);
                   onChangeField(idx, "reps", Number.isNaN(n) ? null : n);
                 }}
-                style={styles.input}
+                style={[styles.input,  ]}
                 placeholderTextColor="#6b7280"
               />
             )}
@@ -168,7 +164,26 @@ export default function SetRow({
         </View>
       </View>
 
-      {/* Modal: index actions (dark modal) */}
+      {/* right: check icon (shown when showCheckIcon = true) */}
+      <View style={styles.right}>
+        {showCheckIcon ? (
+          <TouchableOpacity
+            onPress={handleToggle}
+            disabled={disabled}
+            style={[styles.checkbox, isCompleted && styles.checkboxActive]}
+            accessibilityLabel={isCompleted ? "Mark incomplete" : "Mark complete"}
+            accessibilityRole="button"
+          >
+            {isCompleted ? (
+              <Ionicons name="checkmark" size={16} color="#071026" />
+            ) : (
+              <Ionicons name="ellipse-outline" size={16} color="#94a3b8" />
+            )}
+          </TouchableOpacity>
+        ) : null}
+      </View>
+
+      {/* actions modal */}
       <Modal visible={menuVisible} transparent animationType="fade" onRequestClose={closeMenu}>
         <Pressable style={styles.modalOverlay} onPress={closeMenu}>
           <View style={styles.modal}>
@@ -203,14 +218,21 @@ export default function SetRow({
 const styles = StyleSheet.create({
   row: {
     flexDirection: "row",
-    alignItems: "flex-start",
+    alignItems: "center",
     paddingVertical: 8,
     marginTop: 8,
+  },
+
+  rowCompleted: {
+    backgroundColor: "rgba(16,185,129,0.06)",
+    borderRadius: 8,
+    padding: 6,
   },
 
   left: {
     width: 48,
     alignItems: "center",
+    justifyContent: "center",
   },
 
   indexWrap: {
@@ -219,7 +241,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#071026", // dark chip
+    backgroundColor: "#071026",
     borderWidth: 1,
     borderColor: "#122032",
   },
@@ -229,26 +251,14 @@ const styles = StyleSheet.create({
     color: "#e6eef8",
   },
 
-  checkbox: {
-    width: 34,
-    height: 34,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#203242",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 4,
-    backgroundColor: "#071026",
-  },
-
-  checkboxActive: {
-    backgroundColor: "#10B981",
-    borderColor: "#0b3a26",
+  completedText: {
+    color: "#9be6b7",
+    textDecorationLine: "line-through",
   },
 
   center: {
     flex: 1,
-    paddingRight: 8,
+    paddingHorizontal: 8,
   },
 
   inputsRow: {
@@ -276,6 +286,12 @@ const styles = StyleSheet.create({
     color: "#e6eef8",
   },
 
+  inputCompleted: {
+    color: "#9be6b7",
+    opacity: 0.9,
+    textDecorationLine: "line-through",
+  },
+
   rangeRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -291,34 +307,26 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
 
-  controlsRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 8,
-  },
-
-  pill: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 999,
-    backgroundColor: "#0f1724",
-    marginRight: 8,
-    borderWidth: 1,
-    borderColor: "#192433",
-  },
-
-  pillText: {
-    fontSize: 12,
-    color: "#e6eef8",
-    fontWeight: "600",
-  },
-
-  iconBtn: {
-    padding: 8,
-    borderRadius: 8,
-    marginRight: 8,
+  right: {
+    width: 56,
     alignItems: "center",
     justifyContent: "center",
+  },
+
+  checkbox: {
+    width: 36,
+    height: 36,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#203242",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#071026",
+  },
+
+  checkboxActive: {
+    backgroundColor: "#10B981",
+    borderColor: "#0b3a26",
   },
 
   /* modal (dark) */

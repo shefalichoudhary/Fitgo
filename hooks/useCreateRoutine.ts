@@ -2,12 +2,11 @@ import { useState, useCallback } from "react";
 import { Alert } from "react-native";
 import { db } from "@/utils/storage";
 import { routines, routineExercises, routineSets } from "@/utils/storage/schema";
-import { useNavigation } from "@react-navigation/native";
 
 export const useCreateRoutine = (initialExercises: any[] = []) => {
   const [title, setTitle] = useState("");
   const [exercises, setExercises] = useState(initialExercises);
-const navigation = useNavigation();
+
   const deleteSet = (exerciseId: string, setId: string) => {
     setExercises((prev) =>
       prev.map((ex) =>
@@ -19,7 +18,6 @@ const navigation = useNavigation();
   };
 
   const deleteExercise = (exerciseId: string) => {
-  // directly delete without showing another alert
   setExercises((prev) => prev.filter((ex) => ex.id !== exerciseId));
 };
 
