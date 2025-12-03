@@ -221,18 +221,18 @@ export default function ExerciseBlock({
         <View style={styles.restControls}>
           <TouchableOpacity
             style={styles.restBtn}
-            onPress={() => changeRestBy(-15)}
+            onPress={() => changeRestBy(-5)}
             disabled={viewOnly}
           >
-            <Text style={styles.restBtnText}>-15s</Text>
+            <Text style={styles.restBtnText}>-5s</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.restBtn}
-            onPress={() => setRestTimer(30)}
+            onPress={() => setRestTimer(10)}
             disabled={viewOnly}
           >
-            <Text style={styles.restBtnText}>30s</Text>
+            <Text style={styles.restBtnText}>10s</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -243,40 +243,43 @@ export default function ExerciseBlock({
             <Text style={styles.restBtnText}>+15s</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.openRest} onPress={openRestModal}>
-            <Text style={styles.openRestText}>Edit</Text>
-          </TouchableOpacity>
+         
         </View>
       </View>
 
       {/* Single labels row — only once (dark labels) */}
-      {sets.length > 0 && (
-        <View style={styles.labelsRow}>
-          <View style={styles.right}>
-            <Text style={styles.columnLabel}>SET</Text>
-          </View>
-          <View style={styles.setLeft} />
+{sets.length > 0 && (
+  <View style={styles.labelsRow}>
+    <View style={styles.setLeft}>
+      <Text style={styles.columnLabel}>SET</Text>
+    </View>
 
-          <View style={[styles.setCenter, { paddingLeft: 0 }]}>
-            <View style={styles.rowInputs}>
-              <TouchableOpacity onPress={handleToggleUnitAll} style={styles.weightWrap}>
-                <Text style={styles.columnLabel}>{data.unit?.toUpperCase() ?? "KG"}</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={handleToggleRepsTypeAll}
-                accessibilityLabel="Toggle reps type"
-                accessibilityRole="button"
-                style={[styles.repsWrap, { flex: 1 }]}
-              >
-                <Text style={styles.columnLabel}>
-                  {data.repsType === "rep range" ? "REP — RANGE" : "REPS"}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
+    {/* center: weight + reps labels (same flex layout as SetRow.center) */}
+    <View style={[styles.setCenter]}>
+      <View style={styles.rowInputs}>
+        <View style={styles.weightWrap}>
+          <Text style={styles.columnLabel}>{(data.unit ?? "kg").toUpperCase()}</Text>
         </View>
-      )}
+
+        <View style={[styles.repsWrap, { flex: 1 }]}>
+          <TouchableOpacity
+            onPress={handleToggleRepsTypeAll}
+            accessibilityLabel="Toggle reps type"
+            accessibilityRole="button"
+          >
+            <Text style={styles.columnLabel}>
+              {data.repsType === "rep range" ? "REP — RANGE" : "REPS"}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </View>
+
+    {/* right: placeholder matching SetRow.right width so center lines up */}
+    <View style={styles.right} />
+  </View>
+)}
+
 
       <FlatList
         data={sets.slice(0, visibleSets)}
@@ -299,7 +302,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     padding: 12,
     borderRadius: 12,
-    backgroundColor: "#0b1220", // dark card
+    backgroundColor: "#161616ff", // dark card
     borderWidth: 1,
     borderColor: "#111827",
   },
@@ -307,27 +310,27 @@ const styles = StyleSheet.create({
   notesInput: {
     marginTop: 8,
     borderWidth: 1,
-    borderColor: "#1f2937",
+    borderColor: "#080808ff",
     borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 16,
-    backgroundColor: "#071026",
-    color: "#e6eef8",
+    backgroundColor: "#020202e1",
+    color: "#e7eaecff",
   },
 
   empty: { textAlign: "center", paddingVertical: 12, color: "#94a3b8" },
 
   // rest row
   restRow: {
-    marginTop: 10,
+    marginTop: 4,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingVertical: 8,
     paddingHorizontal: 6,
     borderRadius: 8,
-    backgroundColor: "#071826",
-    borderColor: "#122032",
+    backgroundColor: "#050505ff",
+    borderColor: "#030303ff",
     borderWidth: 1,
   },
   restLeft: { flexDirection: "column" },
@@ -338,9 +341,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 8,
-    backgroundColor: "#0f1724",
+    backgroundColor: "#070707ff",
     borderWidth: 1,
-    borderColor: "#1f2a44",
+    borderColor: "#202020ff",
     marginRight: 8,
   },
   restBtnText: { fontSize: 12, fontWeight: "600", color: "#cbd5e1" },
@@ -348,13 +351,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 8,
-    backgroundColor: "#071026",
+    backgroundColor: "#000000ff",
     borderWidth: 1,
-    borderColor: "#182033",
+    borderColor: "#050505ff",
   },
   openRestText: { fontSize: 12, color: "#cbd5e1" },
 
-  // add set button
   addBtn: {
     paddingHorizontal: 14,
     paddingVertical: 10,
@@ -365,17 +367,17 @@ const styles = StyleSheet.create({
   },
   addBtnText: { color: "#fff", fontWeight: "700" },
   labelsRow: {
-    marginTop: 10,
+    marginTop: 12,
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 6,
     paddingBottom: 6,
   },
-  columnLabel: { fontSize: 12, color: "#94a3b8", fontWeight: "600" },
-  setLeft: { width: 48, alignItems: "center" },
-  setCenter: { flex: 1, paddingRight: 8 },
+  columnLabel: { fontSize: 12, color: "#fafafaff", fontWeight: "600" },
+  setLeft: { width:70},
+  setCenter: { flex: 1, paddingRight: 10},
   rowInputs: { flexDirection: "row", alignItems: "center" },
-  weightWrap: { flex: 0.5, marginRight: 8 },
+  weightWrap: { flex: 0.7, marginRight: 8 },
   repsWrap: { flex: 1 },
   right: { width: 56, alignItems: "center", justifyContent: "flex-start" },
 });

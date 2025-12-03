@@ -270,9 +270,9 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#071026",
+    backgroundColor: "#080808ff",
     borderWidth: 1,
-    borderColor: "#122032",
+    borderColor: "#080808ff",
   },
 
   indexText: {
@@ -308,15 +308,15 @@ const styles = StyleSheet.create({
     height: 44,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: "#122032",
+    borderColor: "#080808ff",
     paddingHorizontal: 12,
-    backgroundColor: "#071026",
+    backgroundColor: "#080808ff",
     fontSize: 14,
-    color: "#e6eef8",
+    color: "#e7eaecff",
   },
 
   inputCompleted: {
-    color: "#9be6b7",
+    color: "#023314ff",
     opacity: 0.9,
     textDecorationLine: "line-through",
   },
@@ -347,15 +347,15 @@ const styles = StyleSheet.create({
     height: 36,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: "#203242",
+    borderColor: "#080808ff",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#071026",
+    backgroundColor: "#080808ff",
   },
 
   checkboxActive: {
-    backgroundColor: "#10B981",
-    borderColor: "#0b3a26",
+    backgroundColor: "#08865cff",
+    borderColor: "#0b3a26ff",
   },
 
   /* modal (dark) */
