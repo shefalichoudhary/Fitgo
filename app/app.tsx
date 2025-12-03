@@ -40,7 +40,6 @@ export function App() {
   }, []);
   return (
         <GestureHandlerRootView style={{ flex: 1 }}>
-
     <SafeAreaProvider initialMetrics={initialWindowMetrics}>
       <KeyboardProvider>
         <RoutineProvider>

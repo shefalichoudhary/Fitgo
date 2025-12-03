@@ -13,6 +13,7 @@ import { routines } from "@/utils/storage/schema"
 import { eq } from "drizzle-orm"
 import { seedPreMadeRoutines } from "@/utils/storage/SeedPreMadeRoutines"
 import { Screen } from "@/components/Screen"
+import LoadingOverlay from "@/components/LoadingOverlay"
 
 export default function PremadeRoutineScreen({ navigation }: any) {
   const [loading, setLoading] = useState(true)
@@ -74,7 +75,7 @@ export default function PremadeRoutineScreen({ navigation }: any) {
   if (loading) {
     return (
       <Screen style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
-        <ActivityIndicator size="large" color="#3B82F6" />
+            <LoadingOverlay visible={loading} message="Loading pre-made routines..." />
       </Screen>
     )
   }

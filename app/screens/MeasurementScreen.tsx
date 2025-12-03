@@ -6,7 +6,6 @@ import {
   ScrollView,
   useColorScheme,
   TouchableOpacity,
-  Modal,
   Animated,
   Easing,
 } from "react-native"
@@ -16,12 +15,7 @@ import { measurements } from "../utils/storage/schema"
 import { sql } from "drizzle-orm"
 import { ConfirmModal } from "../components/ConfirmModal"
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons"
-import { useNavigation } from "@react-navigation/native"
-import { NativeStackNavigationProp } from "@react-navigation/native-stack"
-import { HomeStackParamList } from "../navigators/navigationTypes"
-import { RouteProp,useRoute } from "@react-navigation/native"
 import { Measurement } from "../../types/Measurement"
-
 
 export default function MeasurementScreen() {
   const colorScheme = useColorScheme()
@@ -30,8 +24,6 @@ export default function MeasurementScreen() {
   const [data, setData] = useState<Measurement[]>([])
   const [selectedMeasurement, setSelectedMeasurement] = useState<Measurement | null>(null)
   const fadeAnim = useRef(new Animated.Value(0)).current
-const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
-const route = useRoute<RouteProp<HomeStackParamList, "AddMeasurement">>();
   useEffect(() => {
     fetchMeasurements()
   }, [])

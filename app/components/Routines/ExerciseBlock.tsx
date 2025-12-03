@@ -31,7 +31,6 @@ export default function ExerciseBlock({
   onOpenWeight,
   onOpenSetType,
   onOpenRepsType,
-  onOpenRestTimer,
   onToggleSetComplete,
   onDeleteExercise,
 }: Props) {
@@ -109,12 +108,8 @@ export default function ExerciseBlock({
     [data.restTimer, setRestTimer]
   );
 
-  const openRestModal = useCallback(() => {
-    onOpenRestTimer && onOpenRestTimer(exercise.id);
-  }, [onOpenRestTimer, exercise.id]);
 
   // ---------- Exercise-level handlers for labels ----------
-  // Toggle unit for all sets (exercise-level)
   const handleToggleUnitAll = useCallback(() => {
     const nextUnit: Unit = data.unit === "kg" ? "lbs" : "kg";
     // If you want conversion of weight values, add conversion logic here.
@@ -178,6 +173,7 @@ export default function ExerciseBlock({
         onToggleUnit={() => handleToggleUnitForSet(index)}
         onOpenRepsType={() => onOpenRepsType && onOpenRepsType(exercise.id)}
         onToggleComplete={() => handleToggleComplete(index)}
+
       />
     ),
     [
@@ -257,9 +253,13 @@ export default function ExerciseBlock({
     {/* center: weight + reps labels (same flex layout as SetRow.center) */}
     <View style={[styles.setCenter]}>
       <View style={styles.rowInputs}>
-        <View style={styles.weightWrap}>
+        <TouchableOpacity 
+          onPress={handleToggleUnitAll}
+            accessibilityLabel="Toggle unit"
+            accessibilityRole="button"
+        style={styles.weightWrap}>
           <Text style={styles.columnLabel}>{(data.unit ?? "kg").toUpperCase()}</Text>
-        </View>
+        </TouchableOpacity>
 
         <View style={[styles.repsWrap, { flex: 1 }]}>
           <TouchableOpacity

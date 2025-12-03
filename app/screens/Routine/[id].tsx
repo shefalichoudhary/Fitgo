@@ -15,6 +15,7 @@ import { db } from "@/utils/storage";
 import { routines, routineExercises, routineSets, exercises } from "@/utils/storage/schema";
 import { eq, and } from "drizzle-orm";
 import AntDesign from "@expo/vector-icons/AntDesign";
+import LoadingOverlay  from "@/components/LoadingOverlay";
 
 type RootStackParamList = {
   RoutineDetails: { id: string };
@@ -107,7 +108,7 @@ export default function RoutineDetailsScreen() {
   if (loading) {
     return (
       <Screen contentContainerStyle={styles.centered}>
-        <Text style={{ color: "#fff" }}>Loading...</Text>
+            <LoadingOverlay visible={loading} message="Loading routine..." />
       </Screen>
     );
   }

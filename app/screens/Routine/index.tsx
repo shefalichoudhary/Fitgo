@@ -9,6 +9,7 @@ import { routines, routineExercises, routineSets } from "@/utils/storage/schema"
 import { sql } from "drizzle-orm"
 import cuid from "cuid";
 import { Ionicons } from "@expo/vector-icons"
+import LoadingOverlay from "@/components/LoadingOverlay"
 
 export default function RoutineScreen() {
   const { routinesData, setRoutinesData, loading } = useRoutines()
@@ -87,7 +88,7 @@ const handleDuplicate = async (routine: RoutineWithExercises) => {
   if (loading) {
     return (
       <Screen contentContainerStyle={styles.center}>
-        <Text style={{ color: "#121212" }}>Loading routines...</Text>
+            <LoadingOverlay visible={loading} message="Loading routines..." />
       </Screen>
     )
   }

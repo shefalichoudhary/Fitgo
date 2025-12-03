@@ -17,7 +17,6 @@ export default function AddMeasurementScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
-
   const route = useRoute<RouteProp<HomeStackParamList, "AddMeasurement">>();
   const editData = route.params?.editData || null;
   const styles = getStyles(isDark);

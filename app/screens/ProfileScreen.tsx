@@ -13,6 +13,7 @@ import { eq } from "drizzle-orm";
 import { Ionicons } from "@expo/vector-icons";
 import { getCurrentUser } from "@/utils/user";
 import { ConfirmModal } from "@/components/ConfirmModal"; // adjust path
+import LoadingOverlay from "@/components/LoadingOverlay";
 
 type Props = { navigation?: any };
 type ConfirmType = "save" | "cancel" | null;
@@ -106,8 +107,7 @@ export default function ProfileScreen({ navigation }: Props) {
   if (loading) {
     return (
       <View style={styles.loaderContainer}>
-        <ActivityIndicator size="large" color="#ffffff" />
-        <Text style={{ color: "#9CA3AF", marginTop: 10 }}>Loading profile...</Text>
+        <LoadingOverlay visible={loading} message="Loading profile..." />
       </View>
     );
   }
@@ -140,7 +140,6 @@ export default function ProfileScreen({ navigation }: Props) {
     );
   }
 
-  // prepare modal props per confirmType
   const modalProps = (() => {
     if (confirmType === "save") {
       return {

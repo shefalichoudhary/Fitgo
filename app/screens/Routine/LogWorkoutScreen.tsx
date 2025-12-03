@@ -1,4 +1,3 @@
-import React, { useEffect, useState, useCallback } from "react";
 import { FlatList, StyleSheet, Text, View } from "react-native";
 import { Screen } from "@/components/Screen";
 import { useRoute, useNavigation } from "@react-navigation/native";
@@ -11,10 +10,13 @@ import { getCurrentUser } from "@/utils/user";
 import { AppAlert } from "@/components/AppAlert";
 import { useRoutineHelpers } from "@/components/Routines/useRoutineHelpers";
 import { Vibration } from "react-native";
-import RestTimer from "@/components/logWorkout/RestTimer";
+import LoadingOverlay from "@/components/LoadingOverlay";
+import React, { useEffect, useState, useCallback, useRef } from "react";
+import RestTimer, { RestTimerHandle } from "@/components/logWorkout/RestTimer";
 
 export default function LogWorkoutScreen() {
   const [alertVisible, setAlertVisible] = useState(false);
+   const [initialLoading, setInitialLoading] = useState(true);
   const [alertMessage, setAlertMessage] = useState("");
   const [navigateAfterAlert, setNavigateAfterAlert] = useState(false);
   const route = useRoute<any>();
@@ -37,6 +39,7 @@ export default function LogWorkoutScreen() {
     running: boolean;
   }>({ exerciseId: null, setId: null, remaining: 0, running: false });
   const timerRef = React.useRef<number | null>(null);
+const restTimerRef = useRef<RestTimerHandle | null>(null);
 
   // guard ref stores ids that the interval is currently owning (prevents accidental overlaps)
   const activeTimerOwnerRef = React.useRef<{ exerciseId: string | null; setId: string | null }>({
@@ -157,9 +160,56 @@ export default function LogWorkoutScreen() {
         clearInterval(timerRef.current);
         timerRef.current = null;
       }
+     
       activeTimerOwnerRef.current = { exerciseId: null, setId: null };
     };
   }, []);
+    // ----- NEW: initial loading that depends on data readiness -----
+  useEffect(() => {
+    let mounted = true;
+    // minimum time to avoid flicker
+    const MIN_SHOW_MS = 300;
+    // safety fallback: if data never resolves, hide loader after this timeout
+    const FALLBACK_MS = 3000;
+    let fallbackTimer: ReturnType<typeof setTimeout> | null = null;
+    let minTimer: ReturnType<typeof setTimeout> | null = null;
+
+    // Helper to mark ready only when both user and exercisesData are present (or you've deemed them ready)
+    const tryResolve = () => {
+      // If your hook provides a `loading` boolean, prefer using it:
+      // const isLoading = hookLoading; // replace logic below with isLoading
+      // When exercisesData is defined (could be []), we treat it as loaded.
+      const dataReady = typeof exercisesData !== "undefined" && exercisesData !== null;
+      const userReady = typeof user !== "undefined"; // user may be null if not logged in, but fetched
+      if (dataReady && userReady && mounted) {
+        // ensure loader is visible for at least MIN_SHOW_MS
+        minTimer = setTimeout(() => {
+          if (!mounted) return;
+          setInitialLoading(false);
+        }, MIN_SHOW_MS);
+        // clear fallback if any
+        if (fallbackTimer) {
+          clearTimeout(fallbackTimer);
+          fallbackTimer = null;
+        }
+      }
+    };
+
+    // set fallback in case something goes wrong
+    fallbackTimer = setTimeout(() => {
+      if (!mounted) return;
+      setInitialLoading(false);
+    }, FALLBACK_MS);
+
+    tryResolve();
+
+    return () => {
+      mounted = false;
+      if (fallbackTimer) clearTimeout(fallbackTimer);
+      if (minTimer) clearTimeout(minTimer);
+    };
+    // watch exercisesData and user
+  }, [exercisesData, user]);
 
   const totalSets = exercisesData.reduce((a, e) => a + (e.sets?.length ?? 0), 0);
   const completedSets = exercisesData.reduce(
@@ -405,22 +455,34 @@ export default function LogWorkoutScreen() {
       stopRestTimer,
     ]
   );
+    if (initialLoading) {
+    return (
+      <Screen preset="fixed" contentContainerStyle={styles.container}>
+        <LoadingOverlay  visible={true} message="Loading..." />
+      </Screen>
+    );
+  }
 
   return (
     <Screen preset="fixed" contentContainerStyle={styles.container}>
       <View style={styles.titleContainer}>
         <Text style={styles.title}>{routineTitle}</Text>
       </View>
-      <RestTimer
-        activeRestTimer={activeRestTimer}
-        onPause={pauseRestTimer}
-        onResume={resumeRestTimer}
-        onStop={stopRestTimer}
-        label={(() => {
-          const ex = exercisesData.find((e) => e.id === activeRestTimer.exerciseId);
-          return ex ? (ex.exercise_name ?? ex.name ?? "Rest") : "Rest";
-        })()}
-      />
+  <RestTimer
+  ref={restTimerRef}
+  resolveLabel={(exerciseId) => {
+    const ex = exercisesData.find((e) => e.id === exerciseId);
+    return ex ? (ex.exercise_name ?? ex.name ?? "Rest") : "Rest";
+  }}
+  onChange={(s) => {
+    // optional: if you need to keep any top-level visible state in the screen, do it here.
+    // e.g., setSomeLocalState(s) or update UI. But it's optional; RestTimer already displays itself.
+  }}
+  onFinish={(exerciseId, setId) => {
+    // optional: when the timer finishes you might want to mark something, play sound, etc.
+    // default vibration is inside timer; this is just a hook.
+  }}
+/>
       <WorkoutSummary
         completedSets={completedSets}
         totalSets={totalSets}

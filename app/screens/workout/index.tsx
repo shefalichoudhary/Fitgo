@@ -20,6 +20,7 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import {  HomeStackParamList } from "@/navigators/navigationTypes";
 import { Ionicons } from "@expo/vector-icons";
 import { and } from "drizzle-orm";
+import LoadingOverlay from "@/components/LoadingOverlay";
 
 interface WorkoutItem {
   id: string;
@@ -123,7 +124,7 @@ export default function HistoryScreen() {
   if (loading) {
     return (
       <Screen preset="fixed" style={{ flex: 1, backgroundColor: "#000000ff", padding: 12 }}>
-        <ActivityIndicator size="large" color="#f5f6f8ff" />
+          <LoadingOverlay visible={loading} message="Loading workout history..." />
       </Screen>
     );
   }

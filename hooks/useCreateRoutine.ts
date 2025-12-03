@@ -22,43 +22,61 @@ export const useCreateRoutine = (initialExercises: any[] = []) => {
 };
 
 
-  const saveRoutine = async () => {
-    if (!title.trim()) return Alert.alert("Please enter a routine title");
-    if (exercises.length === 0) return Alert.alert("Add at least one exercise");
+// Replace your saveRoutine with this (matches your schema column names)
+const saveRoutine = async () => {
+  if (!title.trim()) return Alert.alert("Please enter a routine title");
+  if (exercises.length === 0) return Alert.alert("Add at least one exercise");
 
-    try {
-      const [{ id: routineId }] = await db.insert(routines).values({ name: title }).returning();
+  try {
+    // create routine
+    const [{ id: routineId }] = await db.insert(routines).values({ name: title }).returning();
 
-      for (const ex of exercises) {
-        await db.insert(routineExercises).values({
+    for (const ex of exercises) {
+      // insert exercise-level metadata using camelCase keys (matches your schema)
+      await db.insert(routineExercises).values({
+        routineId, // matches sqliteTable definition
+        exerciseId: ex.id,
+        notes: ex.notes ?? "",
+        unit: ex.unit ?? "kg",
+        repsType: ex.repsType ?? "reps",
+        restTimer: typeof ex.restTimer === "number" ? ex.restTimer : Number(ex.restTimer) || 0,
+      });
+
+      // insert sets
+      for (const set of ex.sets || []) {
+        const setRepsType = (set.repsType ?? ex.repsType ?? "reps").toString();
+        const isRange =
+          setRepsType === "rep range" || setRepsType === "range" || setRepsType === "range reps";
+
+        // Drizzle types expect numbers (your schema uses integer(...).default(0) or .notNull())
+        const repsNum = set.reps != null ? Number(set.reps) : 0;
+        const weightNum = set.weight != null ? Number(set.weight) : 0; // weight is .notNull() in schema
+        const minRepsNum = isRange && set.minReps != null ? Number(set.minReps) : 0;
+        const maxRepsNum = isRange && set.maxReps != null ? Number(set.maxReps) : 0;
+        const durationNum = set.duration != null ? Number(set.duration) : 0;
+
+        await db.insert(routineSets).values({
           routineId,
           exerciseId: ex.id,
-          unit: "kg",
-          repsType: "reps",
-          restTimer: 0,
+          weight: weightNum,         // integer().notNull() in schema -> must be a number
+          reps: repsNum,             // integer().default(0)
+          minReps: minRepsNum,       // integer().default(0)
+          maxReps: maxRepsNum,       // integer().default(0)
+          duration: durationNum,     // integer().default(0)
+          setType: (set.setType as any) ?? "Normal", // matches enum in schema
         });
-
-        for (const set of ex.sets) {
-          await db.insert(routineSets).values({
-            routineId,
-            exerciseId: ex.id,
-            reps: Number(set.reps) || 0,
-            weight: Number(set.weight) || 0,
-            minReps: set.repsType === "range" ? Number(set.minReps) || 0 : 0,
-            maxReps: set.repsType === "range" ? Number(set.maxReps) || 0 : 0,
-            duration: Number(set.duration) || 0,
-            setType: set.setType as any,
-          });
-        }
       }
-
-      return true;
-    } catch (err) {
-      console.error("Save failed:", err);
-      Alert.alert("Error", "Failed to save routine.");
-      return false;
     }
-  };
+
+    return true;
+  } catch (err) {
+    console.error("Save failed:", err);
+    Alert.alert("Error", "Failed to save routine.");
+    return false;
+  }
+};
+
+
 
   return {
     title,

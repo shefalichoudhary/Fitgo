@@ -7,6 +7,7 @@ import { db } from "@/utils/storage"
 import { routines } from "@/utils/storage/schema" // add premade routines table
 import { Ionicons, MaterialIcons, FontAwesome5 } from "@expo/vector-icons"
 import { eq } from "drizzle-orm"
+import LoadingOverlay from "@/components/LoadingOverlay"
 
 export const HomeScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<any>>()
@@ -39,8 +40,7 @@ export const HomeScreen: React.FC = () => {
   if (loading) {
     return (
       <Screen preset="fixed" contentContainerStyle={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#3B82F6" />
-        <Text style={{ color: "#fff", marginTop: 10 }}>Loading...</Text>
+        <LoadingOverlay visible={loading} message="Loading..." />
       </Screen>
     )
   }

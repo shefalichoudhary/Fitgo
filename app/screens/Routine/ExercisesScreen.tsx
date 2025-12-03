@@ -15,6 +15,7 @@ import { exercises as exercisesTable } from "@/utils/storage/schema";
 import { SearchBar } from "@/components/SearchBar";
 import { Ionicons } from "@expo/vector-icons";
 import type { DemoTabScreenProps, HomeStackParamList } from "@/navigators/navigationTypes";
+import LoadingOverlay from "@/components/LoadingOverlay";
 
 type Exercise = {
   id: string;
@@ -94,8 +95,7 @@ export default function ExercisesScreen() {
   if (loading) {
     return (
       <View style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
-        <ActivityIndicator size="large" color={colors.tint} />
-        <Text style={{ color: colors.text, marginTop: 10 }}>Loading exercises...</Text>
+       <LoadingOverlay visible={loading} message="Loading exercises..." />
       </View>
     );
   }
