@@ -66,7 +66,7 @@ export default function SetRow({
     onRemove(idx);
   };
 
-   const handleToggle = () => {
+  const handleToggle = () => {
     // If already completed, allow unchecking without validation
     if (isCompleted) {
       Vibration.vibrate(40);
@@ -79,7 +79,7 @@ export default function SetRow({
 
     // Validate reps depending on repsType / range
     const isRange = set.repsType === "rep range" || !!set.isRangeReps;
-    const hasReps = isRange ? (set.minReps != null && set.maxReps != null) : (set.reps != null);
+    const hasReps = isRange ? set.minReps != null && set.maxReps != null : set.reps != null;
 
     // If anything is missing → block toggle + show confirm modal (simple message)
     if (!hasWeight || !hasReps) {
@@ -231,15 +231,15 @@ export default function SetRow({
           </View>
         </Pressable>
       </Modal>
-     <ConfirmModal
-  visible={confirmVisible}
-  title="Incomplete Set"
-  message="Please enter weight and reps before marking this set complete."
-  onCancel={() => setConfirmVisible(false)} // not used in single mode, but keep for type safety
-  onConfirm={() => setConfirmVisible(false)}
-  confirmText="OK"
-  singleButton={true}
-/>
+      <ConfirmModal
+        visible={confirmVisible}
+        title="Incomplete Set"
+        message="Please enter weight and reps before marking this set complete."
+        onCancel={() => setConfirmVisible(false)} // not used in single mode, but keep for type safety
+        onConfirm={() => setConfirmVisible(false)}
+        confirmText="OK"
+        singleButton={true}
+      />
     </View>
   );
 }

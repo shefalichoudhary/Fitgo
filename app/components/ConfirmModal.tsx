@@ -1,16 +1,25 @@
-import React, { useRef, useEffect } from "react"
-import { View, Text, StyleSheet, TouchableOpacity, Modal, Animated, Easing, useColorScheme } from "react-native"
+import React, { useRef, useEffect } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Modal,
+  Animated,
+  Easing,
+  useColorScheme,
+} from "react-native";
 
 type ConfirmModalProps = {
-  visible: boolean
-  title?: string
-  message?: string
-  onCancel: () => void
-  onConfirm: () => void
-  cancelText?: string
-  confirmText?: string
-   singleButton?: boolean
-}
+  visible: boolean;
+  title?: string;
+  message?: string;
+  onCancel: () => void;
+  onConfirm: () => void;
+  cancelText?: string;
+  confirmText?: string;
+  singleButton?: boolean;
+};
 
 export const ConfirmModal: React.FC<ConfirmModalProps> = ({
   visible,
@@ -22,10 +31,10 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
   confirmText = "Delete",
   singleButton = false,
 }) => {
-  const fadeAnim = useRef(new Animated.Value(0)).current
-  const colorScheme = useColorScheme()
-  const isDark = colorScheme === "dark"
-  const styles = getStyles(isDark)
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+  const styles = getStyles(isDark);
 
   useEffect(() => {
     if (visible) {
@@ -34,16 +43,16 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
         duration: 200,
         easing: Easing.out(Easing.ease),
         useNativeDriver: true,
-      }).start()
+      }).start();
     } else {
       Animated.timing(fadeAnim, {
         toValue: 0,
         duration: 150,
         easing: Easing.in(Easing.ease),
         useNativeDriver: true,
-      }).start()
+      }).start();
     }
-  }, [visible])
+  }, [visible]);
 
   return (
     <Modal transparent visible={visible} animationType="none">
@@ -71,8 +80,8 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
         </View>
       </Animated.View>
     </Modal>
-  )
-}
+  );
+};
 const getStyles = (isDark: boolean) =>
   StyleSheet.create({
     modalOverlay: {
@@ -92,7 +101,12 @@ const getStyles = (isDark: boolean) =>
       shadowRadius: 6,
       elevation: 5,
     },
-    modalTitle: { fontSize: 18, fontWeight: "700", color: isDark ? "#fff" : "#000", marginBottom: 8 },
+    modalTitle: {
+      fontSize: 18,
+      fontWeight: "700",
+      color: isDark ? "#fff" : "#000",
+      marginBottom: 8,
+    },
     modalSubtitle: { fontSize: 14, color: isDark ? "#aaa" : "#555", marginBottom: 16 },
     modalButtons: { flexDirection: "row", justifyContent: "flex-end" },
     modalBtn: { paddingVertical: 8, paddingHorizontal: 16, borderRadius: 8, marginLeft: 8 },
@@ -100,8 +114,13 @@ const getStyles = (isDark: boolean) =>
     deleteBtn: { backgroundColor: "#EF4444" },
     cancelText: { color: "#fff", fontWeight: "600" },
     deleteText: { color: "#fff", fontWeight: "700" },
-     /* Single-button layout */
+    /* Single-button layout */
     singleButtonWrap: { flexDirection: "row", justifyContent: "flex-end" },
-    singleBtn: { paddingVertical: 10, paddingHorizontal: 26, borderRadius: 10, backgroundColor: "#3B82F6" },
+    singleBtn: {
+      paddingVertical: 10,
+      paddingHorizontal: 26,
+      borderRadius: 10,
+      backgroundColor: "#3B82F6",
+    },
     singleBtnText: { color: isDark ? "#fff" : "#fff", fontWeight: "700" },
-  })
+  });

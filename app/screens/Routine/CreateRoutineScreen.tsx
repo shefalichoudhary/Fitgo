@@ -109,14 +109,12 @@ export default function CreateRoutineScreen() {
 
   const saveDisabled = !title.trim() || exercises.some((ex: any) => (ex.sets || []).length === 0);
 
-  // Generic onChange from ExerciseBlock: replace that exercise's data
   const handleExerciseChange = (exerciseId: string, newData: any) => {
     setExercises((prev: any[]) =>
       prev.map((ex) => (ex.id === exerciseId ? { ...ex, ...newData } : ex))
     );
   };
 
-  // onOpenRepRange: ExerciseBlock gives (exerciseId, setIndex)
   const handleOpenRepRange = (exerciseId: string, setIndex: number) => {
     const ex = exercises.find((e: any) => e.id === exerciseId);
     const setId = ex?.sets?.[setIndex]?.id;
@@ -125,7 +123,6 @@ export default function CreateRoutineScreen() {
     }
   };
 
-  // onToggleSetComplete -> updateSetField for isCompleted
   const handleToggleSetComplete = (exerciseId: string, setIndex: number, completed: boolean) => {
     const ex = exercises.find((e: any) => e.id === exerciseId);
     const setId = ex?.sets?.[setIndex]?.id;
@@ -134,7 +131,6 @@ export default function CreateRoutineScreen() {
     }
   };
 
-  // onOpenSetType: cycle set type (W -> Normal -> D -> F -> W)
   const handleOpenSetType = (exerciseId: string, setIndex?: number) => {
     const ex = exercises.find((e: any) => e.id === exerciseId);
     if (!ex) return;
@@ -152,7 +148,6 @@ export default function CreateRoutineScreen() {
     const ex = exercises.find((e: any) => e.id === exerciseId);
     if (!ex) return;
     const next = ex.repsType === "reps" ? "rep range" : "reps";
-    // update exercise-level repsType and each set.repsType
     setExercises((prev: any[]) =>
       prev.map((item) =>
         item.id === exerciseId
@@ -166,7 +161,6 @@ export default function CreateRoutineScreen() {
     );
   };
 
-  // onOpenRestTimer: call helper to update rest timer in state
   const handleOpenRestTimer = (exerciseId: string) => {
     const ex = exercises.find((e: any) => e.id === exerciseId);
     const next = (ex?.restTimer ?? 0) + 30; // example: add 30s when opening

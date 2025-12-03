@@ -1,26 +1,26 @@
-import React, { useState, useEffect } from "react"
-import { View, Text, StyleSheet, useColorScheme } from "react-native"
-import { InputField } from "@/components/InputField"
-import { Screen } from "@/components/Screen"
-import { Button } from "@/components/Button"
-import { db } from "../utils/storage"
-import { measurements } from "../utils/storage/schema"
-import { RouteProp, useNavigation, useRoute } from "@react-navigation/native"
-import { NativeStackNavigationProp } from "@react-navigation/native-stack"
-import { HomeStackParamList } from "@/navigators/navigationTypes"
-import { eq } from "drizzle-orm"
-import { AppAlert } from "@/components/AppAlert"
+import React, { useState, useEffect } from "react";
+import { View, Text, StyleSheet, useColorScheme } from "react-native";
+import { InputField } from "@/components/InputField";
+import { Screen } from "@/components/Screen";
+import { Button } from "@/components/Button";
+import { db } from "../utils/storage";
+import { measurements } from "../utils/storage/schema";
+import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { HomeStackParamList } from "@/navigators/navigationTypes";
+import { eq } from "drizzle-orm";
+import { AppAlert } from "@/components/AppAlert";
 
 export default function AddMeasurementScreen() {
-  const colorScheme = useColorScheme()
-  const isDark = colorScheme === "dark"
-const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList>>()
-  const [alertVisible, setAlertVisible] = useState(false)
-  const [alertMessage, setAlertMessage] = useState("")
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+  const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
 
-const route = useRoute<RouteProp<HomeStackParamList, "AddMeasurement">>()
-  const editData = route.params?.editData || null
-  const styles = getStyles(isDark)
+  const route = useRoute<RouteProp<HomeStackParamList, "AddMeasurement">>();
+  const editData = route.params?.editData || null;
+  const styles = getStyles(isDark);
 
   const initialFormData = {
     weight: "",
@@ -37,11 +37,10 @@ const route = useRoute<RouteProp<HomeStackParamList, "AddMeasurement">>()
     rightThigh: "",
     leftCalf: "",
     rightCalf: "",
-  }
+  };
 
-  const [formData, setFormData] = useState(initialFormData)
+  const [formData, setFormData] = useState(initialFormData);
 
-  /** 🔥 Prefill Form When Editing */
   useEffect(() => {
     if (editData) {
       setFormData({
@@ -59,69 +58,64 @@ const route = useRoute<RouteProp<HomeStackParamList, "AddMeasurement">>()
         rightThigh: "",
         leftCalf: "",
         rightCalf: "",
-      })
+      });
     }
-  }, [editData])
+  }, [editData]);
 
   const handleChange = (key: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [key]: value }))
-  }
+    setFormData((prev) => ({ ...prev, [key]: value }));
+  };
 
-  /** ✅ Save New Measurement */
   const handleSave = async () => {
     try {
       const cleaned = Object.fromEntries(
         Object.entries(formData).map(([key, value]) => [
           key,
           value.trim() === "" ? null : parseFloat(value),
-        ]),
-      )
+        ])
+      );
 
       await db.insert(measurements).values({
         userId: "guest-user-id",
         date: new Date().toISOString(),
         ...cleaned,
-      })
+      });
 
-      navigation.goBack()
-      
-      setAlertMessage("Measurement saved successfully!")
-      setAlertVisible(true)
+      navigation.goBack();
+
+      setAlertMessage("Measurement saved successfully!");
+      setAlertVisible(true);
     } catch (error) {
-      console.error("❌ Error saving:", error)
-        setAlertMessage("Failed to save measurement. Please try again.")
-      setAlertVisible(true)
+      console.error("❌ Error saving:", error);
+      setAlertMessage("Failed to save measurement. Please try again.");
+      setAlertVisible(true);
     }
-  }
+  };
 
-  /** ✨ Update Existing Measurement */
- const handleUpdate = async () => {
-  if (!editData) return; // <-- solves the error
+  const handleUpdate = async () => {
+    if (!editData) return; // <-- solves the error
 
-  try {
-    const cleaned = Object.fromEntries(
-      Object.entries(formData).map(([key, value]) => [
-        key,
-        value.trim() === "" ? null : parseFloat(value),
-      ]),
-    )
+    try {
+      const cleaned = Object.fromEntries(
+        Object.entries(formData).map(([key, value]) => [
+          key,
+          value.trim() === "" ? null : parseFloat(value),
+        ])
+      );
 
-    await db
-      .update(measurements)
-      .set(cleaned)
-      .where(eq(measurements.id, editData.id))
+      await db.update(measurements).set(cleaned).where(eq(measurements.id, editData.id));
 
-    navigation.goBack()
-     setAlertMessage("Measurement updated successfully!")
-      setAlertVisible(true)
-  } catch (error) {
-    console.error("❌ Error updating:", error)
-    setAlertMessage("Failed to update measurement. Please try again.")
-      setAlertVisible(true)
-  }
-}
+      navigation.goBack();
+      setAlertMessage("Measurement updated successfully!");
+      setAlertVisible(true);
+    } catch (error) {
+      console.error("❌ Error updating:", error);
+      setAlertMessage("Failed to update measurement. Please try again.");
+      setAlertVisible(true);
+    }
+  };
 
-  const isAllEmpty = Object.values(formData).every((v) => v.trim() === "")
+  const isAllEmpty = Object.values(formData).every((v) => v.trim() === "");
 
   const fields = [
     { label: "Weight (kg)", key: "weight" },
@@ -129,7 +123,7 @@ const route = useRoute<RouteProp<HomeStackParamList, "AddMeasurement">>()
     { label: "Muscle Mass (kg)", key: "muscleMass" },
     { label: "Waist (cm)", key: "waist" },
     { label: "Chest (cm)", key: "chest" },
-  ]
+  ];
 
   return (
     <Screen preset="scroll" contentContainerStyle={styles.container}>
@@ -149,7 +143,6 @@ const route = useRoute<RouteProp<HomeStackParamList, "AddMeasurement">>()
         </View>
       ))}
 
-      {/* 🔥 If Editing → Show UPDATE & CANCEL */}
       {editData ? (
         <>
           <Button
@@ -167,7 +160,6 @@ const route = useRoute<RouteProp<HomeStackParamList, "AddMeasurement">>()
           />
         </>
       ) : (
-        // 🆕 Normal Save Button
         <Button
           text="Save Measurements"
           preset="filled"
@@ -176,17 +168,16 @@ const route = useRoute<RouteProp<HomeStackParamList, "AddMeasurement">>()
           style={[styles.btn, { backgroundColor: isAllEmpty ? "#94A3B8" : "#3B82F6" }]}
         />
       )}
-       {/* AppAlert for save/update feedback */}
       <AppAlert
         visible={alertVisible}
         message={alertMessage}
         onHide={() => {
-          setAlertVisible(false)
-          navigation.goBack()
+          setAlertVisible(false);
+          navigation.goBack();
         }}
       />
     </Screen>
-  )
+  );
 }
 
 const getStyles = (isDark: boolean) =>
@@ -213,4 +204,4 @@ const getStyles = (isDark: boolean) =>
       borderRadius: 8,
       marginTop: 12,
     },
-  })
+  });

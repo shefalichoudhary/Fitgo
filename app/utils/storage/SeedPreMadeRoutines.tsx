@@ -73,7 +73,6 @@ export async function seedPreMadeRoutines() {
         description: "A balanced full-body routine for beginners, 3 times a week.",
         level: "beginner",
         isPreMade: 1,
-        // either provide names...
         exerciseNames: ["Barbell Squat", "Bench Press", "Deadlift"],
         sets: [
           { exerciseName: "Barbell Squat", weight: 50, reps: 10, setType: "Normal" },
@@ -145,7 +144,7 @@ export async function seedPreMadeRoutines() {
           exerciseId: found.id,
           unit: "kg" as const,
           repsType: "reps" as const,
-          restTimer: 90,
+          restTimer: 15,
           notes: "",
         });
       }

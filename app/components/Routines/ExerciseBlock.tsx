@@ -19,17 +19,14 @@ type Props = {
   onOpenRestTimer: (exerciseId: string) => void;
   onToggleSetComplete: (exerciseId: string, setIndex: number, completed: boolean) => void;
   onDeleteExercise: (exerciseId: string) => void;
-
-
 };
 
 export default function ExerciseBlock({
   exercise,
   data,
   onChange,
-  onStartTimer,
   onOpenRepRange,
-  showCheckIcon ,
+  showCheckIcon,
   viewOnly = false,
   onOpenWeight,
   onOpenSetType,
@@ -37,7 +34,6 @@ export default function ExerciseBlock({
   onOpenRestTimer,
   onToggleSetComplete,
   onDeleteExercise,
- 
 }: Props) {
   const [visibleSets, setVisibleSets] = useState<number>(Math.max(1, data.sets.length));
 
@@ -51,7 +47,6 @@ export default function ExerciseBlock({
     [data.sets, data.unit, data.repsType]
   );
 
-  // update a single set field and send normalized data up
   const handleChangeField = useCallback(
     <K extends keyof Set>(index: number, key: K, value: Set[K]) => {
       const next = [...sets];
@@ -68,7 +63,7 @@ export default function ExerciseBlock({
       return;
     }
     const newSet: Set = {
-        id: `${exercise.id}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      id: `${exercise.id}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
       reps: null,
       weight: null,
       unit: narrowUnit(data.unit),
@@ -83,7 +78,9 @@ export default function ExerciseBlock({
 
   const handleRemoveSet = useCallback(
     (index: number) => {
-      const next = sets.filter((_, i) => i !== index).map((s) => normalizeSet(s, data.unit, data.repsType));
+      const next = sets
+        .filter((_, i) => i !== index)
+        .map((s) => normalizeSet(s, data.unit, data.repsType));
       const nextVisible = Math.max(1, Math.min(visibleSets, next.length));
       onChange({ ...data, sets: next });
       setVisibleSets(nextVisible);
@@ -91,7 +88,10 @@ export default function ExerciseBlock({
     [sets, onChange, visibleSets, data]
   );
 
-  const handleNotes = useCallback((text: string) => onChange({ ...data, notes: text }), [data, onChange]);
+  const handleNotes = useCallback(
+    (text: string) => onChange({ ...data, notes: text }),
+    [data, onChange]
+  );
 
   // ---------- Rest-timer handlers ----------
   const setRestTimer = useCallback(
@@ -118,14 +118,18 @@ export default function ExerciseBlock({
   const handleToggleUnitAll = useCallback(() => {
     const nextUnit: Unit = data.unit === "kg" ? "lbs" : "kg";
     // If you want conversion of weight values, add conversion logic here.
-    const next = sets.map((s) => ({ ...s, unit: nextUnit })).map((s) => normalizeSet(s, nextUnit, data.repsType));
+    const next = sets
+      .map((s) => ({ ...s, unit: nextUnit }))
+      .map((s) => normalizeSet(s, nextUnit, data.repsType));
     onChange({ ...data, unit: nextUnit, sets: next });
   }, [data, sets, onChange]);
 
   // Toggle reps type for entire exercise (reps <-> rep range)
   const handleToggleRepsTypeAll = useCallback(() => {
     const nextReps: RepsType = data.repsType === "reps" ? "rep range" : "reps";
-    const next = sets.map((s) => ({ ...s, repsType: nextReps })).map((s) => normalizeSet(s, data.unit, nextReps));
+    const next = sets
+      .map((s) => ({ ...s, repsType: nextReps }))
+      .map((s) => normalizeSet(s, data.unit, nextReps));
     onChange({ ...data, repsType: nextReps, sets: next });
     if (onOpenRepsType) onOpenRepsType(exercise.id);
   }, [data, sets, onChange, onOpenRepsType, exercise.id]);
@@ -144,21 +148,19 @@ export default function ExerciseBlock({
     [sets, data, onChange]
   );
 
-const handleToggleComplete = useCallback(
-  (index: number) => {
-    const prev = sets[index]?.isCompleted ?? false;
-    const next = !prev;
+  const handleToggleComplete = useCallback(
+    (index: number) => {
+      const prev = sets[index]?.isCompleted ?? false;
+      const next = !prev;
 
-    // update local set field
-    handleChangeField(index, "isCompleted", next);
+      handleChangeField(index, "isCompleted", next);
 
-    // also notify parent that a set was toggled (so higher-level state / DB can update)
-    if (onToggleSetComplete) {
-      onToggleSetComplete(exercise.id, index, next);
-    }
-  },
-  [sets, handleChangeField, onToggleSetComplete, exercise.id]
-);
+      if (onToggleSetComplete) {
+        onToggleSetComplete(exercise.id, index, next);
+      }
+    },
+    [sets, handleChangeField, onToggleSetComplete, exercise.id]
+  );
 
   const renderSet = useCallback(
     ({ item, index }: { item: Set; index: number }) => (
@@ -211,19 +213,33 @@ const handleToggleComplete = useCallback(
       <View style={styles.restRow}>
         <View style={styles.restLeft}>
           <Text style={styles.restLabel}>Rest</Text>
-          <Text style={styles.restValue}>{(data.restTimer ?? 0) > 0 ? `${data.restTimer}s` : "OFF"}</Text>
+          <Text style={styles.restValue}>
+            {(data.restTimer ?? 0) > 0 ? `${data.restTimer}s` : "OFF"}
+          </Text>
         </View>
 
         <View style={styles.restControls}>
-          <TouchableOpacity style={styles.restBtn} onPress={() => changeRestBy(-15)} disabled={viewOnly}>
+          <TouchableOpacity
+            style={styles.restBtn}
+            onPress={() => changeRestBy(-15)}
+            disabled={viewOnly}
+          >
             <Text style={styles.restBtnText}>-15s</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.restBtn} onPress={() => setRestTimer(30)} disabled={viewOnly}>
+          <TouchableOpacity
+            style={styles.restBtn}
+            onPress={() => setRestTimer(30)}
+            disabled={viewOnly}
+          >
             <Text style={styles.restBtnText}>30s</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.restBtn} onPress={() => changeRestBy(15)} disabled={viewOnly}>
+          <TouchableOpacity
+            style={styles.restBtn}
+            onPress={() => changeRestBy(15)}
+            disabled={viewOnly}
+          >
             <Text style={styles.restBtnText}>+15s</Text>
           </TouchableOpacity>
 
@@ -236,7 +252,7 @@ const handleToggleComplete = useCallback(
       {/* Single labels row — only once (dark labels) */}
       {sets.length > 0 && (
         <View style={styles.labelsRow}>
-           <View style={styles.right}>
+          <View style={styles.right}>
             <Text style={styles.columnLabel}>SET</Text>
           </View>
           <View style={styles.setLeft} />
@@ -247,13 +263,18 @@ const handleToggleComplete = useCallback(
                 <Text style={styles.columnLabel}>{data.unit?.toUpperCase() ?? "KG"}</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity onPress={handleToggleRepsTypeAll} accessibilityLabel="Toggle reps type" accessibilityRole="button" style={[styles.repsWrap, { flex: 1 }]}>
-                <Text style={styles.columnLabel}>{data.repsType === "rep range" ? "REP — RANGE" : "REPS"}</Text>
+              <TouchableOpacity
+                onPress={handleToggleRepsTypeAll}
+                accessibilityLabel="Toggle reps type"
+                accessibilityRole="button"
+                style={[styles.repsWrap, { flex: 1 }]}
+              >
+                <Text style={styles.columnLabel}>
+                  {data.repsType === "rep range" ? "REP — RANGE" : "REPS"}
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
-
-        
         </View>
       )}
 
@@ -343,11 +364,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   addBtnText: { color: "#fff", fontWeight: "700" },
-
-  // labels row + alignment helpers
-  labelsRow: { marginTop: 10, flexDirection: "row", alignItems: "center", paddingHorizontal: 6, paddingBottom: 6 },
+  labelsRow: {
+    marginTop: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 6,
+    paddingBottom: 6,
+  },
   columnLabel: { fontSize: 12, color: "#94a3b8", fontWeight: "600" },
-
   setLeft: { width: 48, alignItems: "center" },
   setCenter: { flex: 1, paddingRight: 8 },
   rowInputs: { flexDirection: "row", alignItems: "center" },

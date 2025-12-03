@@ -1,4 +1,4 @@
-import React, { useState, useRef ,useEffect} from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -10,7 +10,7 @@ import {
   Vibration,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { ConfirmModal } from "../ConfirmModal"
+import { ConfirmModal } from "../ConfirmModal";
 import { Audio } from "expo-av";
 
 export const ExerciseItem = ({
@@ -20,7 +20,7 @@ export const ExerciseItem = ({
   isSelected,
   children,
   onDelete,
-    disabled = false, 
+  disabled = false,
 }: {
   name?: string;
   muscleGroup?: string;
@@ -28,22 +28,20 @@ export const ExerciseItem = ({
   isSelected?: boolean;
   children?: React.ReactNode;
   onDelete?: () => void;
-    disablePress?: boolean;
-      disabled?: boolean  
+  disablePress?: boolean;
+  disabled?: boolean;
 }) => {
   const [showPopup, setShowPopup] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const soundRef = useRef<Audio.Sound | null>(null);
   const isSoundLoadedRef = useRef(false);
 
-
-    // Preload the beep on mount
   useEffect(() => {
     let mounted = true;
     const load = async () => {
       try {
         const { sound } = await Audio.Sound.createAsync(
-           require("../../../assets/sounds/button-press.mp3"), // update path if different
+          require("../../../assets/sounds/button-press.mp3"), // update path if different
           { shouldPlay: false }
         );
         if (!mounted) {
@@ -74,9 +72,7 @@ export const ExerciseItem = ({
     };
   }, []);
 
-  
-  // play the preloaded sound (non-blocking)
-  const playBeep = () => {
+  const playAudio = () => {
     try {
       if (isSoundLoadedRef.current && soundRef.current) {
         // replayFromPositionAsync ensures it starts from beginning
@@ -122,27 +118,30 @@ export const ExerciseItem = ({
   };
   const Container = disabled ? View : TouchableOpacity;
   return (
-       <Container
+    <Container
       activeOpacity={0.8}
-     onPress={
-  disabled
-    ? undefined
-    : () => {
-        // Play only when selecting (not unselecting)
-        if (!isSelected) {
-          playBeep();
-          Vibration.vibrate(30);
-        }
+      onPress={
+        disabled
+          ? undefined
+          : () => {
+              if (!isSelected) {
+                playAudio();
+                Vibration.vibrate(30);
+              }
 
-        onPress && onPress();
+              onPress && onPress();
+            }
       }
-}
       style={[styles.card, isSelected && styles.selectedCard]}
     >
       <View style={styles.header}>
         <View>
           {name && <Text style={[styles.title, isSelected && styles.selectedText]}>{name}</Text>}
-          {muscleGroup && <Text style={[styles.subtitle, isSelected && styles.selectedSubtitle]}>{muscleGroup}</Text>}
+          {muscleGroup && (
+            <Text style={[styles.subtitle, isSelected && styles.selectedSubtitle]}>
+              {muscleGroup}
+            </Text>
+          )}
         </View>
 
         {onDelete && (
@@ -154,8 +153,7 @@ export const ExerciseItem = ({
 
       {children && <View style={styles.childrenContainer}>{children}</View>}
 
-      {/* Delete confirmation popup */}
-  <ConfirmModal
+      <ConfirmModal
         visible={showPopup}
         title="Delete Exercise?"
         message="Are you sure you want to delete this exercise?"
@@ -186,10 +184,13 @@ const styles = StyleSheet.create({
   subtitle: { color: "#9CA3AF", fontSize: 13, marginTop: 2 },
   selectedText: { color: "#fff" },
   selectedSubtitle: { color: "#E0E7FF" },
-  childrenContainer: { marginTop: 12, borderTopWidth: 1, borderTopColor: "#2A2A2A", paddingTop: 12 },
+  childrenContainer: {
+    marginTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: "#2A2A2A",
+    paddingTop: 12,
+  },
   iconButton: { padding: 4 },
-
-  // Popup modal styles
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.6)",

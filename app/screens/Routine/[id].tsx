@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -7,71 +7,71 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
-} from "react-native"
-import { Screen } from "@/components/Screen"
-import { Ionicons } from "@expo/vector-icons"
-import { useRoute, RouteProp } from "@react-navigation/native"
-import { db } from "@/utils/storage"
-import { routines, routineExercises, routineSets, exercises } from "@/utils/storage/schema"
-import { eq, and } from "drizzle-orm"
-import AntDesign from "@expo/vector-icons/AntDesign"
+} from "react-native";
+import { Screen } from "@/components/Screen";
+import { Ionicons } from "@expo/vector-icons";
+import { useRoute, RouteProp } from "@react-navigation/native";
+import { db } from "@/utils/storage";
+import { routines, routineExercises, routineSets, exercises } from "@/utils/storage/schema";
+import { eq, and } from "drizzle-orm";
+import AntDesign from "@expo/vector-icons/AntDesign";
 
 type RootStackParamList = {
-  RoutineDetails: { id: string }
-}
+  RoutineDetails: { id: string };
+};
 
 type RoutineWithExercises = {
-  id: string
-  title: string
+  id: string;
+  title: string;
   exercises: {
-    id: string
-    name: string
-    notes?: string
+    id: string;
+    name: string;
+    notes?: string;
     sets: {
-      id: string
-      reps: number
-      weight: number
-      unit: "lbs" | "kg"
-      repsType: "reps" | "rep range"
-    }[]
-  }[]
-}
+      id: string;
+      reps: number;
+      weight: number;
+      unit: "lbs" | "kg";
+      repsType: "reps" | "rep range";
+    }[];
+  }[];
+};
 
 export default function RoutineDetailsScreen() {
-  const route = useRoute<RouteProp<RootStackParamList, "RoutineDetails">>()
-  const { id } = route.params
-  const [showConfirmModal, setShowConfirmModal] = useState(false)
-  const [routine, setRoutine] = useState<RoutineWithExercises | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [titleEditing, setTitleEditing] = useState(false)
-  const [title, setTitle] = useState("")
+  const route = useRoute<RouteProp<RootStackParamList, "RoutineDetails">>();
+  const { id } = route.params;
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [routine, setRoutine] = useState<RoutineWithExercises | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [titleEditing, setTitleEditing] = useState(false);
+  const [title, setTitle] = useState("");
 
   useEffect(() => {
     const fetchRoutine = async () => {
       try {
-        const [routineRow] = await db.select().from(routines).where(eq(routines.id, id))
+        const [routineRow] = await db.select().from(routines).where(eq(routines.id, id));
         if (!routineRow) {
-          setRoutine(null)
-          setLoading(false)
-          return
+          setRoutine(null);
+          setLoading(false);
+          return;
         }
 
         const exercisesRows = await db
           .select()
           .from(routineExercises)
-          .where(eq(routineExercises.routineId, id))
+          .where(eq(routineExercises.routineId, id));
 
         const exercisesWithSets = await Promise.all(
           exercisesRows.map(async (ex) => {
             const [exerciseRow] = await db
               .select()
               .from(exercises)
-              .where(eq(exercises.id, ex.exerciseId))
+              .where(eq(exercises.id, ex.exerciseId));
 
             const setsRows = await db
               .select()
               .from(routineSets)
-              .where(and(eq(routineSets.routineId, id), eq(routineSets.exerciseId, ex.exerciseId)))
+              .where(and(eq(routineSets.routineId, id), eq(routineSets.exerciseId, ex.exerciseId)));
 
             return {
               id: ex.exerciseId,
@@ -83,70 +83,70 @@ export default function RoutineDetailsScreen() {
                 unit: "kg" as "lbs" | "kg",
                 repsType: "reps" as "reps" | "rep range",
               })),
-            }
-          }),
-        )
+            };
+          })
+        );
 
         setRoutine({
           id: routineRow.id,
           title: routineRow.name,
           exercises: exercisesWithSets,
-        })
-        setTitle(routineRow.name)
+        });
+        setTitle(routineRow.name);
       } catch (err) {
-        console.error("Failed to fetch routine:", err)
-        setRoutine(null)
+        console.error("Failed to fetch routine:", err);
+        setRoutine(null);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchRoutine()
-  }, [id])
+    fetchRoutine();
+  }, [id]);
 
   if (loading) {
     return (
       <Screen contentContainerStyle={styles.centered}>
         <Text style={{ color: "#fff" }}>Loading...</Text>
       </Screen>
-    )
+    );
   }
 
   const saveTitle = () => {
-    if (!routine) return
+    if (!routine) return;
     if (title === routine.title) {
-      setTitleEditing(false)
-      return
+      setTitleEditing(false);
+      return;
     }
-    setShowConfirmModal(true)
-  }
+    setShowConfirmModal(true);
+  };
 
   const confirmUpdate = async () => {
-    if (!routine) return
+    if (!routine) return;
     try {
-      await db.update(routines).set({ name: title }).where(eq(routines.id, routine.id))
-      setRoutine({ ...routine, title })
+      await db.update(routines).set({ name: title }).where(eq(routines.id, routine.id));
+      setRoutine({ ...routine, title });
     } catch (err) {
-      console.error("Failed to update title:", err)
+      console.error("Failed to update title:", err);
     } finally {
-      setShowConfirmModal(false)
-      setTitleEditing(false)
+      setShowConfirmModal(false);
+      setTitleEditing(false);
     }
-  }
+  };
 
   const cancelUpdate = () => {
-    setTitle(routine?.title || "")
-    setShowConfirmModal(false)
-    setTitleEditing(false)
-  }
+    setTitle(routine?.title || "");
+    setShowConfirmModal(false);
+    setTitleEditing(false);
+  };
 
   if (!routine) {
     return (
-      <Screen  preset="fixed" contentContainerStyle={styles.centered}>
+      <Screen preset="fixed" contentContainerStyle={styles.centered}>
         <Ionicons name="alert-circle-outline" size={60} color="#777" />
         <Text style={styles.errorText}>Routine not found...</Text>
       </Screen>
-    )
+    );
   }
 
   return (
@@ -182,7 +182,6 @@ export default function RoutineDetailsScreen() {
         {routine.exercises.map((ex) => (
           <View key={ex.id} style={styles.exerciseCard}>
             <View style={styles.exerciseHeader}>
-              
               <Text style={styles.exerciseName}>{ex.name}</Text>
               <Text style={styles.notesText}>{ex.notes}</Text>
               <View style={styles.setBadge}>
@@ -191,7 +190,6 @@ export default function RoutineDetailsScreen() {
                 </Text>
               </View>
             </View>
-
 
             {ex.sets.map((set, i) => (
               <View key={set.id} style={styles.setRow}>
@@ -212,10 +210,16 @@ export default function RoutineDetailsScreen() {
             <Text style={styles.modalTitle}>Update Routine</Text>
             <Text style={styles.modalMessage}>Do you want to update the routine title?</Text>
             <View style={styles.modalButtons}>
-              <TouchableOpacity style={[styles.modalButton, styles.modalButtonCancel]} onPress={cancelUpdate}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonCancel]}
+                onPress={cancelUpdate}
+              >
                 <Text style={styles.modalButtonText}>Cancel</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={[styles.modalButton, styles.modalButtonUpdate]} onPress={confirmUpdate}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonUpdate]}
+                onPress={confirmUpdate}
+              >
                 <Text style={styles.modalButtonText}>Update</Text>
               </TouchableOpacity>
             </View>
@@ -223,13 +227,13 @@ export default function RoutineDetailsScreen() {
         </View>
       )}
     </Screen>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
-   backgroundColor: "#000000ff",
+    backgroundColor: "#000000ff",
     paddingHorizontal: 20,
     paddingVertical: 16,
   },
@@ -314,11 +318,11 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   notesText: {
-  color: "#D1D5DB", // lighter gray
-  fontSize: 13,
-  marginBottom: 8,
-  fontStyle: "italic",
-},
+    color: "#D1D5DB", // lighter gray
+    fontSize: 13,
+    marginBottom: 8,
+    fontStyle: "italic",
+  },
   modalOverlay: {
     position: "absolute",
     top: 0,
@@ -373,4 +377,4 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     fontSize: 16,
   },
-})
+});

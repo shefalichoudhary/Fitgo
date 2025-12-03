@@ -18,7 +18,8 @@ type Props = {
 };
 
 export default function RestTimer({ activeRestTimer, onPause, onResume, onStop, label }: Props) {
-if (!activeRestTimer || !activeRestTimer.exerciseId || activeRestTimer.remaining <= 0) return null;
+  if (!activeRestTimer || !activeRestTimer.exerciseId || activeRestTimer.remaining <= 0)
+    return null;
 
   return (
     <View style={styles.container}>

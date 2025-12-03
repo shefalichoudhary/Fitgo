@@ -54,12 +54,10 @@ for (const rex of routineExRows) {
   const exRow = (exDetails[0] ?? {}) as Partial<Exercise>;
   const rexRow = rex as Partial<RoutineExercise>;
 
-  // fields that actually exist on `exercises` per your schema
   const exName = exRow.exercise_name ?? "Unknown";
   const exType = exRow.exercise_type ?? exRow.type ?? null;
   const equipment = exRow.equipment ?? "";
 
-  // fields that come from routine_exercises (rex) — use rex first, then sensible default
   const notes = typeof rexRow.notes === "string" ? rexRow.notes : null;
   const unit = (rexRow.unit as any) ?? "kg";
   const repsType = (rexRow.repsType as any) ?? "reps";
@@ -127,7 +125,5 @@ const setSetCompletion = (exerciseId: string, setId: string, completed?: boolean
     ),
   );
 };
-
-
   return { routineTitle, exercisesData, removeExercise, setExercisesData, duration,  toggleSetCompletion: setSetCompletion };
 }
