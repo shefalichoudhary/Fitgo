@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef ,useEffect} from "react";
 import {
   View,
   Text,
@@ -7,9 +7,11 @@ import {
   Modal,
   Animated,
   Easing,
+  Vibration,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { ConfirmModal } from "../ConfirmModal"
+import { Audio } from "expo-av";
 
 export const ExerciseItem = ({
   name,
@@ -31,6 +33,69 @@ export const ExerciseItem = ({
 }) => {
   const [showPopup, setShowPopup] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const soundRef = useRef<Audio.Sound | null>(null);
+  const isSoundLoadedRef = useRef(false);
+
+
+    // Preload the beep on mount
+  useEffect(() => {
+    let mounted = true;
+    const load = async () => {
+      try {
+        const { sound } = await Audio.Sound.createAsync(
+           require("../../../assets/sounds/button-press.mp3"), // update path if different
+          { shouldPlay: false }
+        );
+        if (!mounted) {
+          // if unmounted while loading
+          await sound.unloadAsync();
+          return;
+        }
+        soundRef.current = sound;
+        isSoundLoadedRef.current = true;
+      } catch (err) {
+        console.warn("Failed to load beep sound", err);
+      }
+    };
+
+    load();
+    return () => {
+      mounted = false;
+      (async () => {
+        try {
+          if (soundRef.current) {
+            await soundRef.current.unloadAsync();
+            soundRef.current = null;
+          }
+        } catch (e) {
+          /* ignore unload errors */
+        }
+      })();
+    };
+  }, []);
+
+  
+  // play the preloaded sound (non-blocking)
+  const playBeep = () => {
+    try {
+      if (isSoundLoadedRef.current && soundRef.current) {
+        // replayFromPositionAsync ensures it starts from beginning
+        soundRef.current.replayAsync().catch((err) => {
+          // fallback: try playAsync if replayAsync unavailable
+          soundRef.current?.playAsync().catch(() => {});
+        });
+      } else {
+        // if not loaded, try a quick one-off play (best-effort)
+        Audio.Sound.createAsync(require("../../../assets/sounds/button-press.mp3"))
+          .then(({ sound }) => {
+            sound.playAsync().finally(() => sound.unloadAsync().catch(() => {}));
+          })
+          .catch(() => {});
+      }
+    } catch (err) {
+      console.warn("playBeep error", err);
+    }
+  };
 
   const openPopup = () => {
     setShowPopup(true);
@@ -59,7 +124,19 @@ export const ExerciseItem = ({
   return (
        <Container
       activeOpacity={0.8}
-      onPress={disabled ? undefined : onPress}
+     onPress={
+  disabled
+    ? undefined
+    : () => {
+        // Play only when selecting (not unselecting)
+        if (!isSelected) {
+          playBeep();
+          Vibration.vibrate(30);
+        }
+
+        onPress && onPress();
+      }
+}
       style={[styles.card, isSelected && styles.selectedCard]}
     >
       <View style={styles.header}>

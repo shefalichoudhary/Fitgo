@@ -9,6 +9,7 @@ type ConfirmModalProps = {
   onConfirm: () => void
   cancelText?: string
   confirmText?: string
+   singleButton?: boolean
 }
 
 export const ConfirmModal: React.FC<ConfirmModalProps> = ({
@@ -19,6 +20,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
   onConfirm,
   cancelText = "Cancel",
   confirmText = "Delete",
+  singleButton = false,
 }) => {
   const fadeAnim = useRef(new Animated.Value(0)).current
   const colorScheme = useColorScheme()
@@ -49,20 +51,28 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
         <View style={styles.modalContainer}>
           <Text style={styles.modalTitle}>{title}</Text>
           <Text style={styles.modalSubtitle}>{message}</Text>
-          <View style={styles.modalButtons}>
-            <TouchableOpacity onPress={onCancel} style={[styles.modalBtn, styles.cancelBtn]}>
-              <Text style={styles.cancelText}>{cancelText}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={onConfirm} style={[styles.modalBtn, styles.deleteBtn]}>
-              <Text style={styles.deleteText}>{confirmText}</Text>
-            </TouchableOpacity>
-          </View>
+
+          {singleButton ? (
+            <View style={styles.singleButtonWrap}>
+              <TouchableOpacity onPress={onConfirm} style={[styles.modalBtn, styles.singleBtn]}>
+                <Text style={styles.singleBtnText}>{confirmText}</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <View style={styles.modalButtons}>
+              <TouchableOpacity onPress={onCancel} style={[styles.modalBtn, styles.cancelBtn]}>
+                <Text style={styles.cancelText}>{cancelText}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={onConfirm} style={[styles.modalBtn, styles.deleteBtn]}>
+                <Text style={styles.deleteText}>{confirmText}</Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
       </Animated.View>
     </Modal>
   )
 }
-
 const getStyles = (isDark: boolean) =>
   StyleSheet.create({
     modalOverlay: {
@@ -90,4 +100,8 @@ const getStyles = (isDark: boolean) =>
     deleteBtn: { backgroundColor: "#EF4444" },
     cancelText: { color: "#fff", fontWeight: "600" },
     deleteText: { color: "#fff", fontWeight: "700" },
+     /* Single-button layout */
+    singleButtonWrap: { flexDirection: "row", justifyContent: "flex-end" },
+    singleBtn: { paddingVertical: 10, paddingHorizontal: 26, borderRadius: 10, backgroundColor: "#3B82F6" },
+    singleBtnText: { color: isDark ? "#fff" : "#fff", fontWeight: "700" },
   })

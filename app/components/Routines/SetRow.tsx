@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { Ionicons } from "@expo/vector-icons";
+import type { Set } from "./types";
 import {
   View,
   Text,
@@ -9,9 +11,9 @@ import {
   Modal,
   Pressable,
   Vibration,
+  Alert,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import type { Set } from "./types";
+import { ConfirmModal } from "@/components/ConfirmModal";
 
 type Props = {
   idx: number;
@@ -41,6 +43,7 @@ export default function SetRow({
   onOpenSetType,
 }: Props) {
   const [menuVisible, setMenuVisible] = useState(false);
+  const [confirmVisible, setConfirmVisible] = useState(false);
   const showRange = set.repsType === "rep range" || !!set.isRangeReps;
   const isCompleted = !!set.isCompleted;
   const editable = !disabled && !isCompleted;
@@ -63,17 +66,36 @@ export default function SetRow({
     onRemove(idx);
   };
 
-  const handleToggle = () => {
-    Vibration.vibrate(40);
+   const handleToggle = () => {
+    // If already completed, allow unchecking without validation
+    if (isCompleted) {
+      Vibration.vibrate(40);
+      onToggleComplete && onToggleComplete();
+      return;
+    }
+
+    // Validate weight
+    const hasWeight = set.weight != null;
+
+    // Validate reps depending on repsType / range
+    const isRange = set.repsType === "rep range" || !!set.isRangeReps;
+    const hasReps = isRange ? (set.minReps != null && set.maxReps != null) : (set.reps != null);
+
+    // If anything is missing → block toggle + show confirm modal (simple message)
+    if (!hasWeight || !hasReps) {
+      Vibration.vibrate(40);
+      setConfirmVisible(true);
+      return;
+    }
+
+    // All good → toggle complete
+    Vibration.vibrate(60);
     onToggleComplete && onToggleComplete();
   };
 
   return (
     <View
-      style={[
-        styles.row,
-        isCompleted ? styles.rowCompleted : null,
-      ]}
+      style={[styles.row, isCompleted ? styles.rowCompleted : null]}
       accessibilityRole={"listitem" as AccessibilityRole}
     >
       {/* left: index tappable to open menu */}
@@ -85,9 +107,7 @@ export default function SetRow({
           accessibilityRole="button"
           accessibilityLabel="Open set actions"
         >
-          <Text style={[styles.indexText,]}>
-            {set.setType === "Normal" ? idx + 1 : set.setType}
-          </Text>
+          <Text style={[styles.indexText]}>{set.setType === "Normal" ? idx + 1 : set.setType}</Text>
         </TouchableOpacity>
       </View>
 
@@ -111,7 +131,7 @@ export default function SetRow({
                 const n = v === "" ? null : Number(v);
                 onChangeField(idx, "weight", Number.isNaN(n) ? null : n);
               }}
-              style={[styles.input, ]}
+              style={[styles.input]}
               placeholderTextColor="#6b7280"
             />
           </TouchableOpacity>
@@ -142,7 +162,7 @@ export default function SetRow({
                     const n = v === "" ? null : Number(v);
                     onChangeField(idx, "maxReps", Number.isNaN(n) ? null : n);
                   }}
-                  style={[styles.input, styles.rangeInput, ]}
+                  style={[styles.input, styles.rangeInput]}
                   placeholderTextColor="#6b7280"
                 />
               </View>
@@ -156,7 +176,7 @@ export default function SetRow({
                   const n = v === "" ? null : Number(v);
                   onChangeField(idx, "reps", Number.isNaN(n) ? null : n);
                 }}
-                style={[styles.input,  ]}
+                style={[styles.input]}
                 placeholderTextColor="#6b7280"
               />
             )}
@@ -211,6 +231,15 @@ export default function SetRow({
           </View>
         </Pressable>
       </Modal>
+     <ConfirmModal
+  visible={confirmVisible}
+  title="Incomplete Set"
+  message="Please enter weight and reps before marking this set complete."
+  onCancel={() => setConfirmVisible(false)} // not used in single mode, but keep for type safety
+  onConfirm={() => setConfirmVisible(false)}
+  confirmText="OK"
+  singleButton={true}
+/>
     </View>
   );
 }

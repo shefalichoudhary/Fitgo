@@ -1,7 +1,6 @@
 import React, { useCallback, useState, useEffect } from "react";
 import { View, FlatList, StyleSheet } from "react-native";
 import { useRoute, RouteProp, useFocusEffect } from "@react-navigation/native";
-import { navigate } from "@/navigators/navigationUtilities";
 import { InputField } from "@/components/InputField";
 import { Button } from "@/components/Button";
 import ExerciseBlock from "@/components/Routines/ExerciseBlock"; // <- new component
@@ -38,23 +37,15 @@ export default function CreateRoutineScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<HomeStackParamList>>();
   const route = useRoute<RouteProp<HomeStackParamList, "CreateRoutine">>();
 
-  const {
-    title,
-    setTitle,
-    exercises,
-    setExercises,
-    deleteExercise,
-    saveRoutine,
-  } = useCreateRoutine([]);
+  const { title, setTitle, exercises, setExercises, deleteExercise, saveRoutine } =
+    useCreateRoutine([]);
 
-  // NOTE: we create a typed adapter below to satisfy TypeScript for SetField
   const {
     toggleRepsType,
     updateSetField: rawUpdateSetField,
     updateRestTimer,
   } = useRoutineHelpers(setExercises);
 
-  // adapter with explicit SetField typing (casts original to the wider type)
   const updateSetField = React.useCallback(
     (exerciseId: string, setId: string, field: SetField, value: any) => {
       (rawUpdateSetField as unknown as (eId: string, sId: string, f: SetField, v: any) => void)(
@@ -98,7 +89,6 @@ export default function CreateRoutineScreen() {
       setAlertMessage("Routine saved successfully!");
       setAlertVisible(true);
 
-      // keep existing UX: show alert briefly then navigate
       setTimeout(() => {
         navigation.navigate("Routines");
       }, 500);
@@ -118,8 +108,6 @@ export default function CreateRoutineScreen() {
   }, [navigation, setExercises, setTitle]);
 
   const saveDisabled = !title.trim() || exercises.some((ex: any) => (ex.sets || []).length === 0);
-
-
 
   // Generic onChange from ExerciseBlock: replace that exercise's data
   const handleExerciseChange = (exerciseId: string, newData: any) => {
@@ -146,7 +134,6 @@ export default function CreateRoutineScreen() {
     }
   };
 
-
   // onOpenSetType: cycle set type (W -> Normal -> D -> F -> W)
   const handleOpenSetType = (exerciseId: string, setIndex?: number) => {
     const ex = exercises.find((e: any) => e.id === exerciseId);
@@ -160,7 +147,6 @@ export default function CreateRoutineScreen() {
     const next = order[(order.indexOf(current) + 1) % order.length] ?? "Normal";
     updateSetField(exerciseId, setRow.id, "setType", next);
   };
-
 
   const handleOpenRepsType = (exerciseId: string) => {
     const ex = exercises.find((e: any) => e.id === exerciseId);
@@ -187,15 +173,11 @@ export default function CreateRoutineScreen() {
     updateRestTimer(exerciseId, next);
   };
 
-
-
-
   // delete exercise adapter
   const handleDeleteExercise = (exerciseId: string) => {
     deleteExercise(exerciseId);
     setExercises((prev: any[]) => prev.filter((e) => e.id !== exerciseId));
   };
-
 
   return (
     <View style={styles.container}>
@@ -225,7 +207,7 @@ export default function CreateRoutineScreen() {
             }}
             onOpenRepRange={(exerciseId, setIndex) => handleOpenRepRange(exerciseId, setIndex)}
             showCheckIcon={false}
-            onDeleteExercise={(exerciseId)=> handleDeleteExercise(exerciseId)}
+            onDeleteExercise={(exerciseId) => handleDeleteExercise(exerciseId)}
             viewOnly={false}
             onOpenSetType={(exerciseId, setIndex) => handleOpenSetType(exerciseId, setIndex)}
             onOpenRepsType={(exerciseId) => handleOpenRepsType(exerciseId)}
@@ -243,7 +225,9 @@ export default function CreateRoutineScreen() {
         <Button
           text="Add Exercise"
           preset="filled"
-          onPress={() => navigation.navigate("Exercises", { alreadyAdded: exercises.map((e) => e.id) })}
+          onPress={() =>
+            navigation.navigate("Exercises", { alreadyAdded: exercises.map((e) => e.id) })
+          }
           style={[styles.btn, { backgroundColor: "#3B82F6" }]}
         />
 
@@ -258,7 +242,11 @@ export default function CreateRoutineScreen() {
         )}
       </View>
 
-      <AppAlert visible={alertVisible} message={alertMessage} onHide={() => setAlertVisible(false)} />
+      <AppAlert
+        visible={alertVisible}
+        message={alertMessage}
+        onHide={() => setAlertVisible(false)}
+      />
     </View>
   );
 }

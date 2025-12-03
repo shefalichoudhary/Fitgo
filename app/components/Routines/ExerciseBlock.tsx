@@ -20,6 +20,7 @@ type Props = {
   onToggleSetComplete: (exerciseId: string, setIndex: number, completed: boolean) => void;
   onDeleteExercise: (exerciseId: string) => void;
 
+
 };
 
 export default function ExerciseBlock({
@@ -35,9 +36,8 @@ export default function ExerciseBlock({
   onOpenRepsType,
   onOpenRestTimer,
   onToggleSetComplete,
-  onDeleteExercise
-
-
+  onDeleteExercise,
+ 
 }: Props) {
   const [visibleSets, setVisibleSets] = useState<number>(Math.max(1, data.sets.length));
 
