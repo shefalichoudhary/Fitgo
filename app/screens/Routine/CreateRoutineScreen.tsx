@@ -62,8 +62,6 @@ export default function CreateRoutineScreen() {
   useCallback(() => {
     if (!route.params?.selectedExercises) return;
 
-
-
     const withSets = route.params.selectedExercises.map((rawEx: any, i: number) => {
       // canonicalize top-level fields from several naming variants
       const id = rawEx.id ?? rawEx._id ?? `sel-${Date.now()}-${i}`;
@@ -195,7 +193,6 @@ export default function CreateRoutineScreen() {
     deleteExercise(exerciseId);
     setExercises((prev: any[]) => prev.filter((e) => e.id !== exerciseId));
   };
-  console.log("CreateRoutineScreen exercises:", exercises);
   return (
     <View style={styles.container}>
       <InputField placeholder="Enter routine title" value={title} onChangeText={setTitle} />

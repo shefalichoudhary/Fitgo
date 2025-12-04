@@ -249,7 +249,7 @@ const styles = StyleSheet.create({
   },
   title: {
     color: "#fff",
-    fontSize: 28,
+    fontSize: 26,
     fontWeight: "700",
   },
   titleInput: {

@@ -139,7 +139,7 @@ export default function SetRow({
       <View style={styles.center}>
         <View style={styles.inputsRow}>
           {isDuration || isYogaOrStretching ? (
-            <View style={[styles.durationWrap, { flex: 1 }]}>
+            <View style={[styles.durationWrap]}>
               <DurationTimer
                 key={`${set.id}-${isCompleted ? "completed" : "active"}`}
                 initialSeconds={set.duration ?? 0}
@@ -156,7 +156,7 @@ export default function SetRow({
             </View>
           ) : isBodyweight ? (
             // Bodyweight: only reps input (no weight UI)
-            <View style={{ flex: 1 }}>
+            <View style={styles.repsWrap}>
               <TextInput
                 value={set.reps != null ? String(set.reps) : ""}
                 keyboardType="numeric"
@@ -166,7 +166,7 @@ export default function SetRow({
                   const n = v === "" ? null : Number(v);
                   onChangeField(idx, "reps", Number.isNaN(n) ? null : n);
                 }}
-                style={[styles.input]}
+                style={[styles.underlineInput]}
                 placeholderTextColor="#6b7280"
               />
             </View>
@@ -189,7 +189,7 @@ export default function SetRow({
                     const n = v === "" ? null : Number(v);
                     onChangeField(idx, "weight", Number.isNaN(n) ? null : n);
                   }}
-                  style={[styles.input]}
+                  style={[styles.underlineInput]}
                   placeholderTextColor="#6b7280"
                 />
               </TouchableOpacity>
@@ -206,7 +206,7 @@ export default function SetRow({
                         const n = v === "" ? null : Number(v);
                         onChangeField(idx, "minReps", Number.isNaN(n) ? null : n);
                       }}
-                      style={[styles.input, styles.rangeInput]}
+                      style={[styles.underlineInput, styles.rangeInput]}
                       placeholderTextColor="#6b7280"
                     />
                     <Text style={[styles.rangeSep]}>-</Text>
@@ -219,7 +219,7 @@ export default function SetRow({
                         const n = v === "" ? null : Number(v);
                         onChangeField(idx, "maxReps", Number.isNaN(n) ? null : n);
                       }}
-                      style={[styles.input, styles.rangeInput]}
+                      style={[styles.underlineInput, styles.rangeInput]}
                       placeholderTextColor="#6b7280"
                     />
                   </View>
@@ -233,7 +233,7 @@ export default function SetRow({
                       const n = v === "" ? null : Number(v);
                       onChangeField(idx, "reps", Number.isNaN(n) ? null : n);
                     }}
-                    style={[styles.input]}
+                    style={[styles.underlineInput]}
                     placeholderTextColor="#6b7280"
                   />
                 )}
@@ -329,42 +329,68 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  underlineInput: {
+    height: 38,
+    borderBottomWidth: 0,
+    borderBottomColor: "#2b3948", // subtle divider; adjust to taste
+    paddingHorizontal: 6,
+    paddingVertical: 8,
+    backgroundColor: "transparent", // remove filled background
+    fontSize: 14,
+    color: "#e7eaecff",
+    textAlignVertical: "center",
+  },
+  rangeInput: {
+    minWidth: 56,
+    paddingHorizontal: 8,
+    marginVertical: 0,
+    textAlign: "center",
+  },
 
+  weightWrap: {
+    flex: 0.58, // a bit less than half
+    alignItems: "center",
+  },
+  repsWrap: {
+    flex: 1,
+    alignItems: "center",
+  },
+  rangeSep: {
+    color: "#94a3b8",
+    fontWeight: "700",
+  },
   indexWrap: {
     width: 34,
     height: 34,
     borderRadius: 8,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#080808ff",
+    backgroundColor: "transparent",
     borderWidth: 1,
-    borderColor: "#080808ff",
+    borderColor: "#122032",
   },
-
+  checkbox: {
+    width: 36,
+    height: 36,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#122032",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "transparent",
+  },
   indexText: {
     fontWeight: "700",
     color: "#e6eef8",
   },
-
   center: {
     flex: 1,
     paddingHorizontal: 8,
   },
-
   inputsRow: {
     flexDirection: "row",
     alignItems: "center",
   },
-
-  weightWrap: {
-    flex: 0.5,
-    marginRight: 8,
-  },
-
-  repsWrap: {
-    flex: 1,
-  },
-
   timerBtn: {
     width: 40,
     height: 36,
@@ -373,14 +399,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: "#183b8a",
   },
-
   timerBtnActive: {
     backgroundColor: "#10B981",
   },
   durationWrap: {
-    // takes the center area when showing duration input
+    flex: 1,
   },
-
   input: {
     height: 44,
     borderRadius: 10,
@@ -391,45 +415,20 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#e7eaecff",
   },
-
   rangeRow: {
     flexDirection: "row",
     alignItems: "center",
   },
-
-  rangeInput: {
-    flex: 1,
-  },
-
-  rangeSep: {
-    marginHorizontal: 8,
-    color: "#6b7280",
-    fontWeight: "700",
-  },
-
   right: {
     width: 56,
     alignItems: "center",
     justifyContent: "center",
   },
-
-  checkbox: {
-    width: 36,
-    height: 36,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#080808ff",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#080808ff",
-  },
-
   checkboxActive: {
     backgroundColor: "#08865cff",
     borderColor: "#0b3a26ff",
   },
 
-  /* modal (dark) */
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(2,6,23,0.6)",

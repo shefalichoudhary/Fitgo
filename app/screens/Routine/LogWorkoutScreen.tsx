@@ -13,12 +13,16 @@ import { useRoutineHelpers } from "@/components/Routines/useRoutineHelpers";
 import RestTimer from "@/components/logWorkout/RestTimer";
 import type { RestTimerHandle } from "@/components/logWorkout/RestTimer";
 import LoadingOverlay from "@/components/LoadingOverlay";
+import { updateRoutineDefinition } from "@/utils/updateRoutineDefinition";
+import { ConfirmModal } from "@/components/ConfirmModal";
 
 export default function LogWorkoutScreen() {
   const [alertVisible, setAlertVisible] = useState(false);
   const [loading, setLoading] = useState(true);
   const [alertMessage, setAlertMessage] = useState("");
   const [navigateAfterAlert, setNavigateAfterAlert] = useState(false);
+  const [saveConfirmVisible, setSaveConfirmVisible] = useState(false);
+  const [saving, setSaving] = useState(false);
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
   const routineId = route.params?.routineId;
@@ -32,8 +36,8 @@ export default function LogWorkoutScreen() {
   } = useWorkoutData(routineId);
   const [user, setUser] = useState<any>(null);
   const { toggleRepsType, updateRestTimer } = useRoutineHelpers(setExercisesData);
-  
-const restTimerRef = React.useRef<RestTimerHandle | null>(null);
+
+  const restTimerRef = React.useRef<RestTimerHandle | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -42,48 +46,47 @@ const restTimerRef = React.useRef<RestTimerHandle | null>(null);
     })();
   }, []);
 
- // put this near the other useEffect hooks in LogWorkoutScreen
-useEffect(() => {
-  let mounted = true;
-  const MIN_SHOW_MS = 300;   // minimum visible time for initial loading (ms)
-  const FALLBACK_MS = 3000;  // safety fallback if data never arrives (ms)
+  // put this near the other useEffect hooks in LogWorkoutScreen
+  useEffect(() => {
+    let mounted = true;
+    const MIN_SHOW_MS = 300; // minimum visible time for initial loading (ms)
+    const FALLBACK_MS = 3000; // safety fallback if data never arrives (ms)
 
-  let minTimer: ReturnType<typeof setTimeout> | null = null;
-  let fallbackTimer: ReturnType<typeof setTimeout> | null = null;
+    let minTimer: ReturnType<typeof setTimeout> | null = null;
+    let fallbackTimer: ReturnType<typeof setTimeout> | null = null;
 
-  const resolveIfReady = () => {
-    // treat exercisesData as "ready" when defined (can be []), and user may be null if not logged in
-    const dataReady = typeof exercisesData !== "undefined" && exercisesData !== null;
-    const userReady = typeof user !== "undefined"; // user may be null but fetched
-    if (dataReady && userReady && mounted) {
-      // ensure overlay visible for at least MIN_SHOW_MS
-      minTimer = setTimeout(() => {
-        if (!mounted) return;
-        setLoading(false);
-      }, MIN_SHOW_MS);
-      if (fallbackTimer) {
-        clearTimeout(fallbackTimer);
-        fallbackTimer = null;
+    const resolveIfReady = () => {
+      // treat exercisesData as "ready" when defined (can be []), and user may be null if not logged in
+      const dataReady = typeof exercisesData !== "undefined" && exercisesData !== null;
+      const userReady = typeof user !== "undefined"; // user may be null but fetched
+      if (dataReady && userReady && mounted) {
+        // ensure overlay visible for at least MIN_SHOW_MS
+        minTimer = setTimeout(() => {
+          if (!mounted) return;
+          setLoading(false);
+        }, MIN_SHOW_MS);
+        if (fallbackTimer) {
+          clearTimeout(fallbackTimer);
+          fallbackTimer = null;
+        }
       }
-    }
-  };
+    };
 
-  // safety fallback to hide loader even if something goes wrong
-  fallbackTimer = setTimeout(() => {
-    if (!mounted) return;
-    setLoading(false);
-  }, FALLBACK_MS);
+    // safety fallback to hide loader even if something goes wrong
+    fallbackTimer = setTimeout(() => {
+      if (!mounted) return;
+      setLoading(false);
+    }, FALLBACK_MS);
 
-  resolveIfReady();
+    resolveIfReady();
 
-  return () => {
-    mounted = false;
-    if (minTimer) clearTimeout(minTimer);
-    if (fallbackTimer) clearTimeout(fallbackTimer);
-  };
-  // watch the things that need to be ready
-}, [exercisesData, user]);
-
+    return () => {
+      mounted = false;
+      if (minTimer) clearTimeout(minTimer);
+      if (fallbackTimer) clearTimeout(fallbackTimer);
+    };
+    // watch the things that need to be ready
+  }, [exercisesData, user]);
 
   const totalSets = exercisesData.reduce((a, e) => a + (e.sets?.length ?? 0), 0);
   const completedSets = exercisesData.reduce(
@@ -115,6 +118,15 @@ useEffect(() => {
       return;
     }
 
+    // show the confirm modal (left button => Save only, right => Save + update)
+    setSaveConfirmVisible(true);
+  };
+
+  const performSave = async (saveAndUpdateRoutine: boolean) => {
+    if (saving) return;
+    setSaveConfirmVisible(false);
+    setSaving(true);
+
     try {
       await saveWorkoutSession({
         userId: user.id,
@@ -127,6 +139,19 @@ useEffect(() => {
         exercises: exercisesData,
       });
 
+      if (saveAndUpdateRoutine && routineId) {
+        // call your routine update helper — implement in your utils
+        try {
+          await updateRoutineDefinition(routineId, {
+            title: routineTitle,
+            exercises: exercisesData,
+          });
+        } catch (err) {
+          console.warn("updateRoutineDefinition failed (non-fatal):", err);
+          // optional: surface a small toast here instead of failing the whole save
+        }
+      }
+
       setAlertMessage("Workout Saved! Your workout has been added to History.");
       setNavigateAfterAlert(true);
       setAlertVisible(true);
@@ -134,6 +159,8 @@ useEffect(() => {
       console.error("saveWorkoutSession failed:", err);
       setAlertMessage("Failed to save workout. Please try again.");
       setAlertVisible(true);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -149,7 +176,7 @@ useEffect(() => {
         />
       ),
     });
-  }, [navigation, routineTitle, duration, totalSets, completedSets, totalVolume, user]);
+  }, [navigation, routineTitle, duration, totalSets, completedSets, totalVolume, user, handleSave]);
 
   // ---------- Helpers to adapt exerciseData -> ExerciseBlock props ----------
   const renderExercise = useCallback(
@@ -213,7 +240,7 @@ useEffect(() => {
       };
 
       // new signature includes restSeconds so we don't read exercisesData (avoids stale reads)
-            const handleToggleSetComplete = (
+      const handleToggleSetComplete = (
         _exerciseId: string,
         setIndex: number,
         completed: boolean,
@@ -241,7 +268,6 @@ useEffect(() => {
           }
         }
       };
-
 
       const handleOpenRepsType = (exerciseId: string) => {
         const ex = exercisesData.find((e: any) => e.id === exerciseId);
@@ -316,20 +342,18 @@ useEffect(() => {
       toggleRepsType,
       updateRestTimer,
       exercisesData,
-   
     ]
   );
 
-  if(loading){
+  if (loading) {
     return <LoadingOverlay visible={true} message="Loading workout..." />;
   }
   return (
     <Screen preset="fixed" contentContainerStyle={styles.container}>
-        
       <View style={styles.titleContainer}>
         <Text style={styles.title}>{routineTitle}</Text>
       </View>
-   <RestTimer
+      <RestTimer
         ref={restTimerRef}
         resolveLabel={(exerciseId) => {
           const ex = exercisesData.find((e) => e.id === exerciseId);
@@ -369,6 +393,18 @@ useEffect(() => {
             setNavigateAfterAlert(false);
           }
         }}
+      />
+
+      <ConfirmModal
+        visible={saveConfirmVisible}
+        title="Save workout?"
+        message="Pick one"
+        onCancel={() => setSaveConfirmVisible(false)} // not shown because hideCancel
+        onConfirm={() => performSave(false)} // primary (bottom)
+        confirmText="Save Workout"
+        onSecondary={() => performSave(true)} // secondary (top)
+        secondaryText="Save & Update Routine"
+        hideCancel={true}
       />
     </Screen>
   );

@@ -223,7 +223,6 @@ export default function ProfileScreen({ navigation }: Props) {
           </View>
         </View>
 
-        {/* Actions */}
         {editing ? (
           <View style={styles.editButtonsRow}>
             <TouchableOpacity style={styles.primaryButton} onPress={onSavePressed}>
@@ -242,7 +241,6 @@ export default function ProfileScreen({ navigation }: Props) {
         )}
       </View>
 
-      {/* Confirm modal used for save / cancel */}
       <ConfirmModal
         visible={confirmVisible}
         title={modalProps.title}

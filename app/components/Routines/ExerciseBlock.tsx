@@ -275,7 +275,7 @@ export default function ExerciseBlock({
                 </View>
               ) : isBodyweight ? (
                 // Bodyweight/Assisted Bodyweight: only reps, show "REPS" + optional "BW" label
-                  <View style={[styles.repsWrap, { flex: 1 }]}>
+                  <View style={[styles.repsWrap,{marginRight:20}]}>
                     <Text style={styles.columnLabel}>REPS</Text>
                   </View>
               ) : (
@@ -405,10 +405,17 @@ const styles = StyleSheet.create({
     paddingBottom: 6,
   },
   columnLabel: { fontSize: 12, color: "#fafafaff", fontWeight: "600" },
-  setLeft: { width:70},
-  setCenter: { flex: 1, paddingRight: 10},
+  setLeft: { width:75},
+  setCenter: { flex: 1,},
   rowInputs: { flexDirection: "row", alignItems: "center" },
-  weightWrap: { flex: 0.7, marginRight: 8 },
-  repsWrap: { flex: 1 },
+   // make the weight input compact and aligned
+  weightWrap: {
+    flex: 0.58, // a bit less than half
+
+  },
+   repsWrap: {
+    flex: 1,
+    alignItems:"center",
+  },
   right: { width: 56, alignItems: "center", justifyContent: "flex-start" },
 });

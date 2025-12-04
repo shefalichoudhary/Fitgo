@@ -153,7 +153,7 @@ export default function DurationTimer({
           value={String(seconds)}
           keyboardType="numeric"
           editable={false}
-          style={[localStyles.input, { flex: 1 }]}
+          style={[localStyles.underlineInput, { flex: 1 }]}
           placeholder="seconds"
         />
       </View>
@@ -166,7 +166,7 @@ export default function DurationTimer({
         value={String(seconds ?? "")}
         keyboardType="numeric"
         editable={editable}
-        style={[localStyles.input, { flex: 1 }]}
+        style={[localStyles.underlineInput, { flex: 1 }]}
         placeholder="seconds"
         onChangeText={handleTextChange}
       />
@@ -198,15 +198,17 @@ export default function DurationTimer({
 
 const localStyles = StyleSheet.create({
   row: { flexDirection: "row", alignItems: "center", flex: 1 },
-  input: {
-    height: 44,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "#080808ff",
-    paddingHorizontal: 12,
-    backgroundColor: "#080808ff",
+  underlineInput: {
+    height: 38,
+    borderBottomWidth: 0,
+    borderBottomColor: "#2b3948", // subtle divider; adjust to taste
+    paddingHorizontal: 6,
+    paddingVertical: 8,
+    backgroundColor: "transparent", // remove filled background
     fontSize: 14,
     color: "#e7eaecff",
+    textAlignVertical: "center",
+    textAlign: "center",
   },
   controls: { flexDirection: "row", marginLeft: 8 },
   btn: {
