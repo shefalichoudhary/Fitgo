@@ -1,5 +1,14 @@
 export type Unit = "kg" | "lbs";
 export type RepsType = "reps" | "rep range";
+export type ExerciseType =
+  | "Weighted"
+  | "Bodyweight"
+  | "Assisted Bodyweight"
+  | "Duration"
+  | "Yoga"
+  | "Stretching"
+  | "Weighted-Compound" // optional extra values you want
+  ;
 
 export type Set = {
   id?: string;
@@ -25,7 +34,7 @@ export type Set = {
 export type Exercise = {
   id: string;
   exercise_name: string;
-  exercise_type?: string | null;
+  exercise_type?: ExerciseType; 
   equipment?: string;
 };
 

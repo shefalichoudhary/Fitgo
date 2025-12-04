@@ -58,30 +58,53 @@ export default function CreateRoutineScreen() {
     [rawUpdateSetField]
   );
 
-  useFocusEffect(
-    useCallback(() => {
-      if (route.params?.selectedExercises) {
-        const withSets = route.params.selectedExercises.map((ex) => ({
-          ...ex,
-          restTimer: ex.restTimer ?? 0,
-          sets: (ex.sets || []).map((set, i) => ({
-            id: `${Date.now()}-${i}`,
-            reps: set.reps ?? null,
-            weight: set.weight ?? null,
-            repsType: (set as any).repsType ?? "reps",
-            unit: (set as any).unit ?? "kg",
-          })),
-        }));
+ useFocusEffect(
+  useCallback(() => {
+    if (!route.params?.selectedExercises) return;
 
-        setExercises((prev) => {
-          // Prevent duplicates
-          const existingIds = new Set(prev.map((e) => e.id));
-          const newExercises = withSets.filter((e) => !existingIds.has(e.id));
-          return [...prev, ...newExercises];
-        });
-      }
-    }, [route.params, setExercises])
-  );
+
+
+    const withSets = route.params.selectedExercises.map((rawEx: any, i: number) => {
+      // canonicalize top-level fields from several naming variants
+      const id = rawEx.id ?? rawEx._id ?? `sel-${Date.now()}-${i}`;
+      const exercise_name = rawEx.exercise_name ?? rawEx.name ?? rawEx.title ?? "Exercise";
+      const exercise_type = rawEx.exercise_type ?? rawEx.exerciseType ?? rawEx.type ?? null;
+      const equipment = rawEx.equipment ?? rawEx.equip ?? rawEx.machine ?? "";
+
+      // transform sets and preserve duration if present
+      const sets = (rawEx.sets || []).map((s: any, j: number) => ({
+        id: s.id ?? `${Date.now()}-${j}`,
+        reps: s.reps ?? null,
+        weight: s.weight ?? null,
+        duration: s.duration ?? null,
+        repsType: s.repsType ?? s.reps_type ?? "reps",
+        unit: s.unit ?? "kg",
+        // keep any other fields you rely on:
+        isCompleted: s.isCompleted ?? false,
+      }));
+
+      return {
+        ...rawEx, // keep extra fields
+        id,
+        exercise_name,
+        exercise_type,
+        equipment,
+        restTimer: rawEx.restTimer ?? 0,
+        sets,
+        unit: rawEx.unit ?? "kg",
+        repsType: rawEx.repsType ?? "reps",
+        notes: rawEx.notes ?? "",
+      };
+    });
+
+    setExercises((prev) => {
+      const existingIds = new Set(prev.map((e) => e.id));
+      const newExercises = withSets.filter((e) => !existingIds.has(e.id));
+      return [...prev, ...newExercises];
+    });
+  }, [route.params, setExercises])
+);
+
 
   const handleSaveRoutine = async () => {
     const success = await saveRoutine();
@@ -172,7 +195,7 @@ export default function CreateRoutineScreen() {
     deleteExercise(exerciseId);
     setExercises((prev: any[]) => prev.filter((e) => e.id !== exerciseId));
   };
-
+  console.log("CreateRoutineScreen exercises:", exercises);
   return (
     <View style={styles.container}>
       <InputField placeholder="Enter routine title" value={title} onChangeText={setTitle} />
@@ -181,11 +204,12 @@ export default function CreateRoutineScreen() {
         data={exercises}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
+          
           <ExerciseBlock
             exercise={{
               id: item.id,
               exercise_name: item.exercise_name ?? item.name ?? "Exercise",
-              exercise_type: item.exercise_type ?? null,
+              exercise_type: item.exercise_type ?? item.exerciseType ?? item.type ?? null,
               equipment: item.equipment ?? "",
             }}
             data={{

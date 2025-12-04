@@ -8,7 +8,7 @@ import React, {
 } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, Vibration } from "react-native";
 
-type ActiveRestTimer = {
+export type ActiveRestTimer = {
   exerciseId: string | null;
   setId?: string | null;
   remaining: number;
@@ -24,17 +24,13 @@ export type RestTimerHandle = {
 };
 
 type Props = {
-  // function used to resolve a label for the currently active exercise id
+  // optional mapper to resolve label from exerciseId
   resolveLabel?: (exerciseId: string | null) => string;
-  // optional callbacks
-  onChange?: (state: ActiveRestTimer) => void; // called whenever state changes
-  onFinish?: (exerciseId: string | null, setId?: string | null) => void; // when timer ends naturally
+  // optional callbacks parent may use to react to timer changes
+  onChange?: (state: ActiveRestTimer) => void;
+  onFinish?: (exerciseId: string | null, setId?: string | null) => void;
 };
 
-/**
- * RestTimer component owns the interval and exposes imperative methods via ref.
- * Parent uses `ref` to start/pause/resume/stop timers.
- */
 const RestTimer = forwardRef<RestTimerHandle, Props>(({ resolveLabel, onChange, onFinish }, ref) => {
   const [state, setState] = useState<ActiveRestTimer>({
     exerciseId: null,
@@ -44,7 +40,7 @@ const RestTimer = forwardRef<RestTimerHandle, Props>(({ resolveLabel, onChange, 
   });
 
   const timerRef = useRef<number | null>(null);
-  // guard owner helps avoid interval overlaps
+  // owner guard to avoid overlapping timers
   const activeTimerOwnerRef = useRef<{ exerciseId: string | null; setId: string | null }>({
     exerciseId: null,
     setId: null,
@@ -58,7 +54,6 @@ const RestTimer = forwardRef<RestTimerHandle, Props>(({ resolveLabel, onChange, 
     activeTimerOwnerRef.current = { exerciseId: null, setId: null };
   };
 
-  // core tick behaviour (shared by start/resume)
   const startInterval = () => {
     if (timerRef.current) return;
     timerRef.current = setInterval(() => {
@@ -77,7 +72,7 @@ const RestTimer = forwardRef<RestTimerHandle, Props>(({ resolveLabel, onChange, 
         if (!prev.running) return prev;
 
         if (prev.remaining <= 1) {
-          // timer finished
+          // finished
           Vibration.vibrate(500);
           if (timerRef.current) {
             clearInterval(timerRef.current);
@@ -85,7 +80,6 @@ const RestTimer = forwardRef<RestTimerHandle, Props>(({ resolveLabel, onChange, 
           }
           activeTimerOwnerRef.current = { exerciseId: null, setId: null };
           const finishedState = { exerciseId: null, setId: null, remaining: 0, running: false };
-          // notify
           onChange?.(finishedState);
           onFinish?.(prev.exerciseId, prev.setId);
           return finishedState;
@@ -98,15 +92,13 @@ const RestTimer = forwardRef<RestTimerHandle, Props>(({ resolveLabel, onChange, 
     }, 1000) as unknown as number;
   };
 
-  // imperative API
   useImperativeHandle(
     ref,
     () => ({
       start: (exerciseId: string, setId: string, seconds: number) => {
-        // clear any existing timer and set new owner
         clearExistingInterval();
         activeTimerOwnerRef.current = { exerciseId, setId };
-        const newState = { exerciseId, setId, remaining: seconds, running: true };
+        const newState: ActiveRestTimer = { exerciseId, setId, remaining: seconds, running: true };
         setState(newState);
         onChange?.(newState);
         startInterval();
@@ -133,7 +125,6 @@ const RestTimer = forwardRef<RestTimerHandle, Props>(({ resolveLabel, onChange, 
             onChange?.(next);
             return next;
           }
-          // if there's already an interval, just set running true
           if (timerRef.current) {
             const next = { ...p, running: true };
             onChange?.(next);
@@ -148,18 +139,17 @@ const RestTimer = forwardRef<RestTimerHandle, Props>(({ resolveLabel, onChange, 
 
       stop: () => {
         clearExistingInterval();
-        const next = { exerciseId: null, setId: null, remaining: 0, running: false };
+        const next: ActiveRestTimer = { exerciseId: null, setId: null, remaining: 0, running: false };
         setState(next);
         onChange?.(next);
       },
 
       getState: () => state,
     }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [state]
+    // Note: state included so getState snapshot updates; it's fine here.
+    [state, onChange, onFinish]
   );
 
-  // cleanup on unmount
   useEffect(() => {
     return () => {
       if (timerRef.current) {
@@ -170,6 +160,7 @@ const RestTimer = forwardRef<RestTimerHandle, Props>(({ resolveLabel, onChange, 
     };
   }, []);
 
+  // don't render if no active timer
   if (!state || !state.exerciseId || state.remaining <= 0) return null;
 
   const label = resolveLabel ? resolveLabel(state.exerciseId) : "Rest";

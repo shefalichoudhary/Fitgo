@@ -23,6 +23,11 @@ CreateRoutine: {
     selectedExercises?: {
       id: string;
       name: string;
+      exercise_type?: string | null ;
+      exerciseType?: string | null ;
+      type?: string | null ;
+      equipment?: string ;
+      notes?: string | null ;
         restTimer?: number | null  ;
       sets: { reps: number; weight?: number; id: string }[];
       muscleGroup?: string;

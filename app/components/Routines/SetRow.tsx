@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import type { Set } from "./types";
 import {
@@ -11,13 +11,14 @@ import {
   Modal,
   Pressable,
   Vibration,
-  Alert,
 } from "react-native";
 import { ConfirmModal } from "@/components/ConfirmModal";
+import DurationTimer from "@/components/Routines/DurationTimer"; // <- adjust path if needed
 
 type Props = {
   idx: number;
   set: Set;
+  exerciseType?: string; // NEW: "Duration" etc.
   disabled?: boolean;
   showCheckIcon?: boolean;
   onChangeField: <K extends keyof Set>(index: number, key: K, value: Set[K]) => void;
@@ -34,14 +35,23 @@ type Props = {
 export default function SetRow({
   idx,
   set,
+  exerciseType = "Normal",
   disabled = false,
   showCheckIcon,
   onChangeField,
   onRemove,
   onOpenWeight,
   onToggleComplete,
-  onOpenSetType,
 }: Props) {
+  // canonicalize & classify incoming exerciseType (case-insensitive)
+  const normalizedExerciseType = (exerciseType ?? "").toString().trim().toLowerCase();
+  const isDuration = normalizedExerciseType === "duration";
+  const isYogaOrStretching =
+    normalizedExerciseType === "yoga" || normalizedExerciseType === "stretching";
+  const isBodyweight =
+    normalizedExerciseType === "bodyweight" || normalizedExerciseType === "assisted bodyweight";
+  const isWeighted = !isDuration && !isYogaOrStretching && !isBodyweight;
+
   const [menuVisible, setMenuVisible] = useState(false);
   const [confirmVisible, setConfirmVisible] = useState(false);
   const showRange = set.repsType === "rep range" || !!set.isRangeReps;
@@ -67,28 +77,42 @@ export default function SetRow({
   };
 
   const handleToggle = () => {
-    // If already completed, allow unchecking without validation
     if (isCompleted) {
       Vibration.vibrate(40);
       onToggleComplete && onToggleComplete();
       return;
     }
 
-    // Validate weight
-    const hasWeight = set.weight != null;
-
-    // Validate reps depending on repsType / range
-    const isRange = set.repsType === "rep range" || !!set.isRangeReps;
-    const hasReps = isRange ? set.minReps != null && set.maxReps != null : set.reps != null;
-
-    // If anything is missing → block toggle + show confirm modal (simple message)
-    if (!hasWeight || !hasReps) {
-      Vibration.vibrate(40);
-      setConfirmVisible(true);
-      return;
+    // Validation by exercise kind
+    if (isDuration || isYogaOrStretching) {
+      const hasDuration = (set.duration ?? 0) > 0;
+      if (!hasDuration) {
+        Vibration.vibrate(40);
+        setConfirmVisible(true);
+        return;
+      }
+    } else if (isBodyweight) {
+      const hasReps = set.reps != null && set.reps > 0;
+      if (!hasReps) {
+        Vibration.vibrate(40);
+        setConfirmVisible(true);
+        return;
+      }
+    } else {
+      const hasWeight = set.weight != null;
+      const isRangeLocal = set.repsType === "rep range" || !!set.isRangeReps;
+      const hasReps = isRangeLocal ? set.minReps != null && set.maxReps != null : set.reps != null;
+      if (!hasWeight || !hasReps) {
+        Vibration.vibrate(40);
+        setConfirmVisible(true);
+        return;
+      }
     }
 
-    // All good → toggle complete
+    if (isDuration || isYogaOrStretching) {
+      onChangeField(idx, "duration", (set.duration ?? 0) as any);
+    }
+
     Vibration.vibrate(60);
     onToggleComplete && onToggleComplete();
   };
@@ -114,64 +138,30 @@ export default function SetRow({
       {/* center: inputs */}
       <View style={styles.center}>
         <View style={styles.inputsRow}>
-          {/* weight input */}
-          <TouchableOpacity
-            onPress={onOpenWeight}
-            disabled={!editable}
-            style={styles.weightWrap}
-            accessibilityLabel="Edit weight"
-            accessibilityRole="button"
-          >
-            <TextInput
-              value={set.weight != null ? String(set.weight) : ""}
-              keyboardType="numeric"
-              editable={editable}
-              placeholder={set.unit === "lbs" ? "lbs" : "kg"}
-              onChangeText={(v) => {
-                const n = v === "" ? null : Number(v);
-                onChangeField(idx, "weight", Number.isNaN(n) ? null : n);
-              }}
-              style={[styles.input]}
-              placeholderTextColor="#6b7280"
-            />
-          </TouchableOpacity>
-
-          {/* reps or min/max */}
-          <View style={styles.repsWrap}>
-            {showRange ? (
-              <View style={styles.rangeRow}>
-                <TextInput
-                  value={set.minReps != null ? String(set.minReps) : ""}
-                  keyboardType="numeric"
-                  editable={editable}
-                  placeholder="min"
-                  onChangeText={(v) => {
-                    const n = v === "" ? null : Number(v);
-                    onChangeField(idx, "minReps", Number.isNaN(n) ? null : n);
-                  }}
-                  style={[styles.input, styles.rangeInput]}
-                  placeholderTextColor="#6b7280"
-                />
-                <Text style={[styles.rangeSep]}>-</Text>
-                <TextInput
-                  value={set.maxReps != null ? String(set.maxReps) : ""}
-                  keyboardType="numeric"
-                  editable={editable}
-                  placeholder="max"
-                  onChangeText={(v) => {
-                    const n = v === "" ? null : Number(v);
-                    onChangeField(idx, "maxReps", Number.isNaN(n) ? null : n);
-                  }}
-                  style={[styles.input, styles.rangeInput]}
-                  placeholderTextColor="#6b7280"
-                />
-              </View>
-            ) : (
+          {isDuration || isYogaOrStretching ? (
+            <View style={[styles.durationWrap, { flex: 1 }]}>
+              <DurationTimer
+                key={`${set.id}-${isCompleted ? "completed" : "active"}`}
+                initialSeconds={set.duration ?? 0}
+                editable={editable}
+                hideControlsWhenNotEditable={true}
+                onChange={(seconds: any) => {
+                  onChangeField(idx, "duration", seconds as any);
+                }}
+                onStop={() => {
+                  onChangeField(idx, "duration", (set.duration ?? 0) as any);
+                }}
+                soundFile={require("../../../assets/sounds/beep.mp3")}
+              />
+            </View>
+          ) : isBodyweight ? (
+            // Bodyweight: only reps input (no weight UI)
+            <View style={{ flex: 1 }}>
               <TextInput
                 value={set.reps != null ? String(set.reps) : ""}
                 keyboardType="numeric"
                 editable={editable}
-                placeholder="0"
+                placeholder="reps"
                 onChangeText={(v) => {
                   const n = v === "" ? null : Number(v);
                   onChangeField(idx, "reps", Number.isNaN(n) ? null : n);
@@ -179,8 +169,77 @@ export default function SetRow({
                 style={[styles.input]}
                 placeholderTextColor="#6b7280"
               />
-            )}
-          </View>
+            </View>
+          ) : (
+            // Weighted: weight + reps/range
+            <>
+              <TouchableOpacity
+                onPress={onOpenWeight}
+                disabled={!editable}
+                style={styles.weightWrap}
+                accessibilityLabel="Edit weight"
+                accessibilityRole="button"
+              >
+                <TextInput
+                  value={set.weight != null ? String(set.weight) : ""}
+                  keyboardType="numeric"
+                  editable={editable}
+                  placeholder={set.unit === "lbs" ? "lbs" : "kg"}
+                  onChangeText={(v) => {
+                    const n = v === "" ? null : Number(v);
+                    onChangeField(idx, "weight", Number.isNaN(n) ? null : n);
+                  }}
+                  style={[styles.input]}
+                  placeholderTextColor="#6b7280"
+                />
+              </TouchableOpacity>
+
+              <View style={styles.repsWrap}>
+                {showRange ? (
+                  <View style={styles.rangeRow}>
+                    <TextInput
+                      value={set.minReps != null ? String(set.minReps) : ""}
+                      keyboardType="numeric"
+                      editable={editable}
+                      placeholder="min"
+                      onChangeText={(v) => {
+                        const n = v === "" ? null : Number(v);
+                        onChangeField(idx, "minReps", Number.isNaN(n) ? null : n);
+                      }}
+                      style={[styles.input, styles.rangeInput]}
+                      placeholderTextColor="#6b7280"
+                    />
+                    <Text style={[styles.rangeSep]}>-</Text>
+                    <TextInput
+                      value={set.maxReps != null ? String(set.maxReps) : ""}
+                      keyboardType="numeric"
+                      editable={editable}
+                      placeholder="max"
+                      onChangeText={(v) => {
+                        const n = v === "" ? null : Number(v);
+                        onChangeField(idx, "maxReps", Number.isNaN(n) ? null : n);
+                      }}
+                      style={[styles.input, styles.rangeInput]}
+                      placeholderTextColor="#6b7280"
+                    />
+                  </View>
+                ) : (
+                  <TextInput
+                    value={set.reps != null ? String(set.reps) : ""}
+                    keyboardType="numeric"
+                    editable={editable}
+                    placeholder="0"
+                    onChangeText={(v) => {
+                      const n = v === "" ? null : Number(v);
+                      onChangeField(idx, "reps", Number.isNaN(n) ? null : n);
+                    }}
+                    style={[styles.input]}
+                    placeholderTextColor="#6b7280"
+                  />
+                )}
+              </View>
+            </>
+          )}
         </View>
       </View>
 
@@ -231,11 +290,18 @@ export default function SetRow({
           </View>
         </Pressable>
       </Modal>
+
       <ConfirmModal
         visible={confirmVisible}
         title="Incomplete Set"
-        message="Please enter weight and reps before marking this set complete."
-        onCancel={() => setConfirmVisible(false)} // not used in single mode, but keep for type safety
+        message={
+          isDuration || isYogaOrStretching
+            ? "Please enter duration (seconds) before marking this set complete."
+            : isBodyweight
+              ? "Please enter reps before marking this set complete."
+              : "Please enter weight and reps before marking this set complete."
+        }
+        onCancel={() => setConfirmVisible(false)}
         onConfirm={() => setConfirmVisible(false)}
         confirmText="OK"
         singleButton={true}
@@ -280,11 +346,6 @@ const styles = StyleSheet.create({
     color: "#e6eef8",
   },
 
-  completedText: {
-    color: "#9be6b7",
-    textDecorationLine: "line-through",
-  },
-
   center: {
     flex: 1,
     paddingHorizontal: 8,
@@ -304,6 +365,22 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 
+  timerBtn: {
+    width: 40,
+    height: 36,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#183b8a",
+  },
+
+  timerBtnActive: {
+    backgroundColor: "#10B981",
+  },
+  durationWrap: {
+    // takes the center area when showing duration input
+  },
+
   input: {
     height: 44,
     borderRadius: 10,
@@ -313,12 +390,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#080808ff",
     fontSize: 14,
     color: "#e7eaecff",
-  },
-
-  inputCompleted: {
-    color: "#023314ff",
-    opacity: 0.9,
-    textDecorationLine: "line-through",
   },
 
   rangeRow: {

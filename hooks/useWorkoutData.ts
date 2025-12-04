@@ -12,7 +12,8 @@ export type SetLog = {
   repsType?: "reps" | "rep range" | string;
   unit?: "kg" | "lbs" | string;
   completed: boolean;
-  setType?: string;
+   setType?: string | null;
+   duration?: number | null;
 };
 
 export type ExerciseLog = {
@@ -81,6 +82,7 @@ for (const rex of routineExRows) {
       weight: typeof s.weight === "number" ? s.weight : 0,
       minReps: s.minReps ?? null,
       maxReps: s.maxReps ?? null,
+      duration: typeof s.duration === "number" ? s.duration : null,
       repsType: s.repsType ?? (s.reps != null  ? "reps" : "rep range"),
       unit: s.unit ?? unit,
       completed: false,

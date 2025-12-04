@@ -21,6 +21,9 @@ type Exercise = {
   id: string;
   exercise_name: string;
   muscleGroup?: string;
+  exercise_type?: string | null ;
+  equipment?: string ;
+  type?: string | null ;
 };
 
 export default function ExercisesScreen() {
@@ -37,11 +40,13 @@ export default function ExercisesScreen() {
     const fetchExercises = async () => {
       try {
         const result = await db.select().from(exercisesTable).all();
-        const formatted = result.map((item) => ({
-          id: item.id,
-          exercise_name: item.exercise_name,
-          muscleGroup: item.type,
-        }));
+       const formatted = result.map((item) => ({
+  id: item.id,
+  exercise_name: item.exercise_name,
+  muscleGroup: item.type,
+  exercise_type: item.exercise_type ?? item.type ?? null, // preserve type/exercise_type
+  equipment: item.equipment ?? "",                         // preserve equipment
+}));
         setExerciseData(formatted);
         setFilteredExercises(formatted);
       } catch (err) {
@@ -83,6 +88,8 @@ export default function ExercisesScreen() {
         id: ex.id,
         name: ex.exercise_name,
         muscleGroup: ex.muscleGroup || "Unknown",
+          exercise_type: ex.exercise_type ?? ex.type ?? null, // pass through type
+      equipment: ex.equipment ?? "",
         sets: [],
       }));
 

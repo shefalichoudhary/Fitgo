@@ -35,6 +35,21 @@ export default function ExerciseBlock({
   onDeleteExercise,
 }: Props) {
   const [visibleSets, setVisibleSets] = useState<number>(Math.max(1, data.sets.length));
+  const exerciseType: string =
+    (exercise?.exercise_type as string) ??
+    (exercise as any).exerciseType ??
+    (exercise as any).type ??
+    "Weighted";
+
+  // classify exercise type for rendering
+  const normalizedType = (exerciseType || "").toLowerCase();
+  const isDuration = normalizedType === "duration";
+  const isYogaOrStretching = normalizedType === "yoga" || normalizedType === "stretching";
+  const isBodyweight =
+    normalizedType === "bodyweight" || normalizedType === "assisted bodyweight" || normalizedType === "assisted bodyweight".toLowerCase() /* defensive */;
+  const isWeighted = !isDuration && !isYogaOrStretching && !isBodyweight;
+
+
 
   useEffect(() => {
     setVisibleSets((prev) => Math.max(prev, data.sets.length, 1));
@@ -65,6 +80,7 @@ export default function ExerciseBlock({
       id: `${exercise.id}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
       reps: null,
       weight: null,
+      duration: null, // NEW: support duration
       unit: narrowUnit(data.unit),
       repsType: narrowRepsType(data.repsType),
       isCompleted: false,
@@ -73,7 +89,7 @@ export default function ExerciseBlock({
     const next = [...sets, newSet].map((s) => normalizeSet(s, data.unit, data.repsType));
     onChange({ ...data, sets: next });
     setVisibleSets(next.length);
-  }, [visibleSets, sets, onChange, data]);
+  }, [visibleSets, sets, onChange, data, exercise.id]);
 
   const handleRemoveSet = useCallback(
     (index: number) => {
@@ -107,7 +123,6 @@ export default function ExerciseBlock({
     },
     [data.restTimer, setRestTimer]
   );
-
 
   // ---------- Exercise-level handlers for labels ----------
   const handleToggleUnitAll = useCallback(() => {
@@ -162,6 +177,7 @@ export default function ExerciseBlock({
       <SetRow
         idx={index}
         set={item}
+        exerciseType={exerciseType} // PASS in exercise type
         onChangeField={handleChangeField}
         onRemove={handleRemoveSet}
         onOpenWeight={() => onOpenWeight && onOpenWeight(exercise.id)}
@@ -173,7 +189,6 @@ export default function ExerciseBlock({
         onToggleUnit={() => handleToggleUnitForSet(index)}
         onOpenRepsType={() => onOpenRepsType && onOpenRepsType(exercise.id)}
         onToggleComplete={() => handleToggleComplete(index)}
-
       />
     ),
     [
@@ -188,8 +203,11 @@ export default function ExerciseBlock({
       onOpenRepsType,
       handleToggleComplete,
       exercise.id,
+      exercise.exercise_type,
+      showCheckIcon,
     ]
   );
+
 
   return (
     <View style={styles.container}>
@@ -238,48 +256,59 @@ export default function ExerciseBlock({
           >
             <Text style={styles.restBtnText}>+15s</Text>
           </TouchableOpacity>
-
-         
         </View>
       </View>
 
-      {/* Single labels row — only once (dark labels) */}
-{sets.length > 0 && (
-  <View style={styles.labelsRow}>
-    <View style={styles.setLeft}>
-      <Text style={styles.columnLabel}>SET</Text>
-    </View>
+      {/* Single labels row — adapt to duration exercises */}
+       {sets.length > 0 && (
+        <View style={styles.labelsRow}>
+          <View style={styles.setLeft}>
+            <Text style={styles.columnLabel}>SET</Text>
+          </View>
 
-    {/* center: weight + reps labels (same flex layout as SetRow.center) */}
-    <View style={[styles.setCenter]}>
-      <View style={styles.rowInputs}>
-        <TouchableOpacity 
-          onPress={handleToggleUnitAll}
-            accessibilityLabel="Toggle unit"
-            accessibilityRole="button"
-        style={styles.weightWrap}>
-          <Text style={styles.columnLabel}>{(data.unit ?? "kg").toUpperCase()}</Text>
-        </TouchableOpacity>
+          <View style={[styles.setCenter]}>
+            <View style={styles.rowInputs}>
+              {isDuration || isYogaOrStretching ? (
+                // Duration / Yoga / Stretching show DURATION column
+                <View style={styles.weightWrap}>
+                  <Text style={styles.columnLabel}>DURATION</Text>
+                </View>
+              ) : isBodyweight ? (
+                // Bodyweight/Assisted Bodyweight: only reps, show "REPS" + optional "BW" label
+                  <View style={[styles.repsWrap, { flex: 1 }]}>
+                    <Text style={styles.columnLabel}>REPS</Text>
+                  </View>
+              ) : (
+                // Weighted: unit + reps
+                <>
+                  <TouchableOpacity
+                    onPress={handleToggleUnitAll}
+                    accessibilityLabel="Toggle unit"
+                    accessibilityRole="button"
+                    style={styles.weightWrap}
+                  >
+                    <Text style={styles.columnLabel}>{(data.unit ?? "kg").toUpperCase()}</Text>
+                  </TouchableOpacity>
 
-        <View style={[styles.repsWrap, { flex: 1 }]}>
-          <TouchableOpacity
-            onPress={handleToggleRepsTypeAll}
-            accessibilityLabel="Toggle reps type"
-            accessibilityRole="button"
-          >
-            <Text style={styles.columnLabel}>
-              {data.repsType === "rep range" ? "REP — RANGE" : "REPS"}
-            </Text>
-          </TouchableOpacity>
+                  <View style={[styles.repsWrap, { flex: 1 }]}>
+                    <TouchableOpacity
+                      onPress={handleToggleRepsTypeAll}
+                      accessibilityLabel="Toggle reps type"
+                      accessibilityRole="button"
+                    >
+                      <Text style={styles.columnLabel}>
+                        {data.repsType === "rep range" ? "REP — RANGE" : "REPS"}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </>
+              )}
+            </View>
+          </View>
+
+          <View style={styles.right} />
         </View>
-      </View>
-    </View>
-
-    {/* right: placeholder matching SetRow.right width so center lines up */}
-    <View style={styles.right} />
-  </View>
-)}
-
+      )}
 
       <FlatList
         data={sets.slice(0, visibleSets)}
@@ -295,6 +324,8 @@ export default function ExerciseBlock({
     </View>
   );
 }
+
+// ... keep your styles from the original file unchanged (omitted here for brevity)
 
 const styles = StyleSheet.create({
   // overall
