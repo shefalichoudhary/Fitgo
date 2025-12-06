@@ -1,23 +1,31 @@
 import { useEffect, useState } from "react";
 import { db } from "@/utils/storage";
-import { routines, routineExercises, routineSets, exercises,Exercise, RoutineExercise } from "@/utils/storage/schema";
-import { eq } from "drizzle-orm";
+import {
+  routines,
+  routineExercises,
+  routineSets,
+  exercises,
+  Exercise,
+  RoutineExercise,
+} from "@/utils/storage/schema";
+import { eq,and } from "drizzle-orm";
 
 export type SetLog = {
   id: string;
-  reps: number;           // required numeric for downstream code
-  weight: number;         // required numeric for downstream code
+  reps: number;
+  weight: number;
   minReps?: number | null;
   maxReps?: number | null;
   repsType?: "reps" | "rep range" | string;
   unit?: "kg" | "lbs" | string;
   completed: boolean;
-   setType?: string | null;
-   duration?: number | null;
+  setType?: string | null;
+  duration?: number | null;
 };
 
 export type ExerciseLog = {
-  id: string;
+  id: string; // instance id (unique per routine instance)
+  exerciseRefId?: string; // original DB exercise id
   name?: string;
   exercise_name?: string;
   exercise_type?: string | null;
@@ -37,6 +45,11 @@ export function useWorkoutData(routineId: string) {
 
   useEffect(() => {
     const fetchRoutineData = async () => {
+      if (!routineId) {
+        setExercisesData([]);
+        return;
+      }
+
       try {
         const routineRow = await db.select().from(routines).where(eq(routines.id, routineId));
         const routineName = routineRow[0]?.name || "Workout";
@@ -47,62 +60,70 @@ export function useWorkoutData(routineId: string) {
           .from(routineExercises)
           .where(eq(routineExercises.routineId, routineId));
 
-            const exercisesWithSets: ExerciseLog[] = [];
+        const exercisesWithSets: ExerciseLog[] = [];
 
-// --- recommended replacement when assembling exercisesWithSets ---
-for (const rex of routineExRows) {
-  // fetch exercise row
-  const exDetails = await db.select().from(exercises).where(eq(exercises.id, rex.exerciseId));
-  const exRow = (exDetails[0] ?? {}) as Partial<Exercise>;
-  const rexRow = rex as Partial<RoutineExercise>;
+        for (const rex of routineExRows) {
+          const exDetails = await db
+            .select()
+            .from(exercises)
+            .where(eq(exercises.id, rex.exerciseId));
+          const exRow = (exDetails[0] ?? {}) as Partial<Exercise>;
+          const rexRow = rex as Partial<RoutineExercise>;
 
-  const exName = exRow.exercise_name ?? "Unknown";
-  const exType = exRow.exercise_type ?? exRow.type ?? null;
-  const equipment = exRow.equipment ?? "";
+          const exName = exRow.exercise_name ?? "Unknown";
+          const exType = exRow.exercise_type ?? exRow.type ?? null;
+          const equipment = exRow.equipment ?? "";
 
-  const notes = typeof rexRow.notes === "string" ? rexRow.notes : null;
-  const unit = (rexRow.unit as any) ?? "kg";
-  const repsType = (rexRow.repsType as any) ?? "reps";
-  const restTimer = typeof rexRow.restTimer === "number" ? rexRow.restTimer : 0;
+          const notes = typeof rexRow.notes === "string" ? rexRow.notes : null;
+          const unit = (rexRow.unit as any) ?? "kg";
+          const repsType = (rexRow.repsType as any) ?? "reps";
+          const restTimer = typeof rexRow.restTimer === "number" ? rexRow.restTimer : 0;
 
-  const setsRows = await db
-  .select()
-  .from(routineSets)
-  .where(eq(routineSets.routineId, routineId))
+          // <-- FIXED: combine predicates with `and(...)`
+          const setsRows = await db
+            .select()
+            .from(routineSets)
+            .where(
+              and(
+                eq(routineSets.routineId, routineId),
+                eq(routineSets.exerciseId, rex.exerciseId)
+              )
+            );
 
-// instance-scoped exercise id
-const exInstanceId = `${routineId}`;
+          const exInstanceId = `${routineId}-${rex.exerciseId}`;
 
-exercisesWithSets.push({
-  // Use the instance id as the canonical id for UI state (unique per routine instance)
-  id: exInstanceId,
-  // Keep the original DB exercise id for persistence mapping
-  exerciseRefId: rex.exerciseId,
-  name: exName,
-  exercise_name: exName,
-  exercise_type: exType,
-  equipment,
-  notes,
-  unit,
-  repsType,
-  restTimer,
-  sets: (setsRows || []).map((s: any, sIdx: number) => {
+          exercisesWithSets.push({
+            id: exInstanceId,
+            exerciseRefId: rex.exerciseId,
+            name: exName,
+            exercise_name: exName,
+            exercise_type: exType,
+            equipment,
+            notes,
+            unit,
+            repsType,
+            restTimer,
+            sets: (setsRows || []).map((s: any, sIdx: number) => {
+              const base = typeof s.id === "string" ? s.id : String(sIdx);
+              const namespacedSetId = base.startsWith(`${routineId}-`)
+                ? base
+                : `${routineId}-${rex.exerciseId}-set-${sIdx}-${base}`;
 
-    return {
-  id: s.id,
-      reps: typeof s.reps === "number" ? s.reps : 0,
-      weight: typeof s.weight === "number" ? s.weight : 0,
-      minReps: s.minReps ?? null,
-      maxReps: s.maxReps ?? null,
-      duration: typeof s.duration === "number" ? s.duration : null,
-      repsType: s.repsType ?? (s.reps != null ? "reps" : "rep range"),
-      unit: s.unit ?? unit,
-      completed: false,
-      setType: s.setType ?? "Normal",
-    } as SetLog;
-  }),
-} as ExerciseLog);
-}
+              return {
+                id: namespacedSetId,
+                reps: typeof s.reps === "number" ? s.reps : 0,
+                weight: typeof s.weight === "number" ? s.weight : 0,
+                minReps: s.minReps ?? null,
+                maxReps: s.maxReps ?? null,
+                duration: typeof s.duration === "number" ? s.duration : null,
+                repsType: s.repsType ?? (s.reps != null ? "reps" : "rep range"),
+                unit: s.unit ?? unit,
+                completed: false,
+                setType: s.setType ?? "Normal",
+              } as SetLog;
+            }),
+          } as ExerciseLog);
+        }
 
         setExercisesData(exercisesWithSets);
         setWorkoutStartTime(Date.now());
@@ -126,20 +147,28 @@ exercisesWithSets.push({
     setExercisesData((prev) => prev.filter((ex) => ex.id !== exerciseId));
   };
 
-// new signature: if `completed` is provided, set to that value, otherwise toggle
-const setSetCompletion = (exerciseId: string, setId: string, completed?: boolean) => {
-  setExercisesData((prev) =>
-    prev.map((ex) =>
-      ex.id === exerciseId
-        ? {
-            ...ex,
-            sets: ex.sets.map((s) =>
-              s.id === setId ? { ...s, completed: typeof completed === "boolean" ? completed : !s.completed } : s,
-            ),
-          }
-        : ex,
-    ),
-  );
-};
-  return { routineTitle, exercisesData, removeExercise, setExercisesData, duration,  toggleSetCompletion: setSetCompletion };
+  // new signature: if `completed` is provided, set to that value, otherwise toggle
+  const setSetCompletion = (exerciseId: string, setId: string, completed?: boolean) => {
+    setExercisesData((prev) =>
+      prev.map((ex) =>
+        ex.id === exerciseId
+          ? {
+              ...ex,
+              sets: ex.sets.map((s) =>
+                s.id === setId ? { ...s, completed: typeof completed === "boolean" ? completed : !s.completed } : s
+              ),
+            }
+          : ex
+      )
+    );
+  };
+
+  return {
+    routineTitle,
+    exercisesData,
+    removeExercise,
+    setExercisesData,
+    duration,
+    toggleSetCompletion: setSetCompletion,
+  };
 }

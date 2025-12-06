@@ -15,6 +15,7 @@ import type { RestTimerHandle } from "@/components/logWorkout/RestTimer";
 import LoadingOverlay from "@/components/LoadingOverlay";
 import { updateRoutineDefinition } from "@/utils/updateRoutineDefinition";
 import { ConfirmModal } from "@/components/ConfirmModal";
+import { mapExerciseToBlockProps } from "@/utils/mappers/mapExerciseToBlockProps";
 
 export default function LogWorkoutScreen() {
   const [alertVisible, setAlertVisible] = useState(false);
@@ -205,22 +206,13 @@ export default function LogWorkoutScreen() {
     ...s,
   };
 });
+    const { exercise, data } = mapExerciseToBlockProps({
+      ...item,
+      // ensure the block receives sets shaped the way it expects
+      sets: mappedSets,
+    });
 
-      const exerciseProp = {
-        id: item.id,
-        exercise_name: item.exercise_name ?? item.name ?? "Exercise",
-        exercise_type: item.exercise_type ?? null,
-        equipment: item.equipment ?? "",
-      };
-
-      const dataProp = {
-        notes: item.notes ?? "",
-        restTimer: item.restTimer ?? 0,
-        sets: mappedSets,
-        unit: item.unit ?? "kg",
-        repsType: item.repsType ?? "reps",
-      };
-
+ 
       // Persist changes coming from ExerciseBlock (sets/unit/repsType/notes/restTimer)
       const onChange = (newData: any) => {
         setExercisesData((prev: any[]) =>
@@ -327,8 +319,8 @@ export default function LogWorkoutScreen() {
 
       return (
         <ExerciseBlock
-          exercise={exerciseProp}
-          data={dataProp}
+         exercise={exercise}
+        data={data}
           onChange={onChange}
           onOpenRepRange={(exerciseId, setIndex) => handleOpenRepRange(exerciseId, setIndex)}
           showCheckIcon={true}

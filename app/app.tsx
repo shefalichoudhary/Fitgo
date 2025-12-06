@@ -28,7 +28,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler"
 import { useEffect } from "react";
 import { runSeedersOnce } from "@/utils/storage/runSeederOnce";
 export const NAVIGATION_PERSISTENCE_KEY = "NAVIGATION_STATE"
-
+import AppUpdateChecker from "./components/AppUpdateChecker";
 /**
  * This is the root component of our app.
  * @param {AppProps} props - The props for the `App` component.
@@ -39,6 +39,7 @@ export function App() {
     runSeedersOnce();  // 🔥 Runs on first app start
   }, []);
   return (
+        <AppUpdateChecker>
         <GestureHandlerRootView style={{ flex: 1 }}>
     <SafeAreaProvider initialMetrics={initialWindowMetrics}>
       <KeyboardProvider>
@@ -52,6 +53,8 @@ export function App() {
       </KeyboardProvider>
     </SafeAreaProvider>
         </GestureHandlerRootView>
+        </AppUpdateChecker>
+
 
   )
 }

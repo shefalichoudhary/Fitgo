@@ -7,7 +7,10 @@
   "owner": "shefali_choudhary",
   "userInterfaceStyle": "automatic",
   "icon": "./assets/images/app-icon.png",
+    "runtimeVersion": "fitgo-runtime-v1",
   "updates": {
+    "enabled": true,
+    "checkAutomatically": "ON_LOAD",
     "fallbackToCacheTimeout": 0
   },
   "newArchEnabled": true,

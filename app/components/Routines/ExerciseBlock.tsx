@@ -4,7 +4,7 @@ import type { Exercise, DataShape, Set, Unit, RepsType } from "./types";
 import SetRow from "./SetRow";
 import Header from "./Header";
 import { narrowUnit, narrowRepsType, normalizeSet } from "./utils";
-
+import RestTimer from "@/components/logWorkout/RestTimer";
 type Props = {
   exercise: Exercise;
   data: DataShape;
@@ -332,6 +332,7 @@ const sets = useMemo(
       <TouchableOpacity onPress={handleAddSet} style={styles.addBtn}>
         <Text style={styles.addBtnText}>+ Add Set</Text>
       </TouchableOpacity>
+      
     </View>
   );
 }
