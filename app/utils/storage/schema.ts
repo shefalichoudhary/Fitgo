@@ -185,3 +185,4 @@ export type RoutineExercise = InferSelectModel<typeof routineExercises>;
 export type RoutineSet = InferSelectModel<typeof routineSets>;
 export type Workout = InferSelectModel<typeof workouts>;
 export type WorkoutSet = InferSelectModel<typeof workoutSets>;
+export type User = InferSelectModel<typeof users>;

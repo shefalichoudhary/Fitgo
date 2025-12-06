@@ -56,10 +56,20 @@ export default function ExerciseBlock({
   }, [data.sets.length]);
 
   // normalized sets with narrowed unit/repsType
-  const sets = useMemo(
-    () => data.sets.map((s) => normalizeSet(s, data.unit, data.repsType)),
-    [data.sets, data.unit, data.repsType]
-  );
+const sets = useMemo(
+  () =>
+    (data.sets || []).map((s: any, idx: number) =>
+      normalizeSet(
+        {
+          id: s.id ?? `${exercise.id}-set-${idx}`, // upstream should already include routineId; this is defensive
+          ...s,
+        },
+        data.unit,
+        data.repsType
+      )
+    ),
+  [data.sets, data.unit, data.repsType, exercise.id]
+);
 
   const handleChangeField = useCallback(
     <K extends keyof Set>(index: number, key: K, value: Set[K]) => {
@@ -174,7 +184,8 @@ export default function ExerciseBlock({
 
   const renderSet = useCallback(
     ({ item, index }: { item: Set; index: number }) => (
-      <SetRow
+     <SetRow
+        key={item.id}
         idx={index}
         set={item}
         exerciseType={exerciseType} // PASS in exercise type

@@ -46,6 +46,8 @@ export default function LogWorkoutScreen() {
     })();
   }, []);
 
+
+
   // put this near the other useEffect hooks in LogWorkoutScreen
   useEffect(() => {
     let mounted = true;
@@ -181,19 +183,28 @@ export default function LogWorkoutScreen() {
   // ---------- Helpers to adapt exerciseData -> ExerciseBlock props ----------
   const renderExercise = useCallback(
     ({ item }: { item: any }) => {
-      const mappedSets = (item.sets || []).map((s: any, idx: number) => ({
-        id: s.id ?? `${item.id}-set-${idx}`,
-        reps: s.reps ?? null,
-        weight: s.weight ?? null,
-        minReps: s.minReps ?? null,
-        maxReps: s.maxReps ?? null,
-        repsType: s.repsType ?? (s.minReps != null || s.maxReps != null ? "rep range" : "reps"),
-        unit: s.unit ?? item.unit ?? "kg",
-        isRangeReps: !!(s.minReps || s.maxReps),
-        isCompleted: !!s.completed,
-        setType: s.setType ?? "Normal",
-        ...s,
-      }));
+    const mappedSets = (item.sets || []).map((s: any, idx: number) => {
+  // if id already contains the routineId prefix, keep it; otherwise generate one
+  const existingId = typeof s.id === "string" ? s.id : "";
+  const hasRoutinePrefix = routineId && existingId.startsWith(`${routineId}-`);
+  const normalizedId = hasRoutinePrefix
+    ? existingId
+    : `${routineId ?? "session"}-${item.id}-set-${idx}-${existingId || String(Date.now()).slice(-6)}`;
+
+  return {
+    id: normalizedId,
+    reps: s.reps ?? null,
+    weight: s.weight ?? null,
+    minReps: s.minReps ?? null,
+    maxReps: s.maxReps ?? null,
+    repsType: s.repsType ?? (s.minReps != null || s.maxReps != null ? "rep range" : "reps"),
+    unit: s.unit ?? item.unit ?? "kg",
+    isRangeReps: !!(s.minReps || s.maxReps),
+    isCompleted: !!s.completed,
+    setType: s.setType ?? "Normal",
+    ...s,
+  };
+});
 
       const exerciseProp = {
         id: item.id,
@@ -377,7 +388,7 @@ export default function LogWorkoutScreen() {
 
       <FlatList
         data={exercisesData}
-        keyExtractor={(item) => item.id}
+   keyExtractor={(item) => `${routineId ?? "session"}-${item.id}`}
         renderItem={renderExercise}
         contentContainerStyle={{ paddingBottom: 30 }}
         showsVerticalScrollIndicator={false}

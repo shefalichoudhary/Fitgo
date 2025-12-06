@@ -2,7 +2,7 @@ import { useState, useCallback } from "react";
 import { Alert } from "react-native";
 import { db } from "@/utils/storage";
 import { routines, routineExercises, routineSets } from "@/utils/storage/schema";
-
+import { getCurrentUser } from "@/utils/user";
 export const useCreateRoutine = (initialExercises: any[] = []) => {
   const [title, setTitle] = useState("");
   const [exercises, setExercises] = useState(initialExercises);
@@ -24,12 +24,18 @@ export const useCreateRoutine = (initialExercises: any[] = []) => {
 
 // Replace your saveRoutine with this (matches your schema column names)
 const saveRoutine = async () => {
+    const currentUser = await getCurrentUser();
+      if (!currentUser) {
+    Alert.alert("Please log in", "You must be logged in to create a routine.");
+    return false;
+  }
+  const currentUserId = currentUser.id
   if (!title.trim()) return Alert.alert("Please enter a routine title");
   if (exercises.length === 0) return Alert.alert("Add at least one exercise");
 
   try {
     // create routine
-    const [{ id: routineId }] = await db.insert(routines).values({ name: title }).returning();
+    const [{ id: routineId }] = await db.insert(routines).values({ name: title,  createdBy: currentUserId,    }).returning();
 
     for (const ex of exercises) {
       // insert exercise-level metadata using camelCase keys (matches your schema)

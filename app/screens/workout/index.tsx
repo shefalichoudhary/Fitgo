@@ -224,7 +224,7 @@ export default function HistoryScreen() {
         visible={!!selectedWorkoutId}
         title="Delete Workout?"
         message="Are you sure you want to delete this workout?"
-        confirmText="Delete"
+        secondaryText="Delete"
         cancelText="Cancel"
         onCancel={() => setSelectedWorkoutId(null)}
         onConfirm={handleDelete}

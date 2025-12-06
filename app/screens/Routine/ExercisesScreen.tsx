@@ -109,12 +109,17 @@ export default function ExercisesScreen() {
 
   return (
     <View style={styles.container}>
-      <SearchBar
-        data={exerciseData}
-        filterKey="exercise_name"
-        onFilteredData={setFilteredExercises}
-        placeholder="Search exercises..."
-      />
+     <SearchBar
+  data={exerciseData}
+  filterKey={[
+    "exercise_name",
+    "muscleGroup",
+    "exercise_type",
+    "equipment",
+    "type",
+  ]}
+  onFilteredData={setFilteredExercises}
+  placeholder="Search by name, muscle, equipment" ></SearchBar>
       <Text style={styles.exerciseCount}>
         {filteredExercises.length} {filteredExercises.length === 1 ? "exercise" : "exercises"} on
         search results{" "}

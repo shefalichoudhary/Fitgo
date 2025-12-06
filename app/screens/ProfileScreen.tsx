@@ -14,6 +14,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { getCurrentUser } from "@/utils/user";
 import { ConfirmModal } from "@/components/ConfirmModal"; // adjust path
 import LoadingOverlay from "@/components/LoadingOverlay";
+import Feather from '@expo/vector-icons/Feather';
 
 type Props = { navigation?: any };
 type ConfirmType = "save" | "cancel" | null;
@@ -233,11 +234,15 @@ export default function ProfileScreen({ navigation }: Props) {
             </TouchableOpacity>
           </View>
         ) : (
-          <View style={styles.editButtonsRow}>
-            <TouchableOpacity style={styles.primaryButton} onPress={() => setEditing(true)}>
-              <Text style={styles.primaryButtonText}>Edit Profile</Text>
-            </TouchableOpacity>
-          </View>
+         <View style={styles.editButtonsRow}>
+  <TouchableOpacity style={styles.primaryButton} onPress={() => setEditing(true)}>
+    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+    <Feather name="edit" size={24} color="white"  style={{ marginRight: 8 }} />
+    <Text style={styles.primaryButtonText}>Edit Profile</Text>
+    </View>
+
+  </TouchableOpacity>
+</View>
         )}
       </View>
 
@@ -309,9 +314,10 @@ const styles = StyleSheet.create({
   cancelButton: {
     flex: 1,
     backgroundColor: "#6B7280",
-    paddingVertical: 14,
+  paddingVertical: 14,
     borderRadius: 10,
     alignItems: "center",
+    marginRight: 8,
   },
   primaryButtonText: { color: "white", fontWeight: "600", fontSize: 16 },
   cancelButtonText: { color: "white", fontWeight: "600", fontSize: 16 },

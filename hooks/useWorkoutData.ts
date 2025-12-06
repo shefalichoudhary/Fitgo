@@ -49,6 +49,7 @@ export function useWorkoutData(routineId: string) {
 
             const exercisesWithSets: ExerciseLog[] = [];
 
+// --- recommended replacement when assembling exercisesWithSets ---
 for (const rex of routineExRows) {
   // fetch exercise row
   const exDetails = await db.select().from(exercises).where(eq(exercises.id, rex.exerciseId));
@@ -64,32 +65,45 @@ for (const rex of routineExRows) {
   const repsType = (rexRow.repsType as any) ?? "reps";
   const restTimer = typeof rexRow.restTimer === "number" ? rexRow.restTimer : 0;
 
-  const setsRows = await db.select().from(routineSets).where(eq(routineSets.exerciseId, rex.exerciseId));
+  const setsRows = await db
+  .select()
+  .from(routineSets)
+  .where(eq(routineSets.routineId, routineId))
 
-  exercisesWithSets.push({
-    id: rex.exerciseId,
-    name: exName,
-    exercise_name: exName,
-    exercise_type: exType,
-    equipment,
-    notes,
-    unit,
-    repsType,
-    restTimer,
-    sets: setsRows.map((s: any) => ({
-      id: s.id,
+// instance-scoped exercise id
+const exInstanceId = `${routineId}`;
+
+exercisesWithSets.push({
+  // Use the instance id as the canonical id for UI state (unique per routine instance)
+  id: exInstanceId,
+  // Keep the original DB exercise id for persistence mapping
+  exerciseRefId: rex.exerciseId,
+  name: exName,
+  exercise_name: exName,
+  exercise_type: exType,
+  equipment,
+  notes,
+  unit,
+  repsType,
+  restTimer,
+  sets: (setsRows || []).map((s: any, sIdx: number) => {
+
+    return {
+  id: s.id,
       reps: typeof s.reps === "number" ? s.reps : 0,
       weight: typeof s.weight === "number" ? s.weight : 0,
       minReps: s.minReps ?? null,
       maxReps: s.maxReps ?? null,
       duration: typeof s.duration === "number" ? s.duration : null,
-      repsType: s.repsType ?? (s.reps != null  ? "reps" : "rep range"),
+      repsType: s.repsType ?? (s.reps != null ? "reps" : "rep range"),
       unit: s.unit ?? unit,
       completed: false,
       setType: s.setType ?? "Normal",
-    })),
-  } as ExerciseLog);
+    } as SetLog;
+  }),
+} as ExerciseLog);
 }
+
         setExercisesData(exercisesWithSets);
         setWorkoutStartTime(Date.now());
       } catch (err) {

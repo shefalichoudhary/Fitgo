@@ -6,6 +6,7 @@ import { Ionicons } from "@expo/vector-icons";
 import type { RoutineWithExercises } from "../../../hooks/useRoutines";
 import { useNavigation } from "@react-navigation/native";
 import ConfirmModal from "../ConfirmModal"; // default export in your file
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
 type RoutineCardProps = RenderItemParams<RoutineWithExercises> & {
   onDelete?: (id: string) => void;
@@ -76,6 +77,8 @@ export const RoutineCard = ({ item, drag, isActive, onDelete, onDuplicate }: Rou
         secondaryText="Delete"
         secondaryBtnStyle={{ backgroundColor: "#d81727" }}
         hideCancel={true}
+         confirmIcon={<MaterialCommunityIcons name="content-duplicate" size={24} color="white" />}
+  secondaryIcon={<MaterialCommunityIcons name="delete-outline" size={24} color="white" />}
       />
     </View>
   );
