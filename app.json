@@ -7,11 +7,12 @@
   "owner": "shefali_choudhary",
   "userInterfaceStyle": "automatic",
   "icon": "./assets/images/app-icon.png",
-    "runtimeVersion": "fitgo-runtime-v1",
+  "runtimeVersion": "fitgo-runtime-v1",
   "updates": {
     "enabled": true,
     "checkAutomatically": "ON_LOAD",
-    "fallbackToCacheTimeout": 0
+    "fallbackToCacheTimeout": 0,
+    "url": "https://u.expo.dev/a6761733-916d-4e57-b119-dd30b2798d7e"
   },
   "newArchEnabled": true,
   "jsEngine": "hermes",
@@ -31,7 +32,17 @@
   "ios": {
     "icon": "./assets/images/app-icon.png",
     "supportsTablet": true,
-    "bundleIdentifier": "com.fitgo"
+    "bundleIdentifier": "com.fitgo",
+    "privacyManifests": {
+      "NSPrivacyAccessedAPITypes": [
+        {
+          "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryUserDefaults",
+          "NSPrivacyAccessedAPITypeReasons": [
+            "CA92.1"
+          ]
+        }
+      ]
+    }
   },
   "web": {
     "favicon": "./assets/images/app-icon-web-favicon.png",
@@ -40,7 +51,7 @@
   "plugins": [
     "expo-localization",
     "expo-font",
-      "expo-sqlite",
+    "expo-sqlite",
     [
       "expo-splash-screen",
       {
