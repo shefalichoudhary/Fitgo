@@ -9,7 +9,6 @@ type Props = {
   onChange?: (seconds: number) => void;
   onStop?: () => void;
   hideControlsWhenNotEditable?: boolean;
-  // optional local sound asset, e.g. require('@/assets/sounds/beep.mp3')
   soundFile?: any;
   playOnStart?: boolean; // default true
 };
@@ -67,21 +66,17 @@ export default function DurationTimer({
   const playStartSound = async () => {
     if (!playOnStart) return;
     try {
-      // prefer preloaded sound
       if (soundRef.current) {
         await soundRef.current.replayAsync();
         return;
       }
-      // fallback: try to load & play quickly (if no preloaded sound)
       if (soundFile) {
         const { sound } = await Audio.Sound.createAsync(soundFile, { shouldPlay: true });
-        // unload after short delay to free resources
         setTimeout(() => {
           sound.unloadAsync().catch(() => {});
         }, 1500);
       }
     } catch (err) {
-      // don't crash if audio fails
       console.warn("DurationTimer: playStartSound error", err);
     }
   };

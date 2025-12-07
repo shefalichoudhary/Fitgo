@@ -29,6 +29,20 @@
       "when": 1762979006487,
       "tag": "0003_outstanding_the_anarchist",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1765134924513,
+      "tag": "0004_cute_sasquatch",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1765137482928,
+      "tag": "0005_little_venus",
+      "breakpoints": true
     }
   ]
 }

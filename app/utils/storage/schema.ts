@@ -10,6 +10,7 @@ export const users = sqliteTable("users", {
   username: text("username").default("Guest").notNull(),
   email: text("email").default("guest@example.com").notNull(),
   password: text("password").default("").notNull(),
+  bio: text("bio").default("Productive. Passionate. Progress-driven. Always learning.").notNull(),
   google: integer("google").default(0), // 0 = normal/guest user, 1 = Google user
   photo: text("photo").default(""),
   fitness_goal: text("fitness_goal").default("lose fat").notNull(),

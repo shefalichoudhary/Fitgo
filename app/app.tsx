@@ -35,6 +35,7 @@ import AppUpdateChecker from "./components/AppUpdateChecker";
  * @returns {JSX.Element} The rendered `App` component.
  */
 export function App() {
+
     useEffect(() => {
     runSeedersOnce();  // 🔥 Runs on first app start
   }, []);

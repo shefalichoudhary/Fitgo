@@ -1,32 +1,46 @@
 /* eslint-env node */
 // Learn more https://docs.expo.io/guides/customizing-metro
-const { getDefaultConfig } = require("expo/metro-config")
+const path = require('path');
+const { getDefaultConfig } = require('expo/metro-config');
 
 /** @type {import('expo/metro-config').MetroConfig} */
-const config = getDefaultConfig(__dirname)
+const projectRoot = __dirname;
+const appRoot = path.resolve(projectRoot, 'app'); // adjust if your app folder is named differently
+const config = getDefaultConfig(projectRoot);
 
+// keep your transform options (inlineRequires)
 config.transformer.getTransformOptions = async () => ({
   transform: {
-    // Inline requires are very useful for deferring loading of large dependencies/components.
-    // For example, we use it in app.tsx to conditionally load Reactotron.
-    // However, this comes with some gotchas.
-    // Read more here: https://reactnative.dev/docs/optimizing-javascript-loading
-    // And here: https://github.com/expo/expo/issues/27279#issuecomment-1971610698
     inlineRequires: true,
   },
-})
+});
 
-// This is a temporary fix that helps fixing an issue with axios/apisauce.
-// See the following issues in Github for more details:
-// https://github.com/infinitered/apisauce/issues/331
-// https://github.com/axios/axios/issues/6899
-// The solution was taken from the following issue:
-// https://github.com/facebook/metro/issues/1272
-config.resolver.unstable_conditionNames = ["require", "default", "browser"]
+// axios/apisauce temporary fix
+config.resolver.unstable_conditionNames = ['require', 'default', 'browser'];
 
-// This helps support certain popular third-party libraries
-// such as Firebase that use the extension cjs.
-config.resolver.sourceExts.push("cjs")
+// support .cjs
+config.resolver.sourceExts.push('cjs');
 
-config.resolver.sourceExts.push('sql')
-module.exports = config
+// your custom extensions
+config.resolver.sourceExts.push('sql');
+config.resolver.assetExts.push('wasm');
+
+// === Add this section to make `@/...` resolve to ./app for Metro ===
+// Map the module name "@" to the app folder
+config.resolver.extraNodeModules = {
+  ...(config.resolver.extraNodeModules || {}),
+  '@': appRoot,
+  '@assets': path.resolve(projectRoot, 'assets'), // optional: match your tsconfig paths
+};
+
+// Make metro watch the app folder directly (helps monorepo / linked folders)
+config.watchFolders = config.watchFolders || [];
+if (!config.watchFolders.includes(appRoot)) {
+  config.watchFolders.push(appRoot);
+}
+
+// If you want imports like `import { App } from "@/app"` to work as `@ -> ./app`
+// ensure you have an `index.ts`/`index.tsx` in app/ that exports App:
+//   export { default as App } from './App';
+// or update your imports to point to correct file.
+module.exports = config;

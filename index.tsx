@@ -1,6 +1,5 @@
 import "@expo/metro-runtime" // this is for fast refresh on web w/o expo-router
 import { registerRootComponent } from "expo"
-
 import { App } from "@/app"
 
 // registerRootComponent calls AppRegistry.registerComponent('main', () => App);

@@ -15,6 +15,7 @@ export async function seedDefaultUser() {
     username: "Guest",
     email: "guest@example.com",
     password: "",
+    bio: "Productive. Passionate. Progress-driven. Always learning.",
     google: 0,
     photo: "",
     fitness_goal: "lose fat",

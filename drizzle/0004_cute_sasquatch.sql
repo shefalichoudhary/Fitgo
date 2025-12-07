@@ -1,0 +1,1 @@
+ALTER TABLE `users` ADD `bio` text DEFAULT 'Productive. Passionate. Progress-driven. Always learning.';

@@ -5,7 +5,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   TextInput,
-  ActivityIndicator,
 } from "react-native";
 import { db } from "@/utils/storage";
 import { users } from "@/utils/storage/schema";
@@ -25,7 +24,7 @@ export default function ProfileScreen({ navigation }: Props) {
   const [editing, setEditing] = useState(false);
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
-  const [bio, setBio] = useState("Productive. Passionate. Progress-driven. Always learning.");
+  const [bio, setBio] = useState("");
   const [confirmVisible, setConfirmVisible] = useState(false);
   const [confirmType, setConfirmType] = useState<ConfirmType>(null);
   const [saving, setSaving] = useState(false);
@@ -38,6 +37,7 @@ export default function ProfileScreen({ navigation }: Props) {
           setUser(userData);
           setUsername(userData.username);
           setEmail(userData.email);
+          setBio(userData.bio);
         } else {
           console.log("⚠️ No user found in DB");
         }
@@ -64,8 +64,8 @@ export default function ProfileScreen({ navigation }: Props) {
     if (!user) return;
     try {
       setSaving(true);
-      await db.update(users).set({ username, email }).where(eq(users.id, user.id)).run();
-      setUser({ ...user, username, email });
+      await db.update(users).set({ username, email ,bio}).where(eq(users.id, user.id)).run();
+      setUser({ ...user, username, email,bio });
       setEditing(false);
     } catch (err) {
       console.error("❌ Failed to update profile:", err);
@@ -80,9 +80,11 @@ export default function ProfileScreen({ navigation }: Props) {
     if (user) {
       setUsername(user.username);
       setEmail(user.email);
+      setBio(user.bio);
     } else {
       setUsername("");
       setEmail("");
+      setBio("");
     }
     setEditing(false);
     setConfirmVisible(false);
