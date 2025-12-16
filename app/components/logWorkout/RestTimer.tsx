@@ -1,3 +1,4 @@
+// RestTimer.tsx
 import React, {useRef, useState, useEffect, useImperativeHandle, forwardRef} from 'react';
 import {
   View,
@@ -5,7 +6,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   Vibration,
-  Platform,
   Animated,
   Easing,
 } from 'react-native';
@@ -38,6 +38,7 @@ export type RestTimerHandle = {
   resume: () => void;
   stop: () => void;
   getState: () => ActiveRestTimer;
+  
 };
 
 type Props = {
@@ -48,6 +49,8 @@ type Props = {
   vibrationMs?: number;
   compact?: boolean; // compact UI (less chrome)
   primaryColor?: string; // progress color
+  backgroundColor?: string; // panel background
+  textColor?: string; // primary text color
 };
 
 const RestTimer = forwardRef<RestTimerHandle, Props>(
@@ -59,7 +62,9 @@ const RestTimer = forwardRef<RestTimerHandle, Props>(
       playSound = true,
       vibrationMs = 500,
       compact = false,
-      primaryColor = '#34d399',
+      primaryColor = '#06b6d4',
+      backgroundColor = '#041224',
+      textColor = '#e6eef8',
     },
     ref
   ) => {
@@ -287,7 +292,6 @@ const RestTimer = forwardRef<RestTimerHandle, Props>(
     if (!state || !state.exerciseId || state.remaining <= 0) return null;
 
     const label = resolveLabel ? resolveLabel(state.exerciseId) : 'Rest';
-    const duration = state.duration ?? state.remaining ?? 0;
 
     // progress bar width interpolation
     const widthInterp = progressAnim.interpolate({inputRange: [0, 1], outputRange: ['0%', '100%']});
@@ -297,27 +301,25 @@ const RestTimer = forwardRef<RestTimerHandle, Props>(
         style={[
           styles.container,
           compact ? styles.compactContainer : {},
-          {transform: [{scale: popAnim}]},
+          {transform: [{scale: popAnim}], backgroundColor},
         ]}
         accessible
         accessibilityRole="adjustable"
       >
         <View style={styles.left}>
-          <Text style={styles.title} numberOfLines={1} ellipsizeMode="tail">
+          <Text style={[styles.title, {color: '#94a3b8'}]} numberOfLines={1} ellipsizeMode="tail">
             {label}
           </Text>
-          <Text style={styles.seconds}>{state.remaining}s</Text>
+          <Text style={[styles.seconds, {color: textColor}]}>{state.remaining}s</Text>
         </View>
 
         <View style={styles.middle}>
+          {/* progress track is inset by middle padding to avoid touching card border */}
           <View style={styles.progressTrack}>
             <Animated.View style={[styles.progressFill, {width: widthInterp, backgroundColor: primaryColor}]} />
           </View>
 
-          <View style={styles.metaRow}>
-            <Text style={styles.metaText}>Duration {duration}s</Text>
-            <Text style={styles.metaText}>{Math.round((1 - state.remaining / Math.max(1, duration)) * 100)}%</Text>
-          </View>
+          {/* duration / percent removed as requested */}
         </View>
 
         <View style={styles.controls}>
@@ -353,11 +355,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 14,
-    paddingVertical: 12,
+    paddingTop: 12,
+    paddingBottom: 16, // ensure inner bottom spacing so progress track never touches card border
     borderRadius: 14,
-    backgroundColor: '#071826',
+    backgroundColor: '#041224',
     borderWidth: 1,
-    borderColor: '#122032',
+    borderColor: '#063043',
     shadowColor: '#000',
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -373,23 +376,24 @@ const styles = StyleSheet.create({
   middle: {flex: 1, paddingHorizontal: 12},
   progressTrack: {
     height: 10,
-    backgroundColor: '#0f1724',
+    backgroundColor: 'transparent', // transparent avoids seam with card border
     borderRadius: 8,
     overflow: 'hidden',
+    width: '100%',
   },
-  progressFill: {height: 10, borderRadius: 8, width: '0%'},
+  progressFill: {height: '100%', borderRadius: 8, width: '0%'},
   metaRow: {flexDirection: 'row', justifyContent: 'space-between', marginTop: 8},
   metaText: {fontSize: 11, color: '#94a3b8'},
-  controls: {flexDirection: 'row', gap: 8, alignItems: 'center'},
+  controls: {flexDirection: 'row', alignItems: 'center'},
   actionBtn: {
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 10,
-    backgroundColor: '#0f1724',
+    backgroundColor: '#06202a',
     borderWidth: 1,
-    borderColor: '#1f2a44',
+    borderColor: '#0f3440',
     marginLeft: 8,
   },
-  stopBtn: {backgroundColor: '#dc2626', borderColor: '#b91c1c'},
+  stopBtn: {backgroundColor: '#ef4444', borderColor: '#dc2626'},
   actionText: {color: '#cbd5e1', fontWeight: '700'},
 });

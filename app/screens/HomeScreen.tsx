@@ -48,7 +48,7 @@ export const HomeScreen: React.FC = () => {
   return (
     <Screen preset="scroll" contentContainerStyle={styles.screenContent}>
       <Text style={styles.screenTitle}>
-        Welcome Back{user ? `, ${user.name || "Athlete"}` : ""}
+        Welcome Back           {user ? `, ${user.name || "Athlete"}` : ""}
       </Text>
 
       {/* Start Workout Card */}

@@ -29,16 +29,39 @@ import { useEffect } from "react";
 import { runSeedersOnce } from "@/utils/storage/runSeederOnce";
 export const NAVIGATION_PERSISTENCE_KEY = "NAVIGATION_STATE"
 import AppUpdateChecker from "./components/AppUpdateChecker";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { ToastAndroid, Alert, Platform } from "react-native";
+const UPDATE_FLAG_KEY = "app:update:just_applied";
+
 /**
  * This is the root component of our app.
  * @param {AppProps} props - The props for the `App` component.
  * @returns {JSX.Element} The rendered `App` component.
  */
 export function App() {
+  
+ useEffect(() => {
+    runSeedersOnce();
 
-    useEffect(() => {
-    runSeedersOnce();  // 🔥 Runs on first app start
+    // 2️⃣ Check if update was just applied
+    (async () => {
+      try {
+        const flag = await AsyncStorage.getItem(UPDATE_FLAG_KEY);
+        if (flag) {
+          await AsyncStorage.removeItem(UPDATE_FLAG_KEY);
+
+          const message = "App updated successfully!";
+
+          if (Platform.OS === "android") {
+            ToastAndroid.show(message, ToastAndroid.SHORT);
+          } else {
+            Alert.alert("Updated", message);
+          }
+        }
+      } catch (_) {}
+    })();
   }, []);
+
   return (
         <AppUpdateChecker>
         <GestureHandlerRootView style={{ flex: 1 }}>

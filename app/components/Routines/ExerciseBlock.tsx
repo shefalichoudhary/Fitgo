@@ -1,10 +1,23 @@
 import React, { useMemo, useState, useEffect, useCallback } from "react";
-import { View, TextInput, FlatList, Text, StyleSheet, TouchableOpacity } from "react-native";
+import {
+  View,
+  TextInput,
+  FlatList,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  SafeAreaView,
+  Pressable,
+  Platform,
+} from "react-native";
 import type { Exercise, DataShape, Set, Unit, RepsType } from "./types";
 import SetRow from "./SetRow";
 import Header from "./Header";
 import { narrowUnit, narrowRepsType, normalizeSet } from "./utils";
-import RestTimer from "@/components/logWorkout/RestTimer";
+import { Modal } from "react-native";
+import RestTimerPicker from "./../logWorkout/RestTimerPicker";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+
 type Props = {
   exercise: Exercise;
   data: DataShape;
@@ -35,6 +48,7 @@ export default function ExerciseBlock({
   onDeleteExercise,
 }: Props) {
   const [visibleSets, setVisibleSets] = useState<number>(Math.max(1, data.sets.length));
+  const [restModalVisible, setRestModalVisible] = useState(false);
   const exerciseType: string =
     (exercise?.exercise_type as string) ??
     (exercise as any).exerciseType ??
@@ -46,30 +60,30 @@ export default function ExerciseBlock({
   const isDuration = normalizedType === "duration";
   const isYogaOrStretching = normalizedType === "yoga" || normalizedType === "stretching";
   const isBodyweight =
-    normalizedType === "bodyweight" || normalizedType === "assisted bodyweight" || normalizedType === "assisted bodyweight".toLowerCase() /* defensive */;
+    normalizedType === "bodyweight" ||
+    normalizedType === "assisted bodyweight" ||
+    normalizedType === "assisted bodyweight".toLowerCase(); /* defensive */
   const isWeighted = !isDuration && !isYogaOrStretching && !isBodyweight;
-
-
 
   useEffect(() => {
     setVisibleSets((prev) => Math.max(prev, data.sets.length, 1));
   }, [data.sets.length]);
 
   // normalized sets with narrowed unit/repsType
-const sets = useMemo(
-  () =>
-    (data.sets || []).map((s: any, idx: number) =>
-      normalizeSet(
-        {
-          id: s.id ?? `${exercise.id}-set-${idx}`, // upstream should already include routineId; this is defensive
-          ...s,
-        },
-        data.unit,
-        data.repsType
-      )
-    ),
-  [data.sets, data.unit, data.repsType, exercise.id]
-);
+  const sets = useMemo(
+    () =>
+      (data.sets || []).map((s: any, idx: number) =>
+        normalizeSet(
+          {
+            id: s.id ?? `${exercise.id}-set-${idx}`, // upstream should already include routineId; this is defensive
+            ...s,
+          },
+          data.unit,
+          data.repsType
+        )
+      ),
+    [data.sets, data.unit, data.repsType, exercise.id]
+  );
 
   const handleChangeField = useCallback(
     <K extends keyof Set>(index: number, key: K, value: Set[K]) => {
@@ -184,7 +198,7 @@ const sets = useMemo(
 
   const renderSet = useCallback(
     ({ item, index }: { item: Set; index: number }) => (
-     <SetRow
+      <SetRow
         key={item.id}
         idx={index}
         set={item}
@@ -219,7 +233,6 @@ const sets = useMemo(
     ]
   );
 
-
   return (
     <View style={styles.container}>
       <Header exercise={exercise} data={data} onDelete={() => onDeleteExercise(exercise.id)} />
@@ -235,43 +248,22 @@ const sets = useMemo(
       />
 
       {/* Rest timer UI (shown after notes) */}
-      <View style={styles.restRow}>
+      <TouchableOpacity
+        style={styles.restRow}
+        onPress={() => !viewOnly && setRestModalVisible(true)}
+        activeOpacity={0.8}
+      >
         <View style={styles.restLeft}>
-          <Text style={styles.restLabel}>Rest</Text>
+          <MaterialIcons name="timer" size={19} color="white" style={{ marginRight: 2 }} />
+          <Text style={styles.restLabel}>Rest-Timer :</Text>
           <Text style={styles.restValue}>
             {(data.restTimer ?? 0) > 0 ? `${data.restTimer}s` : "OFF"}
           </Text>
         </View>
-
-        <View style={styles.restControls}>
-          <TouchableOpacity
-            style={styles.restBtn}
-            onPress={() => changeRestBy(-5)}
-            disabled={viewOnly}
-          >
-            <Text style={styles.restBtnText}>-5s</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.restBtn}
-            onPress={() => setRestTimer(10)}
-            disabled={viewOnly}
-          >
-            <Text style={styles.restBtnText}>10s</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.restBtn}
-            onPress={() => changeRestBy(15)}
-            disabled={viewOnly}
-          >
-            <Text style={styles.restBtnText}>+15s</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+      </TouchableOpacity>
 
       {/* Single labels row — adapt to duration exercises */}
-       {sets.length > 0 && (
+      {sets.length > 0 && (
         <View style={styles.labelsRow}>
           <View style={styles.setLeft}>
             <Text style={styles.columnLabel}>SET</Text>
@@ -286,9 +278,9 @@ const sets = useMemo(
                 </View>
               ) : isBodyweight ? (
                 // Bodyweight/Assisted Bodyweight: only reps, show "REPS" + optional "BW" label
-                  <View style={[styles.repsWrap,{marginRight:20}]}>
-                    <Text style={styles.columnLabel}>REPS</Text>
-                  </View>
+                <View style={[styles.repsWrap, { marginRight: 20 }]}>
+                  <Text style={styles.columnLabel}>REPS</Text>
+                </View>
               ) : (
                 // Weighted: unit + reps
                 <>
@@ -332,7 +324,26 @@ const sets = useMemo(
       <TouchableOpacity onPress={handleAddSet} style={styles.addBtn}>
         <Text style={styles.addBtnText}>+ Add Set</Text>
       </TouchableOpacity>
-      
+      <Modal
+        visible={restModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setRestModalVisible(false)}
+      >
+        <Pressable style={styles.modalOverlay} onPress={() => setRestModalVisible(false)}>
+          <SafeAreaView>
+            <Pressable style={styles.sheet} onPress={(e) => e.stopPropagation()}>
+              <RestTimerPicker
+                initialSeconds={data.restTimer ?? 0}
+                onConfirm={(seconds) => {
+                  setRestTimer(seconds);
+                  setRestModalVisible(false);
+                }}
+              />
+            </Pressable>
+          </SafeAreaView>
+        </Pressable>
+      </Modal>
     </View>
   );
 }
@@ -363,22 +374,34 @@ const styles = StyleSheet.create({
 
   empty: { textAlign: "center", paddingVertical: 12, color: "#94a3b8" },
 
-  // rest row
   restRow: {
-    marginTop: 4,
+    marginTop: 8,
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: 8,
-    paddingHorizontal: 6,
+    paddingVertical: 10,
+    paddingHorizontal: 8,
     borderRadius: 8,
     backgroundColor: "#050505ff",
-    borderColor: "#030303ff",
     borderWidth: 1,
+    borderColor: "#030303ff",
   },
-  restLeft: { flexDirection: "column" },
-  restLabel: { fontSize: 12, color: "#94a3b8" },
-  restValue: { fontSize: 14, fontWeight: "700", marginTop: 4, color: "#e6eef8" },
+  restLeft: {
+    flexDirection: "row", // ✅ same row
+    alignItems: "center",
+  },
+
+  restLabel: {
+    fontSize: 14,
+    color: "white",
+    fontWeight: "500",
+    marginRight: 8, // spacing between label & value
+  },
+
+  restValue: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#3B82F6",
+  },
   restControls: { flexDirection: "row", alignItems: "center" },
   restBtn: {
     paddingHorizontal: 10,
@@ -417,17 +440,36 @@ const styles = StyleSheet.create({
     paddingBottom: 6,
   },
   columnLabel: { fontSize: 12, color: "#fafafaff", fontWeight: "600" },
-  setLeft: { width:75},
-  setCenter: { flex: 1,},
+  setLeft: { width: 75 },
+  setCenter: { flex: 1 },
   rowInputs: { flexDirection: "row", alignItems: "center" },
-   // make the weight input compact and aligned
+  // make the weight input compact and aligned
   weightWrap: {
     flex: 0.58, // a bit less than half
-
   },
-   repsWrap: {
+  repsWrap: {
     flex: 1,
-    alignItems:"center",
+    alignItems: "center",
   },
   right: { width: 56, alignItems: "center", justifyContent: "flex-start" },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.6)",
+    justifyContent: "flex-end",
+  },
+  modalContent: {
+    backgroundColor: "#0b0b0b",
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    padding: 16,
+  },
+  sheet: {
+    width: "100%",
+    backgroundColor: "#0b0b0b",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+
+    // 👇 keeps sheet above navigation bar
+    paddingBottom: Platform.OS === "android" ? 45 : 0,
+  },
 });

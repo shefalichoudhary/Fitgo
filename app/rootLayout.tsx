@@ -5,6 +5,7 @@ import { db, expo_sqlite } from "./utils/storage/index"
 import { useMigrations } from "drizzle-orm/expo-sqlite/migrator"
 import { AppNavigator } from "./navigators/AppNavigator"
 import { useDrizzleStudio } from "expo-drizzle-studio-plugin"
+import LoadingOverlay  from "./components/LoadingOverlay"
 // @ts-ignore
 import migrations from "../drizzle/migrations"
 
@@ -34,16 +35,7 @@ export default function RootLayout() {
 
   if (!appReady) {
     return (
-      <View
-        style={{
-          flex: 1,
-          justifyContent: "center",
-          alignItems: "center",
-          backgroundColor: "black",
-        }}
-      >
-        <ActivityIndicator size="large" color="white" />
-      </View>
+     <LoadingOverlay visible={true} message="Loading workout..." />
     )
   }
 

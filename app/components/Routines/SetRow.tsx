@@ -11,6 +11,8 @@ import {
   Modal,
   Pressable,
   Vibration,
+  SafeAreaView,
+  Platform,
 } from "react-native";
 import { ConfirmModal } from "@/components/ConfirmModal";
 import DurationTimer from "@/components/Routines/DurationTimer"; // <- adjust path if needed
@@ -51,7 +53,8 @@ export default function SetRow({
   const isBodyweight =
     normalizedExerciseType === "bodyweight" || normalizedExerciseType === "assisted bodyweight";
   const isWeighted = !isDuration && !isYogaOrStretching && !isBodyweight;
-
+  const currentSetType =
+    set.setType === "W" ? "Warmup" : set.setType === "F" ? "Failure" : "Normal";
   const [menuVisible, setMenuVisible] = useState(false);
   const [confirmVisible, setConfirmVisible] = useState(false);
   const showRange = set.repsType === "rep range" || !!set.isRangeReps;
@@ -263,31 +266,58 @@ export default function SetRow({
       </View>
 
       {/* actions modal */}
-      <Modal visible={menuVisible} transparent animationType="fade" onRequestClose={closeMenu}>
+      <Modal visible={menuVisible} transparent animationType="slide" onRequestClose={closeMenu}>
         <Pressable style={styles.modalOverlay} onPress={closeMenu}>
-          <View style={styles.modal}>
-            <Text style={styles.modalTitle}>Set actions</Text>
+          <SafeAreaView style={styles.safeArea}>
+            <Pressable style={styles.bottomSheet} onPress={(e) => e.stopPropagation()}>
+              <Text style={styles.modalTitle}>Set actions</Text>
+              <Pressable
+                style={[styles.modalItem, ]}
+                onPress={() => selectType("Normal")}
+              >
+                <Text
+                  style={[
+                    styles.modalItemText,
+                    currentSetType === "Normal" && styles.modalItemTextActive,
+                  ]}
+                >
+                  Normal
+                </Text>
+              </Pressable>
+              <Pressable
+                style={[styles.modalItem,]}
+                onPress={() => selectType("Warmup")}
+              >
+                <Text
+                  style={[
+                    styles.modalItemText,
+                    currentSetType === "Warmup" && styles.modalItemTextActive,
+                  ]}
+                >
+                  Warmup
+                </Text>
+              </Pressable>
 
-            <Pressable style={styles.modalItem} onPress={() => selectType("Normal")}>
-              <Text style={styles.modalItemText}>Normal</Text>
-            </Pressable>
+              <Pressable
+                style={[styles.modalItem,]}
+                onPress={() => selectType("Failure")}
+              >
+                <Text
+                  style={[
+                    styles.modalItemText,
+                    currentSetType === "Failure" && styles.modalItemTextActive,
 
-            <Pressable style={styles.modalItem} onPress={() => selectType("Warmup")}>
-              <Text style={styles.modalItemText}>Warmup</Text>
-            </Pressable>
+                  ]}
+                >
+                  Failure
+                </Text>
+              </Pressable>
 
-            <Pressable style={styles.modalItem} onPress={() => selectType("Failure")}>
-              <Text style={styles.modalItemText}>Failure</Text>
+              <Pressable style={[styles.modalItem, styles.deleteItem]} onPress={handleDelete}>
+                <Text style={[styles.modalItemText, styles.deleteText]}>Delete set</Text>
+              </Pressable>
             </Pressable>
-
-            <Pressable style={[styles.modalItem, styles.deleteItem]} onPress={handleDelete}>
-              <Text style={[styles.modalItemText, styles.deleteText]}>Delete set</Text>
-            </Pressable>
-
-            <Pressable style={styles.modalCancel} onPress={closeMenu}>
-              <Text style={styles.modalCancelText}>Cancel</Text>
-            </Pressable>
-          </View>
+          </SafeAreaView>
         </Pressable>
       </Modal>
 
@@ -362,12 +392,9 @@ const styles = StyleSheet.create({
   indexWrap: {
     width: 34,
     height: 34,
-    borderRadius: 8,
+    borderRadius: 0,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "transparent",
-    borderWidth: 1,
-    borderColor: "#122032",
   },
   checkbox: {
     width: 36,
@@ -431,51 +458,56 @@ const styles = StyleSheet.create({
 
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(2,6,23,0.6)",
-    justifyContent: "center",
-    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.6)",
+    justifyContent: "flex-end", // 👈 bottom
   },
-  modal: {
-    width: 320,
-    borderRadius: 12,
-    backgroundColor: "#071026",
-    paddingVertical: 12,
-    paddingHorizontal: 10,
-    alignItems: "stretch",
+
+  safeArea: {
+    width: "100%",
+  },
+
+  bottomSheet: {
+    width: "100%",
+    backgroundColor: "#000000ff",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingTop: 12,
+    paddingHorizontal: 16,
     borderWidth: 1,
     borderColor: "#122032",
+    paddingBottom: Platform.OS === "android" ? 55 : 0,
   },
+
   modalTitle: {
     fontSize: 16,
     fontWeight: "700",
-    marginBottom: 8,
+    marginBottom: 12,
     textAlign: "center",
     color: "#e6eef8",
   },
+
   modalItem: {
-    paddingVertical: 12,
-    paddingHorizontal: 8,
-    borderRadius: 8,
+    paddingVertical: 14,
+    borderRadius: 10,
   },
+
   modalItemText: {
     textAlign: "center",
     fontSize: 15,
     color: "#e6eef8",
   },
+
   deleteItem: {
-    marginTop: 6,
+    marginTop: 8,
     backgroundColor: "#2a0a0a",
   },
+
   deleteText: {
     color: "#ff7878",
     fontWeight: "700",
   },
-  modalCancel: {
-    marginTop: 8,
-    paddingVertical: 10,
-  },
-  modalCancelText: {
-    textAlign: "center",
-    color: "#94a3b8",
+  modalItemTextActive: {
+    color: "#1d4ed8",
+    fontWeight: "700",
   },
 });
