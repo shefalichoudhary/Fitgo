@@ -47,11 +47,10 @@ export default function LogWorkoutScreen() {
     })();
   }, []);
 
-  // put this near the other useEffect hooks in LogWorkoutScreen
   useEffect(() => {
     let mounted = true;
-    const MIN_SHOW_MS = 300; // minimum visible time for initial loading (ms)
-    const FALLBACK_MS = 3000; // safety fallback if data never arrives (ms)
+    const MIN_SHOW_MS = 300;
+    const FALLBACK_MS = 3000;
 
     let minTimer: ReturnType<typeof setTimeout> | null = null;
     let fallbackTimer: ReturnType<typeof setTimeout> | null = null;
@@ -95,32 +94,28 @@ export default function LogWorkoutScreen() {
     0
   );
 
-const totalVolume = exercisesData.reduce((total, exercise) => {
-  const exerciseVolume =
-    exercise.sets?.reduce((setTotal: number, s: any) => {
-      const isCompleted = s.completed === true || s.isCompleted === true;
-      if (!isCompleted) return setTotal;
+  const totalVolume = exercisesData.reduce((total, exercise) => {
+    const exerciseVolume =
+      exercise.sets?.reduce((setTotal: number, s: any) => {
+        const isCompleted = s.completed === true || s.isCompleted === true;
+        if (!isCompleted) return setTotal;
 
-      let reps = 0;
+        let reps = 0;
 
-      // ✅ 1. Direct reps always win
-      if (typeof s.reps === "number") {
-        reps = s.reps;
-      }
-      // ✅ 2. Rep range detected by min/max presence
-      else if (
-        typeof s.maxReps === "number" ||
-        typeof s.minReps === "number"
-      ) {
-        reps = s.maxReps ?? s.minReps ?? 0;
-      }
+        // ✅ 1. Direct reps always win
+        if (typeof s.reps === "number") {
+          reps = s.reps;
+        }
+        // ✅ 2. Rep range detected by min/max presence
+        else if (typeof s.maxReps === "number" || typeof s.minReps === "number") {
+          reps = s.maxReps ?? s.minReps ?? 0;
+        }
 
-      return setTotal + reps * (s.weight ?? 0);
-    }, 0) ?? 0;
+        return setTotal + reps * (s.weight ?? 0);
+      }, 0) ?? 0;
 
-  return total + exerciseVolume;
-}, 0);
-
+    return total + exerciseVolume;
+  }, 0);
 
   const handleSave = async () => {
     const anyCompleted = exercisesData.some((ex) => ex.sets.some((s) => s.completed === true));
@@ -238,9 +233,9 @@ const totalVolume = exercisesData.reduce((total, exercise) => {
                     id: s.id,
                     reps: s.reps ?? null,
                     weight: s.weight ?? null,
-                     minReps: s.minReps ?? s.repsMin ?? null,
-  maxReps: s.maxReps ?? s.repsMax ?? null,
- 
+                    minReps: s.minReps ?? s.repsMin ?? null,
+                    maxReps: s.maxReps ?? s.repsMax ?? null,
+
                     repsType: s.repsType ?? newData.repsType,
                     unit: s.unit ?? newData.unit,
                     completed: !!s.isCompleted,
