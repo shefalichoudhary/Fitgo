@@ -63,13 +63,10 @@ export default function CreateRoutineScreen() {
     if (!route.params?.selectedExercises) return;
 
     const withSets = route.params.selectedExercises.map((rawEx: any, i: number) => {
-      // canonicalize top-level fields from several naming variants
       const id = rawEx.id ?? rawEx._id ?? `sel-${Date.now()}-${i}`;
       const exercise_name = rawEx.exercise_name ?? rawEx.name ?? rawEx.title ?? "Exercise";
       const exercise_type = rawEx.exercise_type ?? rawEx.exerciseType ?? rawEx.type ?? null;
       const equipment = rawEx.equipment ?? rawEx.equip ?? rawEx.machine ?? "";
-
-      // transform sets and preserve duration if present
       const sets = (rawEx.sets || []).map((s: any, j: number) => ({
         id: s.id ?? `${Date.now()}-${j}`,
         reps: s.reps ?? null,
@@ -77,7 +74,6 @@ export default function CreateRoutineScreen() {
         duration: s.duration ?? null,
         repsType: s.repsType ?? s.reps_type ?? "reps",
         unit: s.unit ?? "kg",
-        // keep any other fields you rely on:
         isCompleted: s.isCompleted ?? false,
       }));
 

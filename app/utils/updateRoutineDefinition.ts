@@ -1,7 +1,6 @@
 import { db } from "@/utils/storage";
 import { routines, routineExercises, routineSets } from "@/utils/storage/schema";
 import { eq, and } from "drizzle-orm";
-import cuid from "cuid";
 
 export async function updateRoutineDefinition(
   routineId: string,
@@ -27,7 +26,7 @@ export async function updateRoutineDefinition(
     for (const ex of payload.exercises) {
       await db.insert(routineExercises).values({
         routineId,
-        exerciseId: ex.id,
+   exerciseId: ex.id,
         notes: ex.notes ?? "",
         unit: ex.unit ?? "kg",
         repsType: ex.repsType ?? "reps",

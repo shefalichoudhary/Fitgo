@@ -31,6 +31,8 @@ interface WorkoutItem {
   duration?: number;
   exerciseCount: number;
   muscleGroups: string;
+  notes?: string
+  restTime?: number
 }
 
 export default function HistoryScreen() {
@@ -56,56 +58,76 @@ export default function HistoryScreen() {
     const loadHistory = async () => {
       const result = await db.select().from(workouts).all();
       const records: any[] = [];
+for (const w of result) {
+  const exerciseRows = await db
+    .select()
+    .from(workoutExercises)
+    .where(eq(workoutExercises.workoutId, w.id))
+    .all()
 
-      for (const w of result) {
-        const exerciseRows = await db
-          .select()
-          .from(workoutExercises)
-          .where(eq(workoutExercises.workoutId, w.id))
-          .all();
+  let totalSets = 0
+  let totalVolume = 0
 
-        let totalSets = 0;
-        let totalVolume = 0;
+  // ✅ NEW
+  let collectedNotes: string[] = []
+  let restTimers: number[] = []
 
-        for (const ex of exerciseRows) {
-          const setsRows = await db
-            .select()
-            .from(workoutSets)
-            .where(and(eq(workoutSets.workoutId, w.id), eq(workoutSets.exerciseId, ex.exerciseId)))
-            .all();
+  for (const ex of exerciseRows) {
+    // collect notes
+    if (ex.notes) collectedNotes.push(ex.notes)
+    if (ex.restTimer) restTimers.push(ex.restTimer)
 
-          totalSets += setsRows.length;
-          totalVolume += setsRows.reduce(
-            (sum, s) => sum + (s.weight ?? 0) * (s.reps ?? 0), // volume = weight × reps
-            0
-          );
-        }
+    const setsRows = await db
+      .select()
+      .from(workoutSets)
+      .where(
+        and(
+          eq(workoutSets.workoutId, w.id),
+          eq(workoutSets.exerciseId, ex.exerciseId)
+        )
+      )
+      .all()
 
-        const exerciseCount = exerciseRows.length;
+    totalSets += setsRows.length
+    totalVolume += setsRows.reduce(
+      (sum, s) => sum + (s.weight ?? 0) * (s.reps ?? 0),
+      0
+    )
+  }
 
-        const muscleRows = await db
-          .select({ name: muscles.name })
-          .from(workoutExercises)
-          .leftJoin(exercises, eq(workoutExercises.exerciseId, exercises.id))
-          .leftJoin(exerciseMuscles, eq(exerciseMuscles.exercise_id, exercises.id))
-          .leftJoin(muscles, eq(muscles.id, exerciseMuscles.muscle_id))
-          .where(eq(workoutExercises.workoutId, w.id))
-          .all();
+  const exerciseCount = exerciseRows.length
 
-        const muscleList = [...new Set(muscleRows.map((m) => m.name).filter(Boolean))];
-        const muscleGroups =
-          muscleList.length > 3
-            ? [...muscleList.slice(0, 3), "..."].join(", ")
-            : muscleList.join(", ");
+  // muscles (unchanged)
+  const muscleRows = await db
+    .select({ name: muscles.name })
+    .from(workoutExercises)
+    .leftJoin(exercises, eq(workoutExercises.exerciseId, exercises.id))
+    .leftJoin(exerciseMuscles, eq(exerciseMuscles.exercise_id, exercises.id))
+    .leftJoin(muscles, eq(muscles.id, exerciseMuscles.muscle_id))
+    .where(eq(workoutExercises.workoutId, w.id))
+    .all()
 
-        records.push({
-          ...w,
-          exerciseCount,
-          muscleGroups,
-          totalSets,
-          totalVolume,
-        });
-      }
+  const muscleList = [...new Set(muscleRows.map(m => m.name).filter(Boolean))]
+  const muscleGroups =
+    muscleList.length > 3
+      ? [...muscleList.slice(0, 3), "..."].join(", ")
+      : muscleList.join(", ")
+
+  records.push({
+    ...w,
+    exerciseCount,
+    totalSets,
+    totalVolume,
+    muscleGroups,
+
+    // ✅ NEW FIELDS
+    notes: collectedNotes[0], // first note only
+    restTime: restTimers.length
+      ? Math.round(restTimers.reduce((a, b) => a + b, 0) / restTimers.length)
+      : undefined,
+  })
+}
+
 
       setHistory(records);
       setLoading(false);

@@ -90,7 +90,6 @@ export async function saveWorkoutSession({
           reps: set.reps ?? 0,
           minReps: typeof set.minReps === "number" ? set.minReps : null,
           maxReps: typeof set.maxReps === "number" ? set.maxReps : null,
-          // store per-set unit & repsType now that schema has those columns
           setType: safeSetType(set.setType),
           duration: set.duration ?? 0,
         });

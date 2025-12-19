@@ -13,12 +13,13 @@ export type DemoTabParamList = {
   Home: NavigatorScreenParams<HomeStackParamList>
   History: NavigatorScreenParams<HistoryStackParamList>
   Profile: NavigatorScreenParams<ProfileStackParamList>
-    Exercises: NavigatorScreenParams<ExercisesStackParamList>
+  Exercises: NavigatorScreenParams<ExercisesStackParamList>
 }
 export type HomeStackParamList = {
   HomeMain: undefined;
   Routines: undefined;
   RoutineDetails: { id: string }; 
+    EditRoutine: { id: string };
 CreateRoutine: {
     selectedExercises?: {
       id: string;

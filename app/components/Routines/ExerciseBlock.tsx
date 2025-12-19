@@ -63,7 +63,6 @@ export default function ExerciseBlock({
     normalizedType === "bodyweight" ||
     normalizedType === "assisted bodyweight" ||
     normalizedType === "assisted bodyweight".toLowerCase(); /* defensive */
-  const isWeighted = !isDuration && !isYogaOrStretching && !isBodyweight;
 
   useEffect(() => {
     setVisibleSets((prev) => Math.max(prev, data.sets.length, 1));
@@ -141,12 +140,6 @@ export default function ExerciseBlock({
     [data, onChange]
   );
 
-  const changeRestBy = useCallback(
-    (delta: number) => {
-      setRestTimer((data.restTimer ?? 0) + delta);
-    },
-    [data.restTimer, setRestTimer]
-  );
 
   // ---------- Exercise-level handlers for labels ----------
   const handleToggleUnitAll = useCallback(() => {
@@ -426,7 +419,7 @@ const styles = StyleSheet.create({
   addBtn: {
     paddingHorizontal: 14,
     paddingVertical: 10,
-    backgroundColor: "#183b8a",
+    backgroundColor: "#393a3bff",
     borderRadius: 10,
     marginTop: 12,
     alignItems: "center",

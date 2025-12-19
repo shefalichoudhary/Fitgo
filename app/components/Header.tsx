@@ -9,12 +9,12 @@ import {
 } from "react-native"
 import { isRTL } from "@/i18n"
 import { translate } from "@/i18n/translate"
-import { useAppTheme } from "@/theme/context"
 import { $styles } from "@/theme/styles"
-import type { ThemedStyle } from "@/theme/types"
 import { ExtendedEdge, useSafeAreaInsetsStyle } from "@/utils/useSafeAreaInsetsStyle"
 import { IconTypes, PressableIcon } from "./Icon"
 import { Text, TextProps } from "./Text"
+
+/* ==================== TYPES ==================== */
 
 export interface HeaderProps {
   titleMode?: "center" | "flex"
@@ -23,55 +23,66 @@ export interface HeaderProps {
   style?: StyleProp<ViewStyle>
   containerStyle?: StyleProp<ViewStyle>
   backgroundColor?: string
+
   title?: TextProps["text"]
   titleTx?: TextProps["tx"]
   titleTxOptions?: TextProps["txOptions"]
+
   leftIcon?: IconTypes
   leftIconColor?: string
   leftText?: TextProps["text"]
+  leftTextColor?: string
   leftTx?: TextProps["tx"]
-  LeftActionComponent?: ReactElement
   leftTxOptions?: TextProps["txOptions"]
+  LeftActionComponent?: ReactElement
   onLeftPress?: TouchableOpacityProps["onPress"]
+
   rightIcon?: IconTypes
   rightIconColor?: string
   rightText?: TextProps["text"]
+  rightTextColor?: string
   rightTx?: TextProps["tx"]
-  RightActionComponent?: ReactElement
   rightTxOptions?: TextProps["txOptions"]
+  RightActionComponent?: ReactElement
   onRightPress?: TouchableOpacityProps["onPress"]
+
   safeAreaEdges?: ExtendedEdge[]
 }
 
-/**
- * Always Dark Mode Header
- */
+/* ==================== HEADER ==================== */
+
 export function Header(props: HeaderProps) {
   const {
     LeftActionComponent,
+    RightActionComponent,
+
     leftIcon,
     leftIconColor = "#FFFFFF",
     leftText,
+    leftTextColor,
     leftTx,
     leftTxOptions,
     onLeftPress,
-    RightActionComponent,
+
     rightIcon,
     rightIconColor = "#FFFFFF",
     rightText,
+    rightTextColor,
     rightTx,
     rightTxOptions,
     onRightPress,
+
     title,
     titleTx,
     titleTxOptions,
+
     titleMode = "center",
     titleContainerStyle,
     titleStyle,
     style,
     containerStyle,
     safeAreaEdges = ["top"],
-    backgroundColor = "#121212", // ✅ Always dark background
+    backgroundColor = "#121212",
   } = props
 
   const $containerInsets = useSafeAreaInsetsStyle(safeAreaEdges)
@@ -80,16 +91,21 @@ export function Header(props: HeaderProps) {
   return (
     <View style={[$container, $containerInsets, { backgroundColor }, containerStyle]}>
       <View style={[$styles.row, $wrapper, style]}>
+
+        {/* LEFT ACTION (TEXT ONLY) */}
         <HeaderAction
           tx={leftTx}
           text={leftText}
+          textColor={leftTextColor}
           icon={leftIcon}
           iconColor={leftIconColor}
           onPress={onLeftPress}
           txOptions={leftTxOptions}
           ActionComponent={LeftActionComponent}
+          variant="text"
         />
 
+        {/* TITLE */}
         {!!titleContent && (
           <View
             style={[
@@ -100,43 +116,57 @@ export function Header(props: HeaderProps) {
           >
             <Text
               weight="medium"
-              size="md"
+              size="sm"
               text={titleContent}
-              style={[
-                $title,
-                { color: "#FFFFFF" }, // ✅ white text
-                titleStyle,
-              ]}
+              style={[$title, { color: "#FFFFFF" }, titleStyle]}
             />
           </View>
         )}
 
+        {/* RIGHT ACTION (BUTTON) */}
         <HeaderAction
           tx={rightTx}
           text={rightText}
+          textColor={rightTextColor}
           icon={rightIcon}
           iconColor={rightIconColor}
           onPress={onRightPress}
           txOptions={rightTxOptions}
           ActionComponent={RightActionComponent}
+          variant="button"
         />
       </View>
     </View>
   )
 }
 
+/* ==================== HEADER ACTION ==================== */
+
 interface HeaderActionProps {
   icon?: IconTypes
   iconColor?: string
   text?: TextProps["text"]
+  textColor?: string
   tx?: TextProps["tx"]
   txOptions?: TextProps["txOptions"]
   onPress?: TouchableOpacityProps["onPress"]
   ActionComponent?: ReactElement
+  variant?: "text" | "button"
 }
 
 function HeaderAction(props: HeaderActionProps) {
-  const { icon, text, tx, txOptions, onPress, ActionComponent, iconColor } = props
+  const {
+    icon,
+    text,
+    tx,
+    txOptions,
+    onPress,
+    ActionComponent,
+    iconColor,
+    textColor,
+    variant = "text",
+  } = props
+
   const content = tx ? translate(tx, txOptions) : text
 
   if (ActionComponent) return ActionComponent
@@ -149,7 +179,15 @@ function HeaderAction(props: HeaderActionProps) {
         disabled={!onPress}
         activeOpacity={0.8}
       >
-        <Text weight="medium" size="md" text={content} style={{ color: "#FFFFFF" }} />
+        <Text
+          weight="medium"
+          size="sm"
+          text={content}
+          style={[
+            { color: textColor ?? "#FFFFFF" },
+            variant === "button" && $buttonText,
+          ]}
+        />
       </TouchableOpacity>
     )
   }
@@ -170,7 +208,8 @@ function HeaderAction(props: HeaderActionProps) {
   return <View style={$actionFillerContainer} />
 }
 
-/* -------------------- Styles -------------------- */
+/* ==================== STYLES ==================== */
+
 const $wrapper: ViewStyle = {
   height: 56,
   alignItems: "center",
@@ -226,4 +265,12 @@ const $titleWrapperCenter: ViewStyle = {
 const $titleWrapperFlex: ViewStyle = {
   justifyContent: "center",
   flexGrow: 1,
+}
+
+const $buttonText: TextStyle = {
+  backgroundColor: "#2563EB",
+  paddingHorizontal: 14,
+  paddingVertical: 6,
+  borderRadius: 12,
+  overflow: "hidden",
 }

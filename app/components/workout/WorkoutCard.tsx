@@ -2,31 +2,55 @@ import React from "react"
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native"
 import { format } from "date-fns"
 import { formatDuration } from "../../utils/formatDuration"
-import { useNavigation } from "@react-navigation/native"
 
 export const WorkoutCard = ({ item, onLongPress, onPress }: any) => {
   const formattedDate = format(new Date(item.date), "MMM d, yyyy")
-  const navigation: any = useNavigation()
 
   return (
     <TouchableOpacity activeOpacity={0.9} onPress={onPress} onLongPress={onLongPress}>
       <View style={styles.card}>
+        {/* Date */}
         <Text style={styles.dateText}>{formattedDate}</Text>
 
+        {/* Title + Duration */}
         <View style={styles.rowBetween}>
           <Text style={styles.titleText}>{item.title || "Workout"}</Text>
 
           {item.duration ? (
-            <Text style={styles.durationChip}>⏱ {formatDuration(item.duration)}</Text>
+            <Text style={styles.durationChip}>
+              ⏱ {formatDuration(item.duration)}
+            </Text>
           ) : null}
         </View>
 
+        {/* Muscle Groups */}
         {item.muscleGroups ? (
           <View style={styles.chipRow}>
             <Text style={styles.chip}>💪 {item.muscleGroups}</Text>
           </View>
         ) : null}
 
+        {/* Notes */}
+        {item.notes ? (
+          <View style={styles.infoRow}>
+            <Text style={styles.infoIcon}>📝</Text>
+            <Text style={styles.infoText} numberOfLines={2}>
+              {item.notes}
+            </Text>
+          </View>
+        ) : null}
+
+        {/* Rest Time */}
+        {item.restTime ? (
+          <View style={styles.infoRow}>
+            <Text style={styles.infoIcon}>⏱</Text>
+            <Text style={styles.infoText}>
+              Rest: {formatDuration(item.restTime)}
+            </Text>
+          </View>
+        ) : null}
+
+        {/* Stats */}
         <View style={styles.statsRow}>
           <View style={styles.statBox}>
             <Text style={styles.statNumber}>{item.exerciseCount}</Text>
@@ -92,7 +116,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
     borderRadius: 10,
   },
+infoRow: {
+  flexDirection: "row",
+  alignItems: "center",
+  marginTop: 6,
+  gap: 6,
+},
 
+infoIcon: {
+  fontSize: 13,
+},
+
+infoText: {
+  fontSize: 12,
+  color: "#b5b5b5",
+  flex: 1,
+},
   statBox: { flex: 1, alignItems: "center" },
   statNumber: { fontSize: 16, fontWeight: "700", color: "#f1f1f1" },
   statLabel: { fontSize: 11, marginTop: 2, color: "#8c8c8c" },

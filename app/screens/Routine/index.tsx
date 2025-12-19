@@ -134,7 +134,6 @@ const handleDuplicate = async (routine: RoutineWithExercises) => {
         Create your first workout routine and start building consistency!
       </Text>
 
-      {/* CTA Button */}
      
     </Screen>
   )

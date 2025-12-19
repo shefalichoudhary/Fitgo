@@ -47,8 +47,6 @@ export default function LogWorkoutScreen() {
     })();
   }, []);
 
-
-
   // put this near the other useEffect hooks in LogWorkoutScreen
   useEffect(() => {
     let mounted = true;
@@ -96,15 +94,33 @@ export default function LogWorkoutScreen() {
     (a, e) => a + (e.sets?.filter((s: any) => s.completed).length ?? 0),
     0
   );
-  const totalVolume = exercisesData.reduce(
-    (a, e) =>
-      a +
-      (e.sets?.reduce(
-        (v: number, s: any) => v + (s.completed ? (s.reps ?? 0) * (s.weight ?? 0) : 0),
-        0
-      ) ?? 0),
-    0
-  );
+
+const totalVolume = exercisesData.reduce((total, exercise) => {
+  const exerciseVolume =
+    exercise.sets?.reduce((setTotal: number, s: any) => {
+      const isCompleted = s.completed === true || s.isCompleted === true;
+      if (!isCompleted) return setTotal;
+
+      let reps = 0;
+
+      // ✅ 1. Direct reps always win
+      if (typeof s.reps === "number") {
+        reps = s.reps;
+      }
+      // ✅ 2. Rep range detected by min/max presence
+      else if (
+        typeof s.maxReps === "number" ||
+        typeof s.minReps === "number"
+      ) {
+        reps = s.maxReps ?? s.minReps ?? 0;
+      }
+
+      return setTotal + reps * (s.weight ?? 0);
+    }, 0) ?? 0;
+
+  return total + exerciseVolume;
+}, 0);
+
 
   const handleSave = async () => {
     const anyCompleted = exercisesData.some((ex) => ex.sets.some((s) => s.completed === true));
@@ -143,7 +159,6 @@ export default function LogWorkoutScreen() {
       });
 
       if (saveAndUpdateRoutine && routineId) {
-        // call your routine update helper — implement in your utils
         try {
           await updateRoutineDefinition(routineId, {
             title: routineTitle,
@@ -151,7 +166,6 @@ export default function LogWorkoutScreen() {
           });
         } catch (err) {
           console.warn("updateRoutineDefinition failed (non-fatal):", err);
-          // optional: surface a small toast here instead of failing the whole save
         }
       }
 
@@ -184,36 +198,32 @@ export default function LogWorkoutScreen() {
   // ---------- Helpers to adapt exerciseData -> ExerciseBlock props ----------
   const renderExercise = useCallback(
     ({ item }: { item: any }) => {
-    const mappedSets = (item.sets || []).map((s: any, idx: number) => {
-  // if id already contains the routineId prefix, keep it; otherwise generate one
-  const existingId = typeof s.id === "string" ? s.id : "";
-  const hasRoutinePrefix = routineId && existingId.startsWith(`${routineId}-`);
-  const normalizedId = hasRoutinePrefix
-    ? existingId
-    : `${routineId ?? "session"}-${item.id}-set-${idx}-${existingId || String(Date.now()).slice(-6)}`;
+      const mappedSets = (item.sets || []).map((s: any, idx: number) => {
+        // if id already contains the routineId prefix, keep it; otherwise generate one
+        const existingId = typeof s.id === "string" ? s.id : "";
+        const hasRoutinePrefix = routineId && existingId.startsWith(`${routineId}-`);
+        const normalizedId = hasRoutinePrefix
+          ? existingId
+          : `${routineId ?? "session"}-${item.id}-set-${idx}-${existingId || String(Date.now()).slice(-6)}`;
 
-  return {
-    id: normalizedId,
-    reps: s.reps ?? null,
-    weight: s.weight ?? null,
-    minReps: s.minReps ?? null,
-    maxReps: s.maxReps ?? null,
-    repsType: s.repsType ?? (s.minReps != null || s.maxReps != null ? "rep range" : "reps"),
-    unit: s.unit ?? item.unit ?? "kg",
-    isRangeReps: !!(s.minReps || s.maxReps),
-    isCompleted: !!s.completed,
-    setType: s.setType ?? "Normal",
-    ...s,
-  };
-});
-    const { exercise, data } = mapExerciseToBlockProps({
-      ...item,
-      // ensure the block receives sets shaped the way it expects
-      sets: mappedSets,
-    });
+        return {
+          id: normalizedId,
+          reps: s.reps ?? null,
+          weight: s.weight ?? null,
+          minReps: s.minReps ?? s.repsMin ?? null,
+          maxReps: s.maxReps ?? s.repsMax ?? null,
+          repsType: s.repsType ?? (s.minReps != null || s.maxReps != null ? "rep range" : "reps"),
+          unit: s.unit ?? item.unit ?? "kg",
+          isRangeReps: !!(s.minReps || s.maxReps),
+          isCompleted: !!s.completed,
+          setType: s.setType ?? "Normal",
+        };
+      });
+      const { exercise, data } = mapExerciseToBlockProps({
+        ...item,
+        sets: mappedSets,
+      });
 
- 
-      // Persist changes coming from ExerciseBlock (sets/unit/repsType/notes/restTimer)
       const onChange = (newData: any) => {
         setExercisesData((prev: any[]) =>
           prev.map((ex) =>
@@ -228,13 +238,13 @@ export default function LogWorkoutScreen() {
                     id: s.id,
                     reps: s.reps ?? null,
                     weight: s.weight ?? null,
-                    minReps: s.minReps ?? null,
-                    maxReps: s.maxReps ?? null,
-                    repsType: s.repsType ?? "reps",
+                     minReps: s.minReps ?? s.repsMin ?? null,
+  maxReps: s.maxReps ?? s.repsMax ?? null,
+ 
+                    repsType: s.repsType ?? newData.repsType,
                     unit: s.unit ?? newData.unit,
                     completed: !!s.isCompleted,
                     setType: s.setType ?? "Normal",
-                    ...s,
                   })),
                 }
               : ex
@@ -242,7 +252,6 @@ export default function LogWorkoutScreen() {
         );
       };
 
-      // new signature includes restSeconds so we don't read exercisesData (avoids stale reads)
       const handleToggleSetComplete = (
         _exerciseId: string,
         setIndex: number,
@@ -252,19 +261,15 @@ export default function LogWorkoutScreen() {
         const setId = mappedSets?.[setIndex]?.id;
         if (!setId) return;
 
-        // toggle completion in your data store
         toggleSetCompletion(_exerciseId, setId, completed);
 
         if (completed && restSeconds > 0) {
-          // schedule start after microtask so the toggle's re-render applies
           setTimeout(() => {
-            // guard: don't start if same owner already running
             const owner = restTimerRef.current?.getState?.();
             if (owner?.exerciseId === _exerciseId && owner?.setId === setId) return;
             restTimerRef.current?.start?.(_exerciseId, setId, restSeconds);
           }, 0);
         } else {
-          // if stopping the same running timer, stop it
           const owner = restTimerRef.current?.getState?.();
           if (owner?.exerciseId === _exerciseId && owner?.setId === setId) {
             restTimerRef.current?.stop?.();
@@ -319,8 +324,8 @@ export default function LogWorkoutScreen() {
 
       return (
         <ExerciseBlock
-         exercise={exercise}
-        data={data}
+          exercise={exercise}
+          data={data}
           onChange={onChange}
           onOpenRepRange={(exerciseId, setIndex) => handleOpenRepRange(exerciseId, setIndex)}
           showCheckIcon={true}
@@ -362,14 +367,8 @@ export default function LogWorkoutScreen() {
           const ex = exercisesData.find((e) => e.id === exerciseId);
           return ex ? (ex.exercise_name ?? ex.name ?? "Rest") : "Rest";
         }}
-        onChange={(s) => {
-          // optional: if you want to mirror timer state in the screen, do it here.
-          // e.g. setSomeState(s);
-        }}
-        onFinish={(exerciseId, setId) => {
-          // optional: when timer naturally finishes you can take action here
-          // e.g. mark set done, track analytics, etc.
-        }}
+        onChange={(s) => {}}
+        onFinish={(exerciseId, setId) => {}}
       />
       <WorkoutSummary
         completedSets={completedSets}
@@ -380,7 +379,7 @@ export default function LogWorkoutScreen() {
 
       <FlatList
         data={exercisesData}
-   keyExtractor={(item) => `${routineId ?? "session"}-${item.id}`}
+        keyExtractor={(item) => `${routineId ?? "session"}-${item.id}`}
         renderItem={renderExercise}
         contentContainerStyle={{ paddingBottom: 30 }}
         showsVerticalScrollIndicator={false}
@@ -401,7 +400,7 @@ export default function LogWorkoutScreen() {
       <ConfirmModal
         visible={saveConfirmVisible}
         title="Save workout?"
-        message="Pick one"
+        message="Would you like to save this workout session? You can also choose to update your routine with today's changes."
         onCancel={() => setSaveConfirmVisible(false)} // not shown because hideCancel
         onConfirm={() => performSave(false)} // primary (bottom)
         confirmText="Save Workout"

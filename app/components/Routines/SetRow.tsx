@@ -52,7 +52,6 @@ export default function SetRow({
     normalizedExerciseType === "yoga" || normalizedExerciseType === "stretching";
   const isBodyweight =
     normalizedExerciseType === "bodyweight" || normalizedExerciseType === "assisted bodyweight";
-  const isWeighted = !isDuration && !isYogaOrStretching && !isBodyweight;
   const currentSetType =
     set.setType === "W" ? "Warmup" : set.setType === "F" ? "Failure" : "Normal";
   const [menuVisible, setMenuVisible] = useState(false);
@@ -271,10 +270,7 @@ export default function SetRow({
           <SafeAreaView style={styles.safeArea}>
             <Pressable style={styles.bottomSheet} onPress={(e) => e.stopPropagation()}>
               <Text style={styles.modalTitle}>Set actions</Text>
-              <Pressable
-                style={[styles.modalItem, ]}
-                onPress={() => selectType("Normal")}
-              >
+              <Pressable style={[styles.modalItem]} onPress={() => selectType("Normal")}>
                 <Text
                   style={[
                     styles.modalItemText,
@@ -284,10 +280,7 @@ export default function SetRow({
                   Normal
                 </Text>
               </Pressable>
-              <Pressable
-                style={[styles.modalItem,]}
-                onPress={() => selectType("Warmup")}
-              >
+              <Pressable style={[styles.modalItem]} onPress={() => selectType("Warmup")}>
                 <Text
                   style={[
                     styles.modalItemText,
@@ -298,15 +291,11 @@ export default function SetRow({
                 </Text>
               </Pressable>
 
-              <Pressable
-                style={[styles.modalItem,]}
-                onPress={() => selectType("Failure")}
-              >
+              <Pressable style={[styles.modalItem]} onPress={() => selectType("Failure")}>
                 <Text
                   style={[
                     styles.modalItemText,
                     currentSetType === "Failure" && styles.modalItemTextActive,
-
                   ]}
                 >
                   Failure

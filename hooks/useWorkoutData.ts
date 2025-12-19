@@ -12,7 +12,7 @@ import { eq,and } from "drizzle-orm";
 
 export type SetLog = {
   id: string;
-  reps: number;
+  reps: number | null;
   weight: number;
   minReps?: number | null;
   maxReps?: number | null;
@@ -76,7 +76,9 @@ export function useWorkoutData(routineId: string) {
 
           const notes = typeof rexRow.notes === "string" ? rexRow.notes : null;
           const unit = (rexRow.unit as any) ?? "kg";
-          const repsType = (rexRow.repsType as any) ?? "reps";
+      const repsType: "reps" | "rep range" =
+  rexRow.repsType === "rep range" ? "rep range" : "reps";
+
           const restTimer = typeof rexRow.restTimer === "number" ? rexRow.restTimer : 0;
 
           // <-- FIXED: combine predicates with `and(...)`
@@ -111,12 +113,17 @@ export function useWorkoutData(routineId: string) {
 
               return {
                 id: namespacedSetId,
-                reps: typeof s.reps === "number" ? s.reps : 0,
+       reps: typeof s.reps === "number" ? s.reps : null,
                 weight: typeof s.weight === "number" ? s.weight : 0,
-                minReps: s.minReps ?? null,
-                maxReps: s.maxReps ?? null,
+                minReps: typeof s.minReps === "number" ? s.minReps : null,
+                maxReps: typeof s.maxReps === "number" ? s.maxReps : null,
                 duration: typeof s.duration === "number" ? s.duration : null,
-                repsType: s.repsType ?? (s.reps != null ? "reps" : "rep range"),
+               repsType:
+  s.repsType === "rep range" || s.repsType === "reps"
+    ? s.repsType
+    : s.reps != null
+    ? "reps"
+    : "rep range",
                 unit: s.unit ?? unit,
                 completed: false,
                 setType: s.setType ?? "Normal",

@@ -1,19 +1,20 @@
 // HomeStackNavigator.tsx
-import { createNativeStackNavigator } from "@react-navigation/native-stack"
-import { HomeScreen } from "@/screens/HomeScreen"
-import RoutineScreen from "@/screens/Routine"
-import CreateRoutineScreen from "@/screens/Routine/CreateRoutineScreen"
-import PreMadeRoutineScreen from "@/screens/Routine/PreMadeRoutineScreen"
-import MeasurementScreen from "@/screens/MeasurementScreen"
-import { Header } from "@/components/Header"
-import ExercisesScreen from "@/screens/Routine/ExercisesScreen"
-import RoutineDetailsScreen from "@/screens/Routine/[id]"
-import Entypo from '@expo/vector-icons/Entypo';
-import AddMeasurementScreen from "@/screens/AddMeasurementScreen"
-import LogWorkoutScreen from "@/screens/Routine/LogWorkoutScreen"
-import WorkoutDetailsScreen from "@/screens/workout/[id]"
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { HomeScreen } from "@/screens/HomeScreen";
+import RoutineScreen from "@/screens/Routine";
+import CreateRoutineScreen from "@/screens/Routine/CreateRoutineScreen";
+import PreMadeRoutineScreen from "@/screens/Routine/PreMadeRoutineScreen";
+import MeasurementScreen from "@/screens/MeasurementScreen";
+import { Header } from "@/components/Header";
+import ExercisesScreen from "@/screens/Routine/ExercisesScreen";
+import RoutineDetailsScreen from "@/screens/Routine/[id]/index";
+import Entypo from "@expo/vector-icons/Entypo";
+import AddMeasurementScreen from "@/screens/AddMeasurementScreen";
+import LogWorkoutScreen from "@/screens/Routine/LogWorkoutScreen";
+import WorkoutDetailsScreen from "@/screens/workout/[id]";
+import EditRoutineScreen from "@/screens/Routine/[id]/Edit";
 
-const Stack = createNativeStackNavigator()
+const Stack = createNativeStackNavigator();
 
 export function HomeStackNavigator() {
   return (
@@ -60,7 +61,8 @@ export function HomeStackNavigator() {
           ),
         })}
       />
-       <Stack.Screen
+      <Stack.Screen name="EditRoutine" component={EditRoutineScreen} />
+      <Stack.Screen
         name="Measurements"
         component={MeasurementScreen}
         options={({ navigation }) => ({
@@ -69,12 +71,12 @@ export function HomeStackNavigator() {
               title="Measurements"
               leftIcon="back"
               onLeftPress={navigation.goBack}
-               RightActionComponent={
+              RightActionComponent={
                 <Entypo
                   name="circle-with-plus"
                   size={28}
-                  color="#3B82F6" 
-                  style={{marginRight:6}}// blue-500
+                  color="#3B82F6"
+                  style={{ marginRight: 6 }} // blue-500
                   onPress={() => navigation.navigate("Add Measurement")}
                 />
               }
@@ -82,52 +84,42 @@ export function HomeStackNavigator() {
           ),
         })}
       />
-<Stack.Screen
-  name="CreateRoutineExercises"
-  component={ExercisesScreen}
-  initialParams={{ fromCreateRoutine: true }}
-  options={({ navigation }) => ({
-    header: () => (
-      <Header
-        title="Select Exercises"
-        leftIcon="back"
-        onLeftPress={navigation.goBack}
+      <Stack.Screen
+        name="CreateRoutineExercises"
+        component={ExercisesScreen}
+        initialParams={{ fromCreateRoutine: true }}
+        options={({ navigation }) => ({
+          header: () => (
+            <Header title="Select Exercises" leftIcon="back" onLeftPress={navigation.goBack} />
+          ),
+        })}
       />
-    ),
-  })}
-/>
 
       <Stack.Screen name="Add Measurement" component={AddMeasurementScreen} />
- <Stack.Screen
-  name="Log Workout"
-  component={LogWorkoutScreen}
-  options={({ navigation, route }) => ({
-    header: () => (
-      <Header
-        title="Log Workout"
-        leftIcon="back"
-        onLeftPress={() => navigation.goBack()}
-         rightText="Save"
+      <Stack.Screen
+        name="Log Workout"
+        component={LogWorkoutScreen}
+        options={({ navigation, route }) => ({
+          header: () => (
+            <Header
+              title="Log Workout"
+              leftIcon="back"
+              onLeftPress={() => navigation.goBack()}
+              rightText="Save"
               onRightPress={() => navigation.navigate("History")}
-       
+            />
+          ),
+        })}
       />
-    ),
-  })}
-/>
- <Stack.Screen
-  name="WorkoutDetails"
-  component={WorkoutDetailsScreen}
-  options={({ navigation }) => ({
-    header: () => (
-      <Header
-        title="Workout Details"
-        leftIcon="back"
-        onLeftPress={navigation.goBack}
+      <Stack.Screen
+        name="WorkoutDetails"
+        component={WorkoutDetailsScreen}
+        options={({ navigation }) => ({
+          header: () => (
+            <Header title="Workout Details" leftIcon="back" onLeftPress={navigation.goBack} />
+          ),
+        })}
       />
-    ),
-  })}
-/>
-
     </Stack.Navigator>
-  )
+  );
 }
