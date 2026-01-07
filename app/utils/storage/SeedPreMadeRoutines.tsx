@@ -1,7 +1,8 @@
 // utils/seedPreMadeRoutines.ts
 import { db } from "@/utils/storage";
 import { routines, routineExercises, routineSets, exercises } from "@/utils/storage/schema";
-import cuid from "cuid";
+import "react-native-get-random-values";
+import { v7 as uuidv7 } from "uuid";
 import { eq } from "drizzle-orm";
 import { InsertSeedDataOnce } from "@/utils/storage/insertSeedData"; // adjust path if needed
 
@@ -102,7 +103,7 @@ export async function seedPreMadeRoutines() {
 
     // create routine rows
     const createdRoutines = routineDefs.map((rd) => ({
-      id: cuid(),
+      id: uuidv7(),
       name: rd.name,
       description: rd.description ?? "",
       level: rd.level ?? "beginner",
@@ -139,7 +140,7 @@ export async function seedPreMadeRoutines() {
         report[rd.name].push({ name: found.exercise_name, id: found.id });
 
         routineExercisesInserts.push({
-          id: cuid(),
+          id: uuidv7(),
           routineId,
           exerciseId: found.id,
           unit: "kg" as const,
@@ -160,7 +161,7 @@ export async function seedPreMadeRoutines() {
             continue;
           }
           routineSetsInserts.push({
-            id: cuid(),
+            id: uuidv7(),
             routineId,
             exerciseId: found.id,
             weight: s.weight,

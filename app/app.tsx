@@ -39,7 +39,6 @@ const UPDATE_FLAG_KEY = "app:update:just_applied";
  * @returns {JSX.Element} The rendered `App` component.
  */
 export function App() {
-  
  useEffect(() => {
     runSeedersOnce();
 

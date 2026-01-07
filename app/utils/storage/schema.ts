@@ -1,12 +1,13 @@
 import { sqliteTable, text, integer,real  } from "drizzle-orm/sqlite-core";
 import { InferSelectModel } from "drizzle-orm";
 import { sql } from "drizzle-orm";
-import cuid from "cuid";
+import "react-native-get-random-values";
+import { v7 as uuidv7 } from "uuid";
 
 export const users = sqliteTable("users", {
-  id: text("id")
+    id: text("id")
     .primaryKey()
-    .$defaultFn(() => cuid()),
+    .$defaultFn(() => uuidv7()),
   username: text("username").default("Guest").notNull(),
   email: text("email").default("guest@example.com").notNull(),
   password: text("password").default("").notNull(),
@@ -20,7 +21,7 @@ export const users = sqliteTable("users", {
 export const exercises = sqliteTable("exercises", {
   id: text("id")
     .primaryKey()
-    .$defaultFn(() => cuid()),
+    .$defaultFn(() => uuidv7()),
   exercise_name: text("exercise_name").notNull(),
   exercise_type: text("exercise_type"),
   equipment: text("equipment").notNull(),
@@ -30,14 +31,14 @@ export const exercises = sqliteTable("exercises", {
 export const muscles = sqliteTable("muscles_targeted", {
   id: text("id")
     .primaryKey()
-    .$defaultFn(() => cuid()),
+    .$defaultFn(() => uuidv7()),
   name: text("name").notNull(),
 });
 
 export const exerciseMuscles = sqliteTable("exercise_muscles", {
   id: text("id")
     .primaryKey()
-    .$defaultFn(() => cuid()),
+    .$defaultFn(() => uuidv7()),
   exercise_id: text("exercise_id")
     .notNull()
     .references(() => exercises.id),
@@ -49,7 +50,7 @@ export const exerciseMuscles = sqliteTable("exercise_muscles", {
 export const measurements = sqliteTable("measurements", {
   id: text("id")
     .primaryKey()
-    .$defaultFn(() => cuid()),
+    .$defaultFn(() => uuidv7()),
   userId: text("user_id")
     .notNull()
     .references(() => users.id),
@@ -72,7 +73,7 @@ export const measurements = sqliteTable("measurements", {
 export const routines = sqliteTable("routines", {
   id: text("id")
     .primaryKey()
-    .$defaultFn(() => cuid()),
+    .$defaultFn(() => uuidv7()),
   name: text("name").notNull(),
   createdBy: text("created_by"),
   createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
@@ -84,7 +85,7 @@ export const routines = sqliteTable("routines", {
 export const routineExercises = sqliteTable("routine_exercises", {
   id: text("id")
     .primaryKey()
-    .$defaultFn(() => cuid()),
+    .$defaultFn(() => uuidv7()),
   routineId: text("routine_id")
     .notNull()
     .references(() => routines.id),
@@ -98,7 +99,7 @@ export const routineExercises = sqliteTable("routine_exercises", {
 export const routineSets = sqliteTable("routine_sets", {
   id: text("id")
     .primaryKey()
-    .$defaultFn(() => cuid()),
+    .$defaultFn(() => uuidv7()),
   routineId: text("routine_id")
     .notNull()
     .references(() => routines.id),
@@ -117,7 +118,7 @@ export const routineSets = sqliteTable("routine_sets", {
 export const workouts = sqliteTable("workouts", {
   id: text("id")
     .primaryKey()
-    .$defaultFn(() => cuid()),
+    .$defaultFn(() => uuidv7()),
   routineId: text("routineId"),
   date: text("date").notNull(),
   title: text("title").notNull(),
@@ -129,7 +130,7 @@ export const workouts = sqliteTable("workouts", {
 export const workoutExercises = sqliteTable("workout_exercises", {
   id: text("id")
     .primaryKey()
-    .$defaultFn(() => cuid()),
+    .$defaultFn(() => uuidv7()),
   workoutId: text("workout_id")
     .notNull()
     .references(() => workouts.id),
@@ -141,9 +142,9 @@ export const workoutExercises = sqliteTable("workout_exercises", {
 });
 
 export const workoutSets = sqliteTable("workout_sets", {
-  id: text("id")
+   id: text("id")
     .primaryKey()
-    .$defaultFn(() => cuid()),
+    .$defaultFn(() => uuidv7()),
   workoutId: text("workout_id")
     .notNull()
     .references(() => workouts.id),
@@ -168,7 +169,7 @@ export const workoutSets = sqliteTable("workout_sets", {
 export const userRoutineWorkout = sqliteTable("user_routine_workout", {
   id: text("id")
     .primaryKey()
-    .$defaultFn(() => cuid()),
+    .$defaultFn(() => uuidv7()),
   userId: text("user_id")
     .notNull()
     .references(() => users.id),

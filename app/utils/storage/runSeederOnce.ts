@@ -3,25 +3,20 @@ import { InsertSeedDataOnce } from "./insertSeedData";
 import { seedPreMadeRoutines } from "./SeedPreMadeRoutines";
 import { seedDefaultUser } from "./seedDefaultUser";
 
+const SEED_VERSION = "v1";
+
 export async function runSeedersOnce() {
-  try {
-    const hasSeeded = await AsyncStorage.getItem("HAS_SEEDED");
+  const version = await AsyncStorage.getItem("SEED_VERSION");
 
-    if (hasSeeded === "true") {
-      console.log("✔️ Seed already completed — skipping");
-      return;
-    }
-
-    console.log("🌱 Running initial seed...");
-    await InsertSeedDataOnce();
-    await seedPreMadeRoutines();
-    await seedDefaultUser();
-
-
-    await AsyncStorage.setItem("HAS_SEEDED", "true");
-    console.log("✔️ Seed successfully saved flag");
-    
-  } catch (err) {
-    console.error("❌ Seeder error:", err);
+  if (version === SEED_VERSION) {
+    console.log("✔️ Seed already completed — skipping");
+    return;
   }
+
+  console.log("🌱 Running initial seed...");
+  await InsertSeedDataOnce();
+  await seedPreMadeRoutines();
+  await seedDefaultUser();
+
+  await AsyncStorage.setItem("SEED_VERSION", SEED_VERSION);
 }
