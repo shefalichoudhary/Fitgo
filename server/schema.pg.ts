@@ -17,7 +17,7 @@ export const seedMeta = pgTable("seed_meta", {
 /* ================= USERS ================= */
 
 export const users = pgTable("users", {
-  id: uuid("id").primaryKey().default(sql`uuid_generate_v7()`),
+id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   username: text("username").notNull().default("Guest"),
   email: text("email").notNull().default("guest@example.com"),
   password: text("password").notNull().default(""),
@@ -33,7 +33,7 @@ export const users = pgTable("users", {
 /* ================= EXERCISES ================= */
 
 export const exercises = pgTable("exercises", {
-  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
+ id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   exercise_name: text("exercise_name").notNull(),
   exercise_type: text("exercise_type"),
   equipment: text("equipment").notNull(),
@@ -43,12 +43,12 @@ export const exercises = pgTable("exercises", {
 /* ================= MUSCLES ================= */
 
 export const muscles = pgTable("muscles_targeted", {
-  id: uuid("id").primaryKey().default(sql`uuid_generate_v7()`),
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
 });
 
 export const exerciseMuscles = pgTable("exercise_muscles", {
-  id: uuid("id").primaryKey().default(sql`uuid_generate_v7()`),
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   exercise_id: uuid("exercise_id")
     .notNull()
     .references(() => exercises.id, { onDelete: "cascade" }),
@@ -61,7 +61,7 @@ export const exerciseMuscles = pgTable("exercise_muscles", {
 /* ================= MEASUREMENTS ================= */
 
 export const measurements = pgTable("measurements", {
-  id: uuid("id").primaryKey().default(sql`uuid_generate_v7()`),
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: uuid("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
@@ -85,7 +85,7 @@ export const measurements = pgTable("measurements", {
 /* ================= ROUTINES ================= */
 
 export const routines = pgTable("routines", {
-  id: uuid("id").primaryKey().default(sql`uuid_generate_v7()`),
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   createdBy: uuid("created_by"),
   createdAt: text("created_at").default(sql`CURRENT_TIMESTAMP`),
@@ -97,7 +97,7 @@ export const routines = pgTable("routines", {
 /* ================= ROUTINE EXERCISES ================= */
 
 export const routineExercises = pgTable("routine_exercises", {
-  id: uuid("id").primaryKey().default(sql`uuid_generate_v7()`),
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   routineId: uuid("routine_id")
     .notNull()
     .references(() => routines.id, { onDelete: "cascade" }),
@@ -114,7 +114,7 @@ export const routineExercises = pgTable("routine_exercises", {
 /* ================= ROUTINE SETS ================= */
 
 export const routineSets = pgTable("routine_sets", {
-  id: uuid("id").primaryKey().default(sql`uuid_generate_v7()`),
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   routineId: uuid("routine_id")
     .notNull()
     .references(() => routines.id, { onDelete: "cascade" }),
@@ -135,7 +135,7 @@ export const routineSets = pgTable("routine_sets", {
 /* ================= WORKOUTS ================= */
 
 export const workouts = pgTable("workouts", {
-  id: uuid("id").primaryKey().default(sql`uuid_generate_v7()`),
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   routineId: uuid("routine_id"),
   date: text("date").notNull(),
   title: text("title").notNull(),
@@ -147,7 +147,7 @@ export const workouts = pgTable("workouts", {
 /* ================= WORKOUT EXERCISES ================= */
 
 export const workoutExercises = pgTable("workout_exercises", {
-  id: uuid("id").primaryKey().default(sql`uuid_generate_v7()`),
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   workoutId: uuid("workout_id")
     .notNull()
     .references(() => workouts.id, { onDelete: "cascade" }),
@@ -164,7 +164,7 @@ export const workoutExercises = pgTable("workout_exercises", {
 /* ================= WORKOUT SETS ================= */
 
 export const workoutSets = pgTable("workout_sets", {
-  id: uuid("id").primaryKey().default(sql`uuid_generate_v7()`),
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   workoutId: uuid("workout_id")
     .notNull()
     .references(() => workouts.id, { onDelete: "cascade" }),
@@ -192,7 +192,7 @@ export const workoutSets = pgTable("workout_sets", {
 /* ================= USER ROUTINE WORKOUT ================= */
 
 export const userRoutineWorkout = pgTable("user_routine_workout", {
-  id: uuid("id").primaryKey().default(sql`uuid_generate_v7()`),
+  id: uuid("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: uuid("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
