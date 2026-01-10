@@ -1,4 +1,3 @@
-// server/db.ts
 import "dotenv/config"; // ✅ MUST be first
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";

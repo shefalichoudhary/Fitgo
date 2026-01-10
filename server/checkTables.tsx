@@ -1,4 +1,3 @@
-// server/checkTables.tsx
 import { db } from "./seed/index";
 import { sql } from "drizzle-orm";
 
