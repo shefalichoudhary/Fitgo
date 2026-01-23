@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { FlatList, StyleSheet, Text, View } from "react-native";
 import { Screen } from "@/components/Screen";
 import { useRoute, useNavigation } from "@react-navigation/native";
@@ -16,6 +16,7 @@ import LoadingOverlay from "@/components/LoadingOverlay";
 import { updateRoutineDefinition } from "@/utils/updateRoutineDefinition";
 import { ConfirmModal } from "@/components/ConfirmModal";
 import { mapExerciseToBlockProps } from "@/utils/mappers/mapExerciseToBlockProps";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function LogWorkoutScreen() {
   const [alertVisible, setAlertVisible] = useState(false);
@@ -27,6 +28,7 @@ export default function LogWorkoutScreen() {
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
   const routineId = route.params?.routineId;
+  const REST_TIMER_HEIGHT = 110;
   const {
     routineTitle,
     exercisesData,
@@ -257,19 +259,12 @@ export default function LogWorkoutScreen() {
         if (!setId) return;
 
         toggleSetCompletion(_exerciseId, setId, completed);
-
-        if (completed && restSeconds > 0) {
-          setTimeout(() => {
-            const owner = restTimerRef.current?.getState?.();
-            if (owner?.exerciseId === _exerciseId && owner?.setId === setId) return;
-            restTimerRef.current?.start?.(_exerciseId, setId, restSeconds);
-          }, 0);
-        } else {
-          const owner = restTimerRef.current?.getState?.();
-          if (owner?.exerciseId === _exerciseId && owner?.setId === setId) {
-            restTimerRef.current?.stop?.();
-          }
-        }
+if (completed && restSeconds > 0) {
+  restTimerRef.current?.stop();
+  restTimerRef.current?.start(_exerciseId, setId, restSeconds);
+} else {
+  restTimerRef.current?.stop();
+}
       };
 
       const handleOpenRepsType = (exerciseId: string) => {
@@ -352,19 +347,15 @@ export default function LogWorkoutScreen() {
     return <LoadingOverlay visible={true} message="Loading workout..." />;
   }
   return (
-    <Screen preset="fixed" contentContainerStyle={styles.container}>
+       <SafeAreaView
+      style={[{ flex: 1, backgroundColor: "#000" }, styles.container]}
+      edges={[ "bottom"]} // ✅ THIS IS KEY
+    >
       <View style={styles.titleContainer}>
         <Text style={styles.title}>{routineTitle}</Text>
       </View>
-      <RestTimer
-        ref={restTimerRef}
-        resolveLabel={(exerciseId) => {
-          const ex = exercisesData.find((e) => e.id === exerciseId);
-          return ex ? (ex.exercise_name ?? ex.name ?? "Rest") : "Rest";
-        }}
-        onChange={(s) => {}}
-        onFinish={(exerciseId, setId) => {}}
-      />
+     
+<RestTimer ref={restTimerRef} />
       <WorkoutSummary
         completedSets={completedSets}
         totalSets={totalSets}
@@ -376,7 +367,7 @@ export default function LogWorkoutScreen() {
         data={exercisesData}
         keyExtractor={(item) => `${routineId ?? "session"}-${item.id}`}
         renderItem={renderExercise}
-        contentContainerStyle={{ paddingBottom: 30 }}
+        contentContainerStyle={{ paddingBottom: REST_TIMER_HEIGHT + 10,}}
         showsVerticalScrollIndicator={false}
       />
 
@@ -403,7 +394,7 @@ export default function LogWorkoutScreen() {
         secondaryText="Save & Update Routine"
         hideCancel={true}
       />
-    </Screen>
+    </SafeAreaView>
   );
 }
 

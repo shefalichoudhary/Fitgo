@@ -10,6 +10,7 @@ import type { DemoTabParamList } from "./navigationTypes"
 import { Header } from "@/components/Header"
 import { HomeStackNavigator } from "./HomeStackNavigator"
 import ExercisesScreen from "@/screens/Routine/ExercisesScreen"
+import { getFocusedRouteNameFromRoute } from "@react-navigation/native"
 
 const Tab = createBottomTabNavigator<DemoTabParamList>()
 
@@ -42,15 +43,25 @@ export function DemoNavigator() {
       }}
     >
       {/* 👇 Main Tab Screens */}
-      <Tab.Screen
-        name="Home"
-        component={HomeStackNavigator}
-        options={{
-          headerShown: false,
-          tabBarLabel: "Home",
-          tabBarIcon: getTabBarIcon("home-outline"),
-        }}
-      />
+     <Tab.Screen
+  name="Home"
+  component={HomeStackNavigator}
+  options={({ route }) => {
+    const routeName = getFocusedRouteNameFromRoute(route) ?? "HomeMain"
+
+    const hideTabBar = routeName === "Log Workout"
+
+    return {
+      headerShown: false,
+      tabBarLabel: "Home",
+      tabBarIcon: getTabBarIcon("home-outline"),
+      tabBarStyle: hideTabBar
+        ? { display: "none" }
+        : themed([$tabBar, { height: bottom + 70 }]),
+    }
+  }}
+/>
+
       <Tab.Screen
     name="Exercises"
     component={ExercisesScreen} // 👈 New one

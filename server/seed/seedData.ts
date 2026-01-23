@@ -328,6 +328,186 @@ const seedData= [
       { name: "Neck", role: "Secondary" },
     ],
   },
+    // -------- CHEST --------
+  {
+    exercise_name: "Chest Fly",
+    equipment: "Machine",
+    type: "Isolation",
+    exercise_type: "Weighted",
+    muscles: [
+      { name: "Pectoralis Major", role: "Primary" },
+      { name: "Anterior Deltoid", role: "Secondary" },
+    ],
+  },
+  {
+    exercise_name: "Cable Chest Fly",
+    equipment: "Cable",
+    type: "Isolation",
+    exercise_type: "Weighted",
+    muscles: [{ name: "Pectoralis Major", role: "Primary" }],
+  },
+
+  // -------- BACK --------
+  {
+    exercise_name: "Bent Over Row",
+    equipment: "Barbell",
+    type: "Compound",
+    exercise_type: "Weighted",
+    muscles: [
+      { name: "Latissimus Dorsi", role: "Primary" },
+      { name: "Rhomboids", role: "Secondary" },
+      { name: "Biceps Brachii", role: "Secondary" },
+    ],
+  },
+  {
+    exercise_name: "Single Arm Dumbbell Row",
+    equipment: "Dumbbell",
+    type: "Compound",
+    exercise_type: "Weighted",
+    muscles: [
+      { name: "Latissimus Dorsi", role: "Primary" },
+      { name: "Rhomboids", role: "Secondary" },
+    ],
+  },
+
+  // -------- SHOULDERS --------
+  {
+    exercise_name: "Arnold Press",
+    equipment: "Dumbbell",
+    type: "Compound",
+    exercise_type: "Weighted",
+    muscles: [
+      { name: "Deltoids", role: "Primary" },
+      { name: "Triceps Brachii", role: "Secondary" },
+    ],
+  },
+  {
+    exercise_name: "Upright Row",
+    equipment: "Barbell",
+    type: "Compound",
+    exercise_type: "Weighted",
+    muscles: [
+      { name: "Trapezius", role: "Primary" },
+      { name: "Lateral Deltoid", role: "Secondary" },
+    ],
+  },
+
+  // -------- ARMS --------
+  {
+    exercise_name: "Preacher Curl",
+    equipment: "Barbell",
+    type: "Isolation",
+    exercise_type: "Weighted",
+    muscles: [{ name: "Biceps Brachii", role: "Primary" }],
+  },
+  {
+    exercise_name: "Concentration Curl",
+    equipment: "Dumbbell",
+    type: "Isolation",
+    exercise_type: "Weighted",
+    muscles: [{ name: "Biceps Brachii", role: "Primary" }],
+  },
+  {
+    exercise_name: "Overhead Triceps Extension",
+    equipment: "Dumbbell",
+    type: "Isolation",
+    exercise_type: "Weighted",
+    muscles: [{ name: "Triceps Brachii", role: "Primary" }],
+  },
+
+  // -------- LEGS --------
+  {
+    exercise_name: "Walking Lunges",
+    equipment: "Dumbbell",
+    type: "Compound",
+    exercise_type: "Weighted",
+    muscles: [
+      { name: "Quadriceps", role: "Primary" },
+      { name: "Gluteus Maximus", role: "Secondary" },
+    ],
+  },
+  {
+    exercise_name: "Bulgarian Split Squat",
+    equipment: "Dumbbell",
+    type: "Compound",
+    exercise_type: "Weighted",
+    muscles: [
+      { name: "Quadriceps", role: "Primary" },
+      { name: "Gluteus Maximus", role: "Secondary" },
+    ],
+  },
+  {
+    exercise_name: "Hip Thrust",
+    equipment: "Barbell",
+    type: "Compound",
+    exercise_type: "Weighted",
+    muscles: [{ name: "Gluteus Maximus", role: "Primary" }],
+  },
+
+  // -------- CORE --------
+  {
+    exercise_name: "Hanging Leg Raise",
+    equipment: "Bodyweight",
+    type: "Isolation",
+    exercise_type: "Bodyweight",
+    muscles: [{ name: "Rectus Abdominis", role: "Primary" }],
+  },
+  {
+    exercise_name: "Russian Twist",
+    equipment: "Bodyweight",
+    type: "Isolation",
+    exercise_type: "Bodyweight",
+    muscles: [{ name: "Obliques", role: "Primary" }],
+  },
+  {
+    exercise_name: "Cable Crunch",
+    equipment: "Cable",
+    type: "Isolation",
+    exercise_type: "Weighted",
+    muscles: [{ name: "Rectus Abdominis", role: "Primary" }],
+  },
+
+  // -------- CARDIO / CONDITIONING --------
+  {
+    exercise_name: "Jump Squats",
+    equipment: "Bodyweight",
+    type: "Compound",
+    exercise_type: "Bodyweight",
+    muscles: [
+      { name: "Quadriceps", role: "Primary" },
+      { name: "Gluteus Maximus", role: "Secondary" },
+    ],
+  },
+  {
+    exercise_name: "Burpees",
+    equipment: "Bodyweight",
+    type: "Compound",
+    exercise_type: "Bodyweight",
+    muscles: [{ name: "Full Body", role: "Primary" }],
+  },
+
+  // -------- YOGA / MOBILITY --------
+  {
+    exercise_name: "Warrior II Pose",
+    equipment: "Bodyweight",
+    type: "Stretching",
+    exercise_type: "Yoga",
+    muscles: [
+      { name: "Quadriceps", role: "Primary" },
+      { name: "Gluteus Maximus", role: "Secondary" },
+    ],
+  },
+  {
+    exercise_name: "Bridge Pose",
+    equipment: "Bodyweight",
+    type: "Stretching",
+    exercise_type: "Yoga",
+    muscles: [
+      { name: "Gluteus Maximus", role: "Primary" },
+      { name: "Erector Spinae", role: "Secondary" },
+    ],
+  },
+
 ];
 
 export default seedData;

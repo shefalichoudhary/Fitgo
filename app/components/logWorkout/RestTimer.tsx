@@ -1,5 +1,10 @@
-// RestTimer.tsx
-import React, {useRef, useState, useEffect, useImperativeHandle, forwardRef} from 'react';
+import React, {
+  useRef,
+  useState,
+  useEffect,
+  useImperativeHandle,
+  forwardRef,
+} from 'react';
 import {
   View,
   Text,
@@ -9,391 +14,271 @@ import {
   Animated,
   Easing,
 } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
-// Optional: if your project has expo-av and expo-haptics available these will be used.
 let SoundLib: any = null;
 let Haptics: any = null;
+
 try {
   SoundLib = require('expo-av').Audio;
-} catch (e) {
-  SoundLib = null;
-}
+} catch {}
 try {
   Haptics = require('expo-haptics');
-} catch (e) {
-  Haptics = null;
-}
+} catch {}
 
 export type ActiveRestTimer = {
   exerciseId: string | null;
   setId?: string | null;
   remaining: number;
   running: boolean;
-  duration?: number;
+  total: number;   // ✅ renamed from duration
 };
 
 export type RestTimerHandle = {
   start: (exerciseId: string, setId: string | null, seconds: number) => void;
-  pause: () => void;
-  resume: () => void;
   stop: () => void;
-  getState: () => ActiveRestTimer;
-  
 };
 
-type Props = {
-  resolveLabel?: (exerciseId: string | null) => string;
-  onChange?: (state: ActiveRestTimer) => void;
-  onFinish?: (exerciseId: string | null, setId?: string | null) => void;
-  playSound?: boolean;
-  vibrationMs?: number;
-  compact?: boolean; // compact UI (less chrome)
-  primaryColor?: string; // progress color
-  backgroundColor?: string; // panel background
-  textColor?: string; // primary text color
+const formatTime = (s: number) => {
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  return `${m}:${sec.toString().padStart(2, '0')}`;
 };
 
-const RestTimer = forwardRef<RestTimerHandle, Props>(
-  (
-    {
-      resolveLabel,
-      onChange,
-      onFinish,
-      playSound = true,
-      vibrationMs = 500,
-      compact = false,
-      primaryColor = '#06b6d4',
-      backgroundColor = '#041224',
-      textColor = '#e6eef8',
-    },
-    ref
-  ) => {
-    const [state, setState] = useState<ActiveRestTimer>({
-      exerciseId: null,
-      setId: null,
-      remaining: 0,
-      running: false,
-      duration: 0,
-    });
+const RestTimer = forwardRef<RestTimerHandle>((_, ref) => {
+const [state, setState] = useState<ActiveRestTimer>({
+  exerciseId: null,
+  setId: null,
+  remaining: 0,
+  running: false,
+  total: 0,
+});
 
-    const stateRef = useRef<ActiveRestTimer>(state);
-    stateRef.current = state;
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const progress = useRef(new Animated.Value(0)).current;
 
-    const intervalRef = useRef<number | null>(null);
-    const ownerRef = useRef<{exerciseId: string | null; setId: string | null}>({
-      exerciseId: null,
-      setId: null,
-    });
+  const clearTimer = () => {
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    intervalRef.current = null;
+  };
+const playFinishSound = async () => {
+  try {
+    if (!SoundLib) return;
 
-    const soundRef = useRef<any>(null);
-
-    // Animated values for smooth progress + subtle pop animation on finish
-    const progressAnim = useRef(new Animated.Value(0)).current; // 0..1
-    const popAnim = useRef(new Animated.Value(1)).current;
-
-    useEffect(() => {
-      let mounted = true;
-      const load = async () => {
-        if (!SoundLib || !playSound) return;
-        try {
-          const {Sound} = SoundLib;
-          const asset = require('@/assets/sounds/beep.mp3');
-          const {sound} = await Sound.createAsync(asset);
-          if (!mounted) {
-            await sound.unloadAsync();
-            return;
-          }
-          soundRef.current = sound;
-        } catch (err) {
-          console.warn('RestTimer: sound load failed', err);
-        }
-      };
-      load();
-      return () => {
-        mounted = false;
-        if (soundRef.current) {
-          (async () => {
-            try {
-              await soundRef.current.unloadAsync?.();
-            } catch {}
-            soundRef.current = null;
-          })();
-        }
-      };
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [playSound]);
-
-    const clearIntervalRef = () => {
-      if (intervalRef.current !== null) {
-        clearInterval(intervalRef.current as any);
-        intervalRef.current = null;
-      }
-      ownerRef.current = {exerciseId: null, setId: null};
-    };
-
-    const animateProgressTo = (value: number) => {
-      Animated.timing(progressAnim, {
-        toValue: value,
-        duration: 350,
-        easing: Easing.out(Easing.quad),
-        useNativeDriver: false,
-      }).start();
-    };
-
-    const startInterval = () => {
-      if (intervalRef.current) return;
-      intervalRef.current = setInterval(() => {
-        setState((prev) => {
-          if (!prev) return prev;
-
-          const owner = ownerRef.current;
-          const ownerExerciseId = owner.exerciseId ?? null;
-          const ownerSetId = owner.setId ?? null;
-
-          if (ownerExerciseId !== (prev.exerciseId ?? null) || ownerSetId !== (prev.setId ?? null)) {
-            // owner changed out from under timer -> stop and report
-            clearIntervalRef();
-            const stopped = {...prev, running: false};
-            onChange?.(stopped);
-            animateProgressTo(0);
-            return stopped;
-          }
-
-          if (!prev.running) return prev;
-
-          if (prev.remaining <= 1) {
-            // finish
-            try {
-              if (playSound && soundRef.current?.replayAsync) {
-                soundRef.current.replayAsync?.catch(() => {
-                  Haptics?.notificationAsync?.('success');
-                  Vibration.vibrate(vibrationMs);
-                });
-              } else if (playSound && soundRef.current?.playAsync) {
-                soundRef.current.playAsync?.catch(() => {
-                  Haptics?.notificationAsync?.('success');
-                  Vibration.vibrate(vibrationMs);
-                });
-              } else {
-                Haptics?.notificationAsync?.('success');
-                Vibration.vibrate(vibrationMs);
-              }
-            } catch {
-              try {
-                Vibration.vibrate(vibrationMs);
-              } catch {}
-            }
-
-            clearIntervalRef();
-
-            // subtle pop animation
-            Animated.sequence([
-              Animated.timing(popAnim, {toValue: 1.06, duration: 120, useNativeDriver: true}),
-              Animated.timing(popAnim, {toValue: 1, duration: 180, useNativeDriver: true}),
-            ]).start();
-
-            const finishedState = {exerciseId: null, setId: null, remaining: 0, running: false, duration: 0};
-            onChange?.(finishedState);
-            onFinish?.(prev.exerciseId ?? null, prev.setId ?? null);
-            animateProgressTo(0);
-            return finishedState;
-          }
-
-          const next = {...prev, remaining: prev.remaining - 1};
-          onChange?.(next);
-          const dur = prev.duration ?? prev.remaining;
-          const p = dur > 0 ? 1 - (next.remaining / dur) : 1;
-          animateProgressTo(p);
-          return next;
-        });
-      }, 1000) as unknown as number;
-    };
-
-    useImperativeHandle(ref, () => ({
-      start: (exerciseId: string, setId: string | null, seconds: number) => {
-        clearIntervalRef();
-        ownerRef.current = {exerciseId, setId};
-        const secs = Math.max(0, Math.floor(seconds));
-        const newState: ActiveRestTimer = {
-          exerciseId,
-          setId,
-          remaining: secs,
-          running: true,
-          duration: secs,
-        };
-        setState(newState);
-        onChange?.(newState);
-        animateProgressTo(0);
-        // small scale pop when starting
-        Animated.sequence([
-          Animated.timing(popAnim, {toValue: 1.02, duration: 80, useNativeDriver: true}),
-          Animated.timing(popAnim, {toValue: 1, duration: 120, useNativeDriver: true}),
-        ]).start();
-        startInterval();
-      },
-      pause: () => {
-        if (intervalRef.current) clearInterval(intervalRef.current as any);
-        intervalRef.current = null;
-        setState((p) => {
-          if (!p) return p;
-          const next = {...p, running: false};
-          onChange?.(next);
-          return next;
-        });
-      },
-      resume: () => {
-        setState((p) => {
-          if (!p) return p;
-          if (p.remaining <= 0) {
-            const next = {...p, running: false};
-            onChange?.(next);
-            return next;
-          }
-          if (intervalRef.current) {
-            const next = {...p, running: true};
-            onChange?.(next);
-            return next;
-          }
-          const next = {...p, running: true};
-          onChange?.(next);
-          startInterval();
-          return next;
-        });
-      },
-      stop: () => {
-        clearIntervalRef();
-        const next: ActiveRestTimer = {exerciseId: null, setId: null, remaining: 0, running: false, duration: 0};
-        setState(next);
-        onChange?.(next);
-        animateProgressTo(0);
-      },
-      getState: () => stateRef.current,
-    }),
-    // keep empty deps so handle identity is stable
-    []);
-
-    useEffect(() => {
-      return () => {
-        if (intervalRef.current) clearInterval(intervalRef.current as any);
-        intervalRef.current = null;
-        ownerRef.current = {exerciseId: null, setId: null};
-        if (soundRef.current) {
-          (async () => {
-            try {
-              await soundRef.current.unloadAsync?.();
-            } catch {}
-            soundRef.current = null;
-          })();
-        }
-      };
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
-    if (!state || !state.exerciseId || state.remaining <= 0) return null;
-
-    const label = resolveLabel ? resolveLabel(state.exerciseId) : 'Rest';
-
-    // progress bar width interpolation
-    const widthInterp = progressAnim.interpolate({inputRange: [0, 1], outputRange: ['0%', '100%']});
-
-    return (
-      <Animated.View
-        style={[
-          styles.container,
-          compact ? styles.compactContainer : {},
-          {transform: [{scale: popAnim}], backgroundColor},
-        ]}
-        accessible
-        accessibilityRole="adjustable"
-      >
-        <View style={styles.left}>
-          <Text style={[styles.title, {color: '#94a3b8'}]} numberOfLines={1} ellipsizeMode="tail">
-            {label}
-          </Text>
-          <Text style={[styles.seconds, {color: textColor}]}>{state.remaining}s</Text>
-        </View>
-
-        <View style={styles.middle}>
-          {/* progress track is inset by middle padding to avoid touching card border */}
-          <View style={styles.progressTrack}>
-            <Animated.View style={[styles.progressFill, {width: widthInterp, backgroundColor: primaryColor}]} />
-          </View>
-
-          {/* duration / percent removed as requested */}
-        </View>
-
-        <View style={styles.controls}>
-          {state.running ? (
-            <TouchableOpacity onPress={() => (ref as any)?.current?.pause?.()} style={styles.actionBtn} accessibilityLabel="Pause rest timer">
-              <Text style={styles.actionText}>Pause</Text>
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity onPress={() => (ref as any)?.current?.resume?.()} style={styles.actionBtn} accessibilityLabel="Resume rest timer">
-              <Text style={styles.actionText}>Resume</Text>
-            </TouchableOpacity>
-          )}
-
-          <TouchableOpacity onPress={() => (ref as any)?.current?.stop?.()} style={[styles.actionBtn, styles.stopBtn]} accessibilityLabel="Stop rest timer">
-            <Text style={[styles.actionText, {color: '#fff'}]}>Stop</Text>
-          </TouchableOpacity>
-        </View>
-      </Animated.View>
+    const { sound } = await SoundLib.Sound.createAsync(
+      require("../../../assets/sounds/beep-end.mp3"), // 👈 your sound file
+      { shouldPlay: true }
     );
+
+    sound.setOnPlaybackStatusUpdate((status:any) => {
+      if (status.isLoaded && status.didJustFinish) {
+        sound.unloadAsync(); // ✅ cleanup
+      }
+    });
+  } catch (e) {
+    console.warn("Sound play failed", e);
   }
-);
+};
+
+const stopTimer = () => {
+  clearTimer();
+  progress.setValue(0);
+
+  setState({
+    exerciseId: null,
+    setId: null,
+    remaining: 0,
+    running: false,
+    total: 0, // ✅ FIX
+  });
+};
+
+const startInterval = () => {
+  intervalRef.current = setInterval(() => {
+    setState((prev) => {
+      if (!prev.running) return prev;
+
+      const nextRemaining = prev.remaining - 1;
+
+if (nextRemaining <= 0) {
+  clearTimer();
+  progress.setValue(1);
+
+  try {
+    playFinishSound();
+    Haptics?.notificationAsync?.("success");
+    Vibration.vibrate(500);
+  } catch {}
+
+  return {
+    exerciseId: null,
+    setId: null,
+    remaining: 0,
+    running: false,
+    total: 0, // ✅ FIX
+  };
+}
+
+  const ratio =
+  prev.total > 0 ? (prev.total - nextRemaining) / prev.total : 0;
+
+Animated.timing(progress, {
+  toValue: ratio,
+  duration: 200,
+  easing: Easing.linear,
+  useNativeDriver: false,
+}).start();
+
+      return { ...prev, remaining: nextRemaining };
+    });
+  }, 1000);
+};
+
+
+const adjust = (delta: number) => {
+  setState((prev) => {
+    if (!prev.running) return prev;
+
+    const nextRemaining = Math.max(0, prev.remaining + delta);
+    const nextTotal =
+      delta > 0 ? prev.total + delta : prev.total;
+
+    return {
+      ...prev,
+      remaining: nextRemaining,
+      total: Math.max(nextTotal, nextRemaining),
+    };
+  });
+};
+
+
+useImperativeHandle(ref, () => ({
+  start: (exerciseId, setId, seconds) => {
+    clearTimer();
+    progress.setValue(0);
+
+    setState({
+      exerciseId,
+      setId,
+      remaining: seconds,
+      total: seconds, // ✅ FIX
+      running: true,
+    });
+
+    startInterval();
+  },
+  stop: stopTimer,
+}));
+
+
+  if (!state.running) return null;
+
+  const width = progress.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0%', '100%'],
+  });
+
+  return (
+<SafeAreaView edges={["bottom"]} style={styles.wrapper}>
+  {/* Progress bar – full width */}
+  <View style={styles.progressTrack}>
+    <Animated.View style={[styles.progressFill, { width }]} />
+  </View>
+
+  {/* Controls */}
+  <View style={styles.content}>
+    <View style={styles.row}>
+      <TouchableOpacity onPress={() => adjust(-15)} style={styles.btn}>
+        <Text style={styles.btnText}>-15</Text>
+      </TouchableOpacity>
+
+      <Text style={styles.time}>{formatTime(state.remaining)}</Text>
+
+      <TouchableOpacity onPress={() => adjust(15)} style={styles.btn}>
+        <Text style={styles.btnText}>+15</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity onPress={stopTimer} style={styles.skip}>
+        <Text style={styles.skipText}>Skip</Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+</SafeAreaView>
+
+  );
+});
+
+  
 
 export default RestTimer;
-
 const styles = StyleSheet.create({
-  container: {
-    position: 'absolute',
-    left: 16,
-    right: 16,
-    bottom: 24,
-    zIndex: 1000,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 14,
-    paddingTop: 12,
-    paddingBottom: 16, // ensure inner bottom spacing so progress track never touches card border
-    borderRadius: 14,
-    backgroundColor: '#041224',
-    borderWidth: 1,
-    borderColor: '#063043',
-    shadowColor: '#000',
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+  wrapper: {
+    position: "absolute",
+    bottom: 0,                 // ✅ SafeArea handles spacing
+    left: 0,
+    right: 0,
+    backgroundColor: "#000000",
+    borderTopWidth: 1,
+    borderColor: "#0f172a",
+    zIndex: 9999,
+    elevation: 20,
   },
-  compactContainer: {
-    paddingVertical: 8,
-    paddingHorizontal: 10,
-    borderRadius: 10,
-  },
-  left: {width: 96},
-  title: {color: '#94a3b8', fontSize: 12},
-  seconds: {color: '#e6eef8', fontSize: 22, fontWeight: '800'},
-  middle: {flex: 1, paddingHorizontal: 12},
+
+  /* ───────── Progress Bar ───────── */
   progressTrack: {
-    height: 10,
-    backgroundColor: 'transparent', // transparent avoids seam with card border
-    borderRadius: 8,
-    overflow: 'hidden',
-    width: '100%',
+    height: 5,
+    backgroundColor: "#000000",
+    overflow: "hidden",
   },
-  progressFill: {height: '100%', borderRadius: 8, width: '0%'},
-  metaRow: {flexDirection: 'row', justifyContent: 'space-between', marginTop: 8},
-  metaText: {fontSize: 11, color: '#94a3b8'},
-  controls: {flexDirection: 'row', alignItems: 'center'},
-  actionBtn: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+
+  progressFill: {
+    height: "100%",
+    backgroundColor: "#3b82f6",
+  },
+
+  /* ───────── Content Area ───────── */
+  content: {
+    paddingHorizontal: 18,
+    paddingTop: 12,
+    paddingBottom: 8,
+  },
+
+  row: {
+    flexDirection: "row",
+    alignItems: "center",      // ✅ vertical alignment
+    justifyContent: "space-between",
+  },
+
+  btn: {
+    paddingHorizontal: 16,
+    paddingVertical: 9,
     borderRadius: 10,
-    backgroundColor: '#06202a',
-    borderWidth: 1,
-    borderColor: '#0f3440',
-    marginLeft: 8,
+    backgroundColor: "#111827",
   },
-  stopBtn: {backgroundColor: '#ef4444', borderColor: '#dc2626'},
-  actionText: {color: '#cbd5e1', fontWeight: '700'},
+
+  btnText: {
+    color: "#e5e7eb",
+    fontWeight: "700",
+  },
+
+time: {
+  width: 72,              // ✅ FIXED WIDTH (key line)
+  textAlign: "center",
+  fontSize: 20,
+  fontWeight: "800",
+  color: "#ffffff",
+},
+
+  skip: {
+    paddingHorizontal: 16,
+    paddingVertical: 9,
+    borderRadius: 10,
+    backgroundColor: "#2563eb",
+  },
+
+  skipText: {
+    color: "#ffffff",
+    fontWeight: "700",
+  },
 });
+

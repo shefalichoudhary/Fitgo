@@ -46,7 +46,7 @@ export const HomeScreen: React.FC = () => {
   }
 
   return (
-    <Screen preset="scroll" contentContainerStyle={styles.screenContent}>
+    <Screen preset="scroll" contentContainerStyle={styles.container}>
       <Text style={styles.screenTitle}>
         Welcome Back           {user ? `, ${user.name || "Athlete"}` : ""}
       </Text>
@@ -156,13 +156,7 @@ const OptionCard = ({
 )
 
 const styles = StyleSheet.create({
-  screenContent: {
-    paddingHorizontal: 16,
-    paddingTop: 24,
-    paddingBottom: 40,
-    backgroundColor: "#000000ff",
-    flexGrow: 1,
-  },
+  container: { flexGrow: 1, padding: 16, backgroundColor: "#000000ff" },
   screenTitle: {
     fontSize: 28,
     fontWeight: "bold",
