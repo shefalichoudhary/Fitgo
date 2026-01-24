@@ -16,7 +16,7 @@ if (__DEV__) {
   // If you turn it off in metro.config.js, you'll have to manually import it.
   require("./devtools/ReactotronConfig.ts")
 }
-import "react-native-get-random-values"
+import "react-native-get-random-values";
 import "./utils/gestureHandler"
 import { RoutineProvider } from "@/context/RoutineContext"
 import { KeyboardProvider } from "react-native-keyboard-controller"
@@ -60,7 +60,7 @@ export function App() {
       } catch (_) {}
     })();
   }, []);
-
+  
   return (
         <AppUpdateChecker>
         <GestureHandlerRootView style={{ flex: 1 }}>

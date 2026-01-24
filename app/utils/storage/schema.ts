@@ -1,22 +1,38 @@
 import { sqliteTable, text, integer,real  } from "drizzle-orm/sqlite-core";
 import { InferSelectModel } from "drizzle-orm";
 import { sql } from "drizzle-orm";
-import "react-native-get-random-values";
 import { v7 as uuidv7 } from "uuid";
 
 export const users = sqliteTable("users", {
-    id: text("id")
+  id: text("id")
     .primaryKey()
     .$defaultFn(() => uuidv7()),
-  username: text("username").default("Guest").notNull(),
-  email: text("email").default("guest@example.com").notNull(),
-  password: text("password").default("").notNull(),
-  bio: text("bio").default("Productive. Passionate. Progress-driven. Always learning.").notNull(),
-  google: integer("google").default(0), // 0 = normal/guest user, 1 = Google user
+  username: text("username")
+    .default("Guest")
+    .notNull(),
+  email: text("email")
+    .default("guest@example.com")
+    .notNull(),
+  password: text("password")
+    .default("")
+    .notNull(),
+  bio: text("bio")
+    .default("Productive. Passionate. Progress-driven. Always learning.")
+    .notNull(),
+  google: integer("google")
+    .default(0), // 0 = normal/guest user, 1 = Google user
   photo: text("photo").default(""),
-  fitness_goal: text("fitness_goal").default("lose fat").notNull(),
-  created_at: text("created_at").$defaultFn(() => new Date().toISOString()),
-});
+  age: integer("age"),                // years
+  height: integer("height"),           // cm
+  gender: text("gender"),              // male / female / other
+  experience: text("experience"),      // beginner / intermediate / advanced
+  fitness_goal: text("fitness_goal")
+    .default("lose fat")
+    .notNull(),
+  created_at: text("created_at")
+    .$defaultFn(() => new Date().toISOString()),
+})
+
 
 export const exercises = sqliteTable("exercises", {
   id: text("id")
@@ -54,6 +70,7 @@ export const measurements = sqliteTable("measurements", {
   userId: text("user_id")
     .notNull()
     .references(() => users.id),
+     notes: text("notes"),
   date: text("date").$defaultFn(() => new Date().toISOString()),
   weight: real("weight"),
   bodyFat: real("body_fat"),

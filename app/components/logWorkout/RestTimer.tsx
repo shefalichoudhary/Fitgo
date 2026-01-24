@@ -226,7 +226,7 @@ const styles = StyleSheet.create({
 
   /* ───────── Progress Bar ───────── */
   progressTrack: {
-    height: 5,
+    height: 6,
     backgroundColor: "#000000",
     overflow: "hidden",
   },
@@ -239,7 +239,7 @@ const styles = StyleSheet.create({
   /* ───────── Content Area ───────── */
   content: {
     paddingHorizontal: 18,
-    paddingTop: 12,
+    paddingTop: 15,
     paddingBottom: 8,
   },
 
@@ -264,7 +264,7 @@ const styles = StyleSheet.create({
 time: {
   width: 72,              // ✅ FIXED WIDTH (key line)
   textAlign: "center",
-  fontSize: 20,
+  fontSize: 26,
   fontWeight: "800",
   color: "#ffffff",
 },
@@ -278,7 +278,7 @@ time: {
 
   skipText: {
     color: "#ffffff",
-    fontWeight: "700",
-  },
+    fontWeight: "400",
+    fontSize: 16,}
 });
 

@@ -2,7 +2,9 @@ import { useCallback } from "react";
 
 
 export const useRoutineHelpers = (setExercises: (fn: any) => void) => {
+  const isLocked = (s: any) => s?.isCompleted === true;
   // Small helper to update a single exercise by id
+
   const updateExercise = useCallback(
     (id: string, fn: (ex: any) => any) =>
       setExercises((prev: any[]) => prev.map((ex) => (ex.id === id ? fn(ex) : ex))),
@@ -44,18 +46,21 @@ export const useRoutineHelpers = (setExercises: (fn: any) => void) => {
   );
 
   // Toggle repsType for a single set (keeps "rep range" wording consistent)
-  const toggleRepsType = useCallback(
-    (eid: string, sid: string) =>
-      updateExercise(eid, (ex: any) => ({
-        ...ex,
-        sets: (ex.sets || []).map((s: any) =>
-          s.id === sid
-            ? { ...s, repsType: s.repsType === "reps" ? "rep range" : "reps" }
-            : s
-        ),
-      })),
-    [updateExercise]
-  );
+const toggleRepsType = useCallback(
+  (eid: string, sid: string) =>
+    updateExercise(eid, (ex: any) => ({
+      ...ex,
+      sets: (ex.sets || []).map((s: any) => {
+        if (s.id !== sid) return s;
+        if (isLocked(s)) return s; // 🔒 BLOCK
+        return {
+          ...s,
+          repsType: s.repsType === "reps" ? "rep range" : "reps",
+        };
+      }),
+    })),
+  [updateExercise]
+);
 
   // update arbitrary set field
   const updateSetField = useCallback(

@@ -4,6 +4,7 @@ import { View, Text, TouchableOpacity, StyleSheet, AccessibilityRole } from "rea
 import { Ionicons } from "@expo/vector-icons";
 import type { Exercise, DataShape } from "./types";
 import { ConfirmModal } from "../ConfirmModal"; // adjust path if needed
+import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 
 type Props = {
   exercise: Exercise;
@@ -39,8 +40,7 @@ export default function Header({ exercise, data, onDelete, disabled = false }: P
           accessibilityRole={"button" as AccessibilityRole}
           accessibilityLabel="Exercise options"
         >
-          {/* question-mark / help icon */}
-          <Ionicons name="help-circle-outline" size={22} color="#ffd166" />
+          <FontAwesome6 name="question" size={22} color="white" />
         </TouchableOpacity>
       </View>
 
@@ -76,9 +76,7 @@ const styles = StyleSheet.create({
   iconBtn: {
     width: 36,
     height: 36,
-    borderRadius: 999,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#1f2937", // dark grey bubble
   },
 });

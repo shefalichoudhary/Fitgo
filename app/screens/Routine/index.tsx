@@ -11,6 +11,34 @@ import cuid from "cuid";
 import { Ionicons } from "@expo/vector-icons"
 import LoadingOverlay from "@/components/LoadingOverlay"
 
+const getFullRoutineData = async (routineId: string) => {
+  const routineExerciseRows = await db
+    .select()
+    .from(routineExercises)
+    .where(sql`${routineExercises.routineId} = ${routineId}`)
+
+  return Promise.all(
+    routineExerciseRows.map(async (re) => {
+      const sets = await db
+        .select()
+        .from(routineSets)
+        .where(
+          sql`${routineSets.routineId} = ${routineId}
+              AND ${routineSets.exerciseId} = ${re.exerciseId}`
+        )
+
+      return {
+        exerciseId: re.exerciseId,
+        notes: re.notes,
+        unit: re.unit,
+        repsType: re.repsType,
+        restTimer: re.restTimer,
+        sets,
+      }
+    })
+  )
+}
+
 export default function RoutineScreen() {
   const { routinesData, setRoutinesData, loading } = useRoutines()
   const handleDelete = async (id: string) => {
@@ -24,53 +52,51 @@ export default function RoutineScreen() {
     }
   }
 
-
 const handleDuplicate = async (routine: RoutineWithExercises) => {
   try {
-    const newRoutineId = cuid();
+    const newRoutineId = cuid()
 
-    // Insert routine in DB
+    // 1️⃣ Duplicate routine
     await db.insert(routines).values({
       id: newRoutineId,
-      name: routine.title + " (Copy)", 
+      name: routine.title + " (Copy)",
       createdBy: null,
       isPreMade: 0,
       level: "beginner",
       description: "",
-    });
+    })
 
-    for (const ex of routine.exercises) {
-      const newExId = cuid();
+    // 2️⃣ Fetch FULL routine data (🔥 KEY FIX)
+    const fullExercises = await getFullRoutineData(routine.id)
 
+    // 3️⃣ Duplicate exercises + sets
+    for (const ex of fullExercises) {
       await db.insert(routineExercises).values({
-        id: newExId,
+        id: cuid(),
         routineId: newRoutineId,
-        exerciseId: ex.id, // map ex.id to exerciseId
-        notes: "",          // default
-        unit: "kg",         // default
-        repsType: "reps",   // default
-        restTimer: 0,
-      });
+        exerciseId: ex.exerciseId,
+        notes: ex.notes ?? "",
+        unit: ex.unit ?? "kg",
+        repsType: ex.repsType ?? "reps",
+        restTimer: ex.restTimer ?? 0,
+      })
 
-      // Make sure ex.sets is an array, not a number
-      if (Array.isArray(ex.sets)) {
-        for (const set of ex.sets) {
-          await db.insert(routineSets).values({
-            id: cuid(),
-            routineId: newRoutineId,
-            exerciseId: newExId,
-            weight: set.weight ?? 0,
-            reps: set.reps ?? 0,
-            minReps: set.minReps ?? 0,
-            maxReps: set.maxReps ?? 0,
-            duration: set.duration ?? 0,
-            setType: set.setType ?? "Normal",
-          });
-        }
+      for (const set of ex.sets) {
+        await db.insert(routineSets).values({
+          id: cuid(),
+          routineId: newRoutineId,
+          exerciseId: ex.exerciseId,
+          weight: set.weight ?? 0,
+          reps: set.reps ?? 0,
+          minReps: set.minReps ?? null,
+          maxReps: set.maxReps ?? null,
+          duration: set.duration ?? 0,
+          setType: set.setType ?? "Normal",
+        })
       }
     }
 
-    // Update local state
+    // 4️⃣ Optimistic UI update
     setRoutinesData([
       {
         ...routine,
@@ -78,11 +104,11 @@ const handleDuplicate = async (routine: RoutineWithExercises) => {
         title: routine.title + " (Copy)",
       },
       ...routinesData,
-    ]);
+    ])
   } catch (error) {
-    console.error("Failed to duplicate routine:", error);
+    console.error("Failed to duplicate routine:", error)
   }
-};
+}
 
 
   if (loading) {

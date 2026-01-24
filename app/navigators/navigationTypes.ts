@@ -40,7 +40,20 @@ CreateRoutine: {
 AddMeasurement: {
   editData?: Measurement;
 };
-  LogWorkout: {routineId:string}
+ LogWorkout: {
+  routineId: string;
+  selectedExercises?: {
+    id: string;
+    exercise_name: string;
+    exercise_type?: string | null;
+    equipment?: string;
+    notes?: string;
+    restTimer?: number;
+    unit?: "kg" | "lbs";
+    repsType?: "reps" | "rep range";
+    sets: any[];
+  }[];
+};
 
 }
 
@@ -55,7 +68,11 @@ export type ProfileStackParamList = {
   Profile: undefined;
 }
 export type ExercisesStackParamList = {
-Exercises: { alreadyAdded?: string[] };
+Exercises: {
+  alreadyAdded?: string[];
+  from?: "createRoutine" | "logWorkout";
+  routineId?: string;
+};
 }
 // App Stack Navigator types
 export type AppStackParamList = {

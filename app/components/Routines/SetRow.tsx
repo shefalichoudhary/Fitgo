@@ -16,6 +16,7 @@ import {
 } from "react-native";
 import { ConfirmModal } from "@/components/ConfirmModal";
 import DurationTimer from "@/components/Routines/DurationTimer"; // <- adjust path if needed
+import SetActionsModal from "./SetActionsModal";
 
 type Props = {
   idx: number;
@@ -66,17 +67,13 @@ export default function SetRow({
   };
 
   const closeMenu = () => setMenuVisible(false);
+const getSetTypeColor = () => {
+  if (set.setType === "W") return "#facc15"; // yellow
+  if (set.setType === "F") return "#ef4444"; // red
+  return "#ffffff"; // Normal
+};
 
-  const selectType = (type: string) => {
-    const value = type === "Warmup" ? "W" : type === "Failure" ? "F" : (type as any);
-    onChangeField(idx, "setType", value as any);
-    closeMenu();
-  };
 
-  const handleDelete = () => {
-    closeMenu();
-    onRemove(idx);
-  };
 
   const handleToggle = () => {
     if (isCompleted) {
@@ -133,7 +130,14 @@ export default function SetRow({
           accessibilityRole="button"
           accessibilityLabel="Open set actions"
         >
-          <Text style={[styles.indexText]}>{set.setType === "Normal" ? idx + 1 : set.setType}</Text>
+          <Text
+  style={[
+    styles.indexText,
+    { color: getSetTypeColor() },
+  ]}
+>
+  {set.setType === "Normal" ? idx + 1 : set.setType}
+</Text>
         </TouchableOpacity>
       </View>
 
@@ -258,58 +262,26 @@ export default function SetRow({
             {isCompleted ? (
               <Ionicons name="checkmark" size={16} color="#071026" />
             ) : (
-              <Ionicons name="ellipse-outline" size={16} color="#94a3b8" />
+               <Ionicons name="checkmark" size={18} color="white" />
             )}
           </TouchableOpacity>
         ) : null}
       </View>
 
-      {/* actions modal */}
-      <Modal visible={menuVisible} transparent animationType="slide" onRequestClose={closeMenu}>
-        <Pressable style={styles.modalOverlay} onPress={closeMenu}>
-          <SafeAreaView style={styles.safeArea}>
-            <Pressable style={styles.bottomSheet} onPress={(e) => e.stopPropagation()}>
-              <Text style={styles.modalTitle}>Set actions</Text>
-              <Pressable style={[styles.modalItem]} onPress={() => selectType("Normal")}>
-                <Text
-                  style={[
-                    styles.modalItemText,
-                    currentSetType === "Normal" && styles.modalItemTextActive,
-                  ]}
-                >
-                  Normal
-                </Text>
-              </Pressable>
-              <Pressable style={[styles.modalItem]} onPress={() => selectType("Warmup")}>
-                <Text
-                  style={[
-                    styles.modalItemText,
-                    currentSetType === "Warmup" && styles.modalItemTextActive,
-                  ]}
-                >
-                  Warmup
-                </Text>
-              </Pressable>
-
-              <Pressable style={[styles.modalItem]} onPress={() => selectType("Failure")}>
-                <Text
-                  style={[
-                    styles.modalItemText,
-                    currentSetType === "Failure" && styles.modalItemTextActive,
-                  ]}
-                >
-                  Failure
-                </Text>
-              </Pressable>
-
-              <Pressable style={[styles.modalItem, styles.deleteItem]} onPress={handleDelete}>
-                <Text style={[styles.modalItemText, styles.deleteText]}>Delete set</Text>
-              </Pressable>
-            </Pressable>
-          </SafeAreaView>
-        </Pressable>
-      </Modal>
-
+     <SetActionsModal
+  visible={menuVisible}
+  currentSetType={currentSetType as any}
+  onClose={closeMenu}
+  onSelectType={(type) => {
+    const value = type === "Warmup" ? "W" : type === "Failure" ? "F" : "Normal";
+    onChangeField(idx, "setType", value as any);
+    closeMenu();
+  }}
+  onDelete={() => {
+    closeMenu();
+    onRemove(idx);
+  }}
+/>
       <ConfirmModal
         visible={confirmVisible}
         title="Incomplete Set"
@@ -338,7 +310,7 @@ const styles = StyleSheet.create({
   },
 
   rowCompleted: {
-    backgroundColor: "rgba(16,185,129,0.06)",
+    backgroundColor: "#294b29",
     borderRadius: 8,
     padding: 6,
   },
@@ -390,10 +362,10 @@ const styles = StyleSheet.create({
     height: 36,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: "#122032",
+     backgroundColor: "transparent",
+    borderColor: "gray",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "transparent",
   },
   indexText: {
     fontWeight: "700",
@@ -441,62 +413,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   checkboxActive: {
-    backgroundColor: "#08865cff",
-    borderColor: "#0b3a26ff",
+    backgroundColor: "#019a01",
+    borderColor: "#019a01",
   },
 
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.6)",
-    justifyContent: "flex-end", // 👈 bottom
-  },
-
-  safeArea: {
-    width: "100%",
-  },
-
-  bottomSheet: {
-    width: "100%",
-    backgroundColor: "#000000ff",
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingTop: 12,
-    paddingHorizontal: 16,
-    borderWidth: 1,
-    borderColor: "#122032",
-    paddingBottom: Platform.OS === "android" ? 55 : 0,
-  },
-
-  modalTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    marginBottom: 12,
-    textAlign: "center",
-    color: "#e6eef8",
-  },
-
-  modalItem: {
-    paddingVertical: 14,
-    borderRadius: 10,
-  },
-
-  modalItemText: {
-    textAlign: "center",
-    fontSize: 15,
-    color: "#e6eef8",
-  },
-
-  deleteItem: {
-    marginTop: 8,
-    backgroundColor: "#2a0a0a",
-  },
-
-  deleteText: {
-    color: "#ff7878",
-    fontWeight: "700",
-  },
-  modalItemTextActive: {
-    color: "#1d4ed8",
-    fontWeight: "700",
-  },
+ 
 });

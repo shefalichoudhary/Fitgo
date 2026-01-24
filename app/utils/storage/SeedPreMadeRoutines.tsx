@@ -68,35 +68,94 @@ export async function seedPreMadeRoutines() {
     };
 
     // 4) define your routines (use desired names or ids)
-    const routineDefs: RoutineDef[] = [
-      {
-        name: "Full Body Beginner",
-        description: "A balanced full-body routine for beginners, 3 times a week.",
-        level: "beginner",
-        isPreMade: 1,
-        exerciseNames: ["Barbell Squat", "Bench Press", "Deadlift"],
-        sets: [
-          { exerciseName: "Barbell Squat", weight: 50, reps: 10, setType: "Normal" },
-          { exerciseName: "Barbell Squat", weight: 55, reps: 8, setType: "Normal" },
-          { exerciseName: "Bench Press", weight: 40, reps: 10, setType: "Normal" },
-          { exerciseName: "Deadlift", weight: 70, reps: 5, setType: "Normal" },
-        ],
-      },
-      {
-        name: "Upper / Lower Split",
-        description: "A simple upper/lower split for building strength and size.",
-        level: "intermediate",
-        isPreMade: 1,
-        exerciseNames: ["Bench Press", "Lat Pulldown",  "Leg Press"],
-        sets: [
-          { exerciseName: "Bench Press", weight: 40, reps: 8, setType: "Normal" },
-          { exerciseName: "Lat Pulldown", weight: 60, reps: 10, setType: "Normal" },
-          { exerciseName: "Leg Press", weight: 100, reps: 12, setType: "Normal" },
-          { exerciseName: "Leg Press", weight: 120, reps: 15, setType: "Normal" },
+const routineDefs: RoutineDef[] = [
+  {
+    name: "Full Body Beginner",
+    description: "A balanced full-body routine for beginners, 3 times a week.",
+    level: "beginner",
+    isPreMade: 1,
+    exerciseNames: ["Barbell Squat", "Bench Press", "Deadlift"],
+    sets: [
+      { exerciseName: "Barbell Squat", weight: 50, reps: 10 },
+      { exerciseName: "Barbell Squat", weight: 55, reps: 8 },
+      { exerciseName: "Bench Press", weight: 40, reps: 10 },
+      { exerciseName: "Deadlift", weight: 70, reps: 5 },
+    ],
+  },
 
-        ],
-      },
-    ];
+  {
+    name: "Upper / Lower Split",
+    description: "A simple upper/lower split for building strength and size.",
+    level: "intermediate",
+    isPreMade: 1,
+    exerciseNames: ["Bench Press", "Lat Pulldown", "Leg Press"],
+    sets: [
+      { exerciseName: "Bench Press", weight: 40, reps: 8 },
+      { exerciseName: "Lat Pulldown", weight: 60, reps: 10 },
+      { exerciseName: "Leg Press", weight: 100, reps: 12 },
+      { exerciseName: "Leg Press", weight: 120, reps: 15 },
+    ],
+  },
+
+  /* ───────────────────────── NEW ROUTINES ───────────────────────── */
+
+  {
+    name: "Push Day",
+    description: "Chest, shoulders and triceps focused push workout.",
+    level: "intermediate",
+    isPreMade: 1,
+    exerciseNames: ["Bench Press", "Shoulder Press", "Triceps Pushdown"],
+    sets: [
+      { exerciseName: "Bench Press", weight: 50, reps: 8 },
+      { exerciseName: "Bench Press", weight: 55, reps: 6 },
+      { exerciseName: "Shoulder Press", weight: 30, reps: 10 },
+      { exerciseName: "Triceps Pushdown", weight: 25, reps: 12 },
+    ],
+  },
+
+  {
+    name: "Pull Day",
+    description: "Back and biceps focused pull workout.",
+    level: "intermediate",
+    isPreMade: 1,
+    exerciseNames: ["Lat Pulldown", "Barbell Row", "Bicep Curl"],
+    sets: [
+      { exerciseName: "Lat Pulldown", weight: 65, reps: 10 },
+      { exerciseName: "Barbell Row", weight: 60, reps: 8 },
+      { exerciseName: "Barbell Row", weight: 65, reps: 6 },
+      { exerciseName: "Bicep Curl", weight: 20, reps: 12 },
+    ],
+  },
+
+  {
+    name: "Leg Day Strength",
+    description: "Heavy lower body strength-focused routine.",
+    level: "advanced",
+    isPreMade: 1,
+    exerciseNames: ["Barbell Squat", "Leg Press", "Romanian Deadlift"],
+    sets: [
+      { exerciseName: "Barbell Squat", weight: 80, reps: 5 },
+      { exerciseName: "Barbell Squat", weight: 90, reps: 3 },
+      { exerciseName: "Leg Press", weight: 160, reps: 8 },
+      { exerciseName: "Romanian Deadlift", weight: 70, reps: 8 },
+    ],
+  },
+
+  {
+    name: "Beginner Fat Loss",
+    description: "Simple full-body routine aimed at fat loss and conditioning.",
+    level: "beginner",
+    isPreMade: 1,
+    exerciseNames: ["Goblet Squat", "Push Up", "Lat Pulldown"],
+    sets: [
+      { exerciseName: "Goblet Squat", weight: 20, reps: 15 },
+      { exerciseName: "Push Up", weight: 0, reps: 12 },
+      { exerciseName: "Lat Pulldown", weight: 50, reps: 12 },
+      { exerciseName: "Lat Pulldown", weight: 55, reps: 10 },
+    ],
+  },
+];
+  
 
     // 5) insert routines and collect a report of used exercises
     const report: Record<string, Array<{ name: string; id: string }>> = {};

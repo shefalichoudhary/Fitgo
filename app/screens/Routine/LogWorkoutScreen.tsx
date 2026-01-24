@@ -17,18 +17,22 @@ import { updateRoutineDefinition } from "@/utils/updateRoutineDefinition";
 import { ConfirmModal } from "@/components/ConfirmModal";
 import { mapExerciseToBlockProps } from "@/utils/mappers/mapExerciseToBlockProps";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { InputField } from "@/components/InputField";
+import { Button } from "@/components/Button";
 
 export default function LogWorkoutScreen() {
   const [alertVisible, setAlertVisible] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [workoutTitle, setWorkoutTitle] = useState("Workout Session");
   const [alertMessage, setAlertMessage] = useState("");
   const [navigateAfterAlert, setNavigateAfterAlert] = useState(false);
   const [saveConfirmVisible, setSaveConfirmVisible] = useState(false);
+  const [isFinalizing, setIsFinalizing] = useState(false);
+
   const [saving, setSaving] = useState(false);
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
   const routineId = route.params?.routineId;
-  const REST_TIMER_HEIGHT = 110;
   const {
     routineTitle,
     exercisesData,
@@ -48,6 +52,11 @@ export default function LogWorkoutScreen() {
       setUser(fetchedUser);
     })();
   }, []);
+  useEffect(() => {
+  if (routineTitle) {
+    setWorkoutTitle(routineTitle);
+  }
+}, [routineTitle]);
 
   useEffect(() => {
     let mounted = true;
@@ -121,7 +130,7 @@ export default function LogWorkoutScreen() {
 
   const handleSave = async () => {
     const anyCompleted = exercisesData.some((ex) => ex.sets.some((s) => s.completed === true));
-
+  if (saving || isFinalizing) return;
     if (!anyCompleted) {
       setAlertMessage("Please complete at least one set before saving the workout.");
       setAlertVisible(true);
@@ -139,15 +148,17 @@ export default function LogWorkoutScreen() {
   };
 
   const performSave = async (saveAndUpdateRoutine: boolean) => {
-    if (saving) return;
-    setSaveConfirmVisible(false);
-    setSaving(true);
+   if (saving || isFinalizing) return;
 
+  setIsFinalizing(true);      // 🔒 freeze operations
+  setSaveConfirmVisible(false);
+  setSaving(true);
+    restTimerRef.current?.stop();
     try {
       await saveWorkoutSession({
         userId: user.id,
         routineId,
-        routineName: routineTitle,
+         routineName: workoutTitle,
         totalSets,
         completedSets,
         totalVolume,
@@ -158,7 +169,6 @@ export default function LogWorkoutScreen() {
       if (saveAndUpdateRoutine && routineId) {
         try {
           await updateRoutineDefinition(routineId, {
-            title: routineTitle,
             exercises: exercisesData,
           });
         } catch (err) {
@@ -169,6 +179,7 @@ export default function LogWorkoutScreen() {
       setAlertMessage("Workout Saved! Your workout has been added to History.");
       setNavigateAfterAlert(true);
       setAlertVisible(true);
+      
     } catch (err) {
       console.error("saveWorkoutSession failed:", err);
       setAlertMessage("Failed to save workout. Please try again.");
@@ -351,9 +362,11 @@ if (completed && restSeconds > 0) {
       style={[{ flex: 1, backgroundColor: "#000" }, styles.container]}
       edges={[ "bottom"]} // ✅ THIS IS KEY
     >
-      <View style={styles.titleContainer}>
-        <Text style={styles.title}>{routineTitle}</Text>
-      </View>
+      <InputField
+  placeholder="Routine title"
+  value={workoutTitle}
+  onChangeText={setWorkoutTitle}
+/>
      
 <RestTimer ref={restTimerRef} />
       <WorkoutSummary
@@ -367,9 +380,10 @@ if (completed && restSeconds > 0) {
         data={exercisesData}
         keyExtractor={(item) => `${routineId ?? "session"}-${item.id}`}
         renderItem={renderExercise}
-        contentContainerStyle={{ paddingBottom: REST_TIMER_HEIGHT + 10,}}
+        contentContainerStyle={{ paddingBottom: 12,}}
         showsVerticalScrollIndicator={false}
       />
+
 
       <AppAlert
         visible={alertVisible}
@@ -399,7 +413,5 @@ if (completed && restSeconds > 0) {
 }
 
 const styles = StyleSheet.create({
-  container: { flexGrow: 1, padding: 16, backgroundColor: "#000000ff" },
-  titleContainer: { marginBottom: 16 },
-  title: { color: "#fff", fontSize: 24, fontWeight: "bold" },
+  container: { flexGrow: 1, padding: 10, backgroundColor: "#000000ff" },
 });

@@ -35,8 +35,8 @@ export const WorkoutSummary = ({
 
 const styles = StyleSheet.create({
   summaryCard: {
-    backgroundColor: "#1E1E1E",
-    paddingVertical: 16,
+    // backgroundColor: "#1E1E1E",
+    paddingVertical: 8,
     borderRadius: 12,
     marginBottom: 20,
     shadowColor: "#000",
@@ -45,7 +45,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     elevation: 5,
   },
-  row: { flexDirection: "row", justifyContent: "space-between" },
+  row: { flexDirection: "row", justifyContent: "space-around" },
   column: { alignItems: "center", flex: 1 },
   label: { color: "#aaa", fontSize: 13, fontWeight: "600", marginBottom: 4 },
   value: { color: "#fff", fontSize: 14, fontWeight: "700" },

@@ -3,7 +3,7 @@ import { InsertSeedDataOnce } from "./insertSeedData";
 import { seedPreMadeRoutines } from "./SeedPreMadeRoutines";
 import { seedDefaultUser } from "./seedDefaultUser";
 
-const SEED_VERSION = "v1";
+const SEED_VERSION = "v5";
 
 export async function runSeedersOnce() {
   const version = await AsyncStorage.getItem("SEED_VERSION");

@@ -1,327 +1,282 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react"
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
   TextInput,
-} from "react-native";
-import { db } from "@/utils/storage";
-import { users } from "@/utils/storage/schema";
-import { eq } from "drizzle-orm";
-import { Ionicons } from "@expo/vector-icons";
-import { getCurrentUser } from "@/utils/user";
-import { ConfirmModal } from "@/components/ConfirmModal"; // adjust path
-import LoadingOverlay from "@/components/LoadingOverlay";
-import Feather from '@expo/vector-icons/Feather';
+  ScrollView,
+} from "react-native"
+import { db } from "@/utils/storage"
+import { users } from "@/utils/storage/schema"
+import { eq } from "drizzle-orm"
+import { Ionicons } from "@expo/vector-icons"
+import { getCurrentUser } from "@/utils/user"
+import { ConfirmModal } from "@/components/ConfirmModal"
+import LoadingOverlay from "@/components/LoadingOverlay"
+import Feather from "@expo/vector-icons/Feather"
 
-type Props = { navigation?: any };
-type ConfirmType = "save" | "cancel" | null;
+type ConfirmType = "save" | "cancel" | null
 
-export default function ProfileScreen({ navigation }: Props) {
-  const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<any>(null);
-  const [editing, setEditing] = useState(false);
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
-  const [bio, setBio] = useState("");
-  const [confirmVisible, setConfirmVisible] = useState(false);
-  const [confirmType, setConfirmType] = useState<ConfirmType>(null);
-  const [saving, setSaving] = useState(false);
+export default function ProfileScreen() {
+  const [loading, setLoading] = useState(true)
+  const [user, setUser] = useState<any>(null)
+  const [editing, setEditing] = useState(false)
+
+  const [form, setForm] = useState({
+    username: "",
+    email: "",
+    age: "",
+    height: "",
+    gender: "",
+    experience: "",
+    fitness_goal: "",
+    bio: "",
+  })
+
+  const [confirmVisible, setConfirmVisible] = useState(false)
+  const [confirmType, setConfirmType] = useState<ConfirmType>(null)
+  const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     const fetchUser = async () => {
-      try {
-        const userData = await getCurrentUser();
-        if (userData) {
-          setUser(userData);
-          setUsername(userData.username);
-          setEmail(userData.email);
-          setBio(userData.bio);
-        } else {
-          console.log("⚠️ No user found in DB");
-        }
-      } catch (error) {
-        console.error("❌ Failed to fetch user:", error);
-      } finally {
-        setLoading(false);
+      const u = await getCurrentUser()
+      if (u) {
+        setUser(u)
+        setForm({
+          username: u.username ?? "",
+          email: u.email ?? "",
+          age: u.age?.toString() ?? "",
+          height: u.height?.toString() ?? "",
+          gender: u.gender ?? "",
+          experience: u.experience ?? "",
+          fitness_goal: u.fitness_goal ?? "",
+          bio: u.bio ?? "",
+        })
       }
-    };
-    fetchUser();
-  }, []);
-
-  const onSavePressed = () => {
-    setConfirmType("save");
-    setConfirmVisible(true);
-  };
-
-  const onCancelPressed = () => {
-    setConfirmType("cancel");
-    setConfirmVisible(true);
-  };
-
-  const performSave = async () => {
-    if (!user) return;
-    try {
-      setSaving(true);
-      await db.update(users).set({ username, email ,bio}).where(eq(users.id, user.id)).run();
-      setUser({ ...user, username, email,bio });
-      setEditing(false);
-    } catch (err) {
-      console.error("❌ Failed to update profile:", err);
-    } finally {
-      setSaving(false);
-      setConfirmVisible(false);
-      setConfirmType(null);
+      setLoading(false)
     }
-  };
+    fetchUser()
+  }, [])
 
-  const performDiscard = () => {
-    if (user) {
-      setUsername(user.username);
-      setEmail(user.email);
-      setBio(user.bio);
-    } else {
-      setUsername("");
-      setEmail("");
-      setBio("");
-    }
-    setEditing(false);
-    setConfirmVisible(false);
-    setConfirmType(null);
-  };
+  const handleChange = (key: string, value: string) => {
+    setForm((p) => ({ ...p, [key]: value }))
+  }
 
-  const handleConfirm = () => {
-    if (confirmType === "save") {
-      performSave();
-    } else if (confirmType === "cancel") {
-      performDiscard();
-    } else {
-      setConfirmVisible(false);
-      setConfirmType(null);
-    }
-  };
+  const saveProfile = async () => {
+    if (!user) return
+    setSaving(true)
 
-  const handleCancelInModal = () => {
-    setConfirmVisible(false);
-    setConfirmType(null);
-  };
+    await db
+      .update(users)
+      .set({
+        username: form.username,
+        email: form.email,
+        age: form.age ? Number(form.age) : null,
+        height: form.height ? Number(form.height) : null,
+        gender: form.gender || null,
+        experience: form.experience || null,
+        fitness_goal: form.fitness_goal ,
+        bio: form.bio,
+      })
+      .where(eq(users.id, user.id))
+      .run()
+
+    setEditing(false)
+    setConfirmVisible(false)
+    setSaving(false)
+  }
+
+  const discardChanges = () => {
+    if (!user) return
+    setForm({
+      username: user.username ?? "",
+      email: user.email ?? "",
+      age: user.age?.toString() ?? "",
+      height: user.height?.toString() ?? "",
+      gender: user.gender ?? "",
+      experience: user.experience ?? "",
+      fitness_goal: user.fitness_goal ?? "",
+      bio: user.bio ?? "",
+    })
+    setEditing(false)
+    setConfirmVisible(false)
+  }
 
   if (loading) {
-    return (
-      <View style={styles.loaderContainer}>
-        <LoadingOverlay visible={loading} message="Loading profile..." />
-      </View>
-    );
+    return <LoadingOverlay visible message="Loading profile..." />
   }
-
-  if (!user) {
-    return (
-      <View style={styles.loaderContainer}>
-        <Ionicons
-          name="person-circle-outline"
-          size={100}
-          color="#6B7280"
-          style={{ marginBottom: 20 }}
-        />
-        <Text style={{ color: "#fff", fontSize: 22, fontWeight: "bold", marginBottom: 10 }}>
-          Profile Not Found
-        </Text>
-        <Text
-          style={{
-            color: "#9CA3AF",
-            fontSize: 15,
-            textAlign: "center",
-            marginBottom: 25,
-            paddingHorizontal: 20,
-          }}
-        >
-          We couldn’t find your profile information. Please make sure you’re logged in or create a
-          new profile to get started.
-        </Text>
-      </View>
-    );
-  }
-
-  const modalProps = (() => {
-    if (confirmType === "save") {
-      return {
-        title: "Save changes?",
-        message: "Do you want to save the changes you made to your profile?",
-        cancelText: "Cancel",
-        confirmText: saving ? "Saving..." : "Save",
-      };
-    } else if (confirmType === "cancel") {
-      return {
-        title: "Discard changes?",
-        message: "Are you sure you want to discard your unsaved changes?",
-        cancelText: "Keep editing",
-        confirmText: "Discard",
-      };
-    } else {
-      return {
-        title: "Confirm",
-        message: "Are you sure?",
-        cancelText: "Cancel",
-        confirmText: "OK",
-      };
-    }
-  })();
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 40 }}>
       <View style={styles.card}>
-        {/* Full Name */}
-        <View style={styles.section}>
-          <Text style={styles.label}>Full Name</Text>
-          <TextInput
-            style={styles.valueInput}
-            value={username}
-            editable={editing}
-            onChangeText={setUsername}
-          />
+
+        {/* HEADER */}
+        <View style={styles.header}>
+          <Ionicons name="person-circle-outline" size={72} color="#FFF" />
+          <Text style={styles.name}>{form.username}</Text>
+          <Text style={styles.email}>{form.email}</Text>
         </View>
 
-        {/* Email */}
-        <View style={styles.section}>
-          <Text style={styles.label}>Email Address</Text>
-          <TextInput
-            style={styles.valueInput}
-            value={email}
-            editable={editing}
-            onChangeText={setEmail}
-          />
-        </View>
+        {/* PERSONAL */}
+        <Section title="Personal Information">
+          <Field label="Full Name" value={form.username} editable={editing} onChange={(v:any)=>handleChange("username",v)} />
+          <Field label="Email" value={form.email} editable={editing} onChange={(v:any)=>handleChange("email",v)} />
+          <Field label="Age" value={form.age} editable={editing} keyboardType="numeric" onChange={(v:any)=>handleChange("age",v)} />
+          <Field label="Height (cm)" value={form.height} editable={editing} keyboardType="numeric" onChange={(v:any)=>handleChange("height",v)} />
 
-        {/* Bio */}
-        <View style={styles.section}>
-          <Text style={styles.label}>Bio</Text>
-          <TextInput
-            value={bio}
-            onChangeText={setBio}
-            multiline
-            numberOfLines={3}
-            style={styles.textArea}
-            editable={editing}
-            placeholder="Share your story..."
-            placeholderTextColor="#6c757d"
-          />
-        </View>
+          {/* GENDER */}
+          {(editing || !form.gender) && (
+            <OptionGroup
+              label="Gender"
+              options={["Male", "Female", "Other"]}
+              value={form.gender}
+              onChange={(v:any)=>handleChange("gender",v)}
+            />
+          )}
+          {!editing && form.gender && (
+            <Field label="Gender" value={form.gender} editable={false} />
+          )}
+        </Section>
 
-        <View style={styles.divider} />
+        {/* FITNESS */}
+        <Section title="Fitness Profile">
+          {(editing || !form.experience) && (
+            <OptionGroup
+              label="Experience"
+              options={["Beginner","Intermediate","Advanced"]}
+              value={form.experience}
+              onChange={(v:any)=>handleChange("experience",v)}
+            />
+          )}
+          {!editing && form.experience && (
+            <Field label="Experience" value={form.experience} editable={false} />
+          )}
 
-        {/* Stats */}
-        <View style={styles.statsRow}>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>120</Text>
-            <Text style={styles.statLabel}>Workouts</Text>
+          {(editing || !form.fitness_goal) && (
+            <OptionGroup
+              label="Fitness Goal"
+              options={["Lose Fat","Build Muscle","Stay Fit"]}
+              value={form.fitness_goal}
+              onChange={(v:any)=>handleChange("fitness_goal",v)}
+            />
+          )}
+          {!editing && form.fitness_goal && (
+            <Field label="Fitness Goal" value={form.fitness_goal} editable={false} />
+          )}
+
+          <View style={styles.section}>
+            <Text style={styles.label}>Bio</Text>
+            <TextInput
+              value={form.bio}
+              editable={editing}
+              multiline
+              onChangeText={(v)=>handleChange("bio",v)}
+              style={styles.textArea}
+              placeholder="Tell something about yourself…"
+              placeholderTextColor="#6B7280"
+            />
           </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>34</Text>
-            <Text style={styles.statLabel}>Routines</Text>
-          </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>18</Text>
-            <Text style={styles.statLabel}>Favorites</Text>
-          </View>
-        </View>
+        </Section>
 
+        {/* ACTIONS */}
         {editing ? (
-          <View style={styles.editButtonsRow}>
-            <TouchableOpacity style={styles.primaryButton} onPress={onSavePressed}>
-              <Text style={styles.primaryButtonText}>Save</Text>
+          <View style={styles.actions}>
+            <TouchableOpacity style={styles.primaryBtn} onPress={()=>{setConfirmType("save");setConfirmVisible(true)}}>
+              <Text style={styles.btnDark}>Save</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.cancelButton} onPress={onCancelPressed}>
-              <Text style={styles.cancelButtonText}>Cancel</Text>
+            <TouchableOpacity style={styles.secondaryBtn} onPress={()=>{setConfirmType("cancel");setConfirmVisible(true)}}>
+              <Text style={styles.btnLight}>Cancel</Text>
             </TouchableOpacity>
           </View>
         ) : (
-         <View style={styles.editButtonsRow}>
-  <TouchableOpacity style={styles.primaryButton} onPress={() => setEditing(true)}>
-    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-    <Feather name="edit" size={24} color="white"  style={{ marginRight: 8 }} />
-    <Text style={styles.primaryButtonText}>Edit Profile</Text>
-    </View>
-
-  </TouchableOpacity>
-</View>
+          <TouchableOpacity style={styles.primaryBtn} onPress={()=>setEditing(true)}>
+            <View style={{flexDirection:"row",alignItems:"center"}}>
+              <Feather name="edit" size={18} color="#000" />
+              <Text style={[styles.btnDark,{marginLeft:8}]}>Edit Profile</Text>
+            </View>
+          </TouchableOpacity>
         )}
       </View>
 
       <ConfirmModal
         visible={confirmVisible}
-        title={modalProps.title}
-        message={modalProps.message}
-        cancelText={modalProps.cancelText}
-        confirmText={modalProps.confirmText}
-        onCancel={handleCancelInModal}
-        onConfirm={handleConfirm}
+        title={confirmType==="save"?"Save changes?":"Discard changes?"}
+        message={confirmType==="save"?"Save profile updates?":"Unsaved changes will be lost."}
+        cancelText="Cancel"
+        confirmText={saving?"Saving...":"Confirm"}
+        onCancel={()=>setConfirmVisible(false)}
+        onConfirm={confirmType==="save"?saveProfile:discardChanges}
       />
-    </View>
-  );
+    </ScrollView>
+  )
 }
 
+/* ───────── HELPERS ───────── */
+
+const Section = ({ title, children }: any) => (
+  <View style={{ marginBottom: 26 }}>
+    <Text style={styles.sectionTitle}>{title}</Text>
+    {children}
+  </View>
+)
+
+const Field = ({ label, value, editable, onChange, keyboardType="default" }: any) => (
+  <View style={styles.section}>
+    <Text style={styles.label}>{label}</Text>
+    <TextInput
+      value={value}
+      editable={editable}
+      keyboardType={keyboardType}
+      onChangeText={onChange}
+      style={styles.input}
+    />
+  </View>
+)
+
+const OptionGroup = ({ label, options, value, onChange }: any) => (
+  <View style={styles.section}>
+    <Text style={styles.label}>{label}</Text>
+    <View style={styles.optionRow}>
+      {options.map((opt:string)=>{
+        const selected = value===opt
+        return (
+          <TouchableOpacity key={opt} onPress={()=>onChange(opt)} style={[styles.optionChip, selected && styles.optionActive]}>
+            <View style={[styles.radioOuter, selected && styles.radioOuterActive]}>
+              {selected && <View style={styles.radioInner} />}
+            </View>
+            <Text style={[styles.optionText, selected && styles.optionTextActive]}>{opt}</Text>
+          </TouchableOpacity>
+        )
+      })}
+    </View>
+  </View>
+)
+
+/* ───────── STYLES ───────── */
+
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#000000ff", padding: 12 },
-  loaderContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#000000ff",
-  },
-  card: {
-    backgroundColor: "#101111ff",
-    padding: 20,
-    borderRadius: 14,
-    shadowColor: "#000",
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    elevation: 5,
-  },
-  section: { marginBottom: 20 },
-  label: { fontSize: 13, fontWeight: "500", color: "#9CA3AF", marginBottom: 5, letterSpacing: 0.3 },
-  valueInput: {
-    fontSize: 17,
-    color: "#E5E7EB",
-    fontWeight: "400",
-    borderBottomWidth: 1,
-    borderBottomColor: "#374151",
-    paddingVertical: 4,
-  },
-  textArea: {
-    borderWidth: 1,
-    borderColor: "#212224ff",
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 15,
-    textAlignVertical: "top",
-    color: "#D1D5DB",
-    backgroundColor: "#1c1c1dff",
-    lineHeight: 20,
-  },
-  divider: { borderBottomWidth: 1, borderBottomColor: "#374151", marginVertical: 20 },
-  statsRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 28 },
-  statItem: { alignItems: "center", flex: 1 },
-  statNumber: { fontSize: 20, fontWeight: "700", color: "#F3F4F6", marginBottom: 4 },
-  statLabel: { fontSize: 12, color: "#9CA3AF", letterSpacing: 0.2 },
-  editButtonsRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 14 },
-  primaryButton: {
-    flex: 1,
-    backgroundColor: "#2563EB",
-    paddingVertical: 14,
-    borderRadius: 10,
-    alignItems: "center",
-    marginRight: 8,
-  },
-  cancelButton: {
-    flex: 1,
-    backgroundColor: "#6B7280",
-  paddingVertical: 14,
-    borderRadius: 10,
-    alignItems: "center",
-    marginRight: 8,
-  },
-  primaryButtonText: { color: "white", fontWeight: "600", fontSize: 16 },
-  cancelButtonText: { color: "white", fontWeight: "600", fontSize: 16 },
-  logoutButtonText: { color: "#EF4444", fontWeight: "600", fontSize: 15 },
-});
+  container:{ flex:1, backgroundColor:"#000" },
+  card:{ backgroundColor:"#0B0B0C", margin:12, padding:20, borderRadius:20, borderWidth:1, borderColor:"#1F1F1F" },
+  header:{ alignItems:"center", marginBottom:28 },
+  name:{ color:"#FFF", fontSize:20, fontWeight:"700", marginTop:8 },
+  email:{ color:"#9CA3AF", fontSize:13 },
+  sectionTitle:{ color:"#E5E7EB", fontSize:13, fontWeight:"700", marginBottom:12, textTransform:"uppercase" },
+  section:{ marginBottom:14 },
+  label:{ color:"#9CA3AF", fontSize:12, marginBottom:6 },
+  input:{ borderBottomWidth:1, borderBottomColor:"#2A2A2A", color:"#FFF", fontSize:15, paddingVertical:6 },
+  textArea:{ borderWidth:1, borderColor:"#2A2A2A", borderRadius:12, padding:12, color:"#FFF", backgroundColor:"#050505", minHeight:90 },
+  optionRow:{ flexDirection:"row", flexWrap:"wrap", gap:10 },
+  optionChip:{ flexDirection:"row", alignItems:"center", padding:10, borderRadius:14, borderWidth:1, borderColor:"#2A2A2A", backgroundColor:"#050505" },
+  optionActive:{ backgroundColor:"#FFF", borderColor:"#FFF" },
+  optionText:{ color:"#D1D5DB", fontSize:13 },
+  optionTextActive:{ color:"#000", fontWeight:"700" },
+  radioOuter:{ width:16, height:16, borderRadius:8, borderWidth:2, borderColor:"#6B7280", marginRight:8, alignItems:"center", justifyContent:"center" },
+  radioOuterActive:{ borderColor:"#000" },
+  radioInner:{ width:8, height:8, borderRadius:4, backgroundColor:"#000" },
+  actions:{ flexDirection:"row", gap:12 },
+  primaryBtn:{ backgroundColor:"#FFF", paddingVertical:14, borderRadius:14, alignItems:"center", flex:1 },
+  secondaryBtn:{ backgroundColor:"#1F2937", paddingVertical:14, borderRadius:14, alignItems:"center", flex:1 },
+  btnDark:{ color:"#000", fontWeight:"700", fontSize:15 },
+  btnLight:{ color:"#FFF", fontWeight:"700", fontSize:15 },
+})

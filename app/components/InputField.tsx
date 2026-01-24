@@ -20,6 +20,7 @@ export const InputField: React.FC<InputFieldProps> = ({
   keyboardType = "default",
   leftIcon,
   onLeftIconPress,
+    ...props // ✅ ALL TextInput props (multiline, maxLength, etc.)
 }) => {
   return (
     <View style={styles.container}>
@@ -28,7 +29,8 @@ export const InputField: React.FC<InputFieldProps> = ({
           <Ionicons name={leftIcon} size={22} color="#aaa" />
         </TouchableOpacity>
       )}
-      <TextInput
+            <TextInput
+        {...props} 
         style={styles.input}
         placeholder={placeholder}
         placeholderTextColor="#A0AEC0"

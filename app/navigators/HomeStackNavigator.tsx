@@ -106,7 +106,7 @@ export function HomeStackNavigator() {
               leftIcon="back"
               onLeftPress={() => navigation.goBack()}
               rightText="Save"
-              onRightPress={() => navigation.navigate("History")}
+              onRightPress={() => navigation.navigate("HomeMain")}
             />
           ),
         })}

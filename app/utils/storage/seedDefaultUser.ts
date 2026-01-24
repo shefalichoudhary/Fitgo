@@ -18,7 +18,7 @@ export async function seedDefaultUser() {
     bio: "Productive. Passionate. Progress-driven. Always learning.",
     google: 0,
     photo: "",
-    fitness_goal: "lose fat",
+    
   });
 
   console.log("User seeded");

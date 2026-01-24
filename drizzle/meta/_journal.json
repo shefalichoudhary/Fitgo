@@ -43,6 +43,20 @@
       "when": 1765137482928,
       "tag": "0005_little_venus",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1769212737963,
+      "tag": "0006_tidy_terrax",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1769214486007,
+      "tag": "0007_wandering_joseph",
+      "breakpoints": true
     }
   ]
 }

@@ -9,20 +9,19 @@ export const WorkoutCard = ({ item, onLongPress, onPress }: any) => {
   return (
     <TouchableOpacity activeOpacity={0.9} onPress={onPress} onLongPress={onLongPress}>
       <View style={styles.card}>
-        {/* Date */}
-        <Text style={styles.dateText}>{formattedDate}</Text>
+  {/* Date + Duration */}
+<View style={styles.rowBetween}>
+  <Text style={styles.dateText}>{formattedDate}</Text>
 
-        {/* Title + Duration */}
-        <View style={styles.rowBetween}>
-          <Text style={styles.titleText}>{item.title || "Workout"}</Text>
+  {item.duration ? (
+    <Text style={styles.durationChip}>
+      ⏱ {formatDuration(item.duration)}
+    </Text>
+  ) : null}
+</View>
 
-          {item.duration ? (
-            <Text style={styles.durationChip}>
-              ⏱ {formatDuration(item.duration)}
-            </Text>
-          ) : null}
-        </View>
-
+{/* Title */}
+<Text style={styles.titleText}>{item.title || "Workout"}</Text>
         {/* Muscle Groups */}
         {item.muscleGroups ? (
           <View style={styles.chipRow}>
@@ -45,7 +44,7 @@ export const WorkoutCard = ({ item, onLongPress, onPress }: any) => {
           <View style={styles.infoRow}>
             <Text style={styles.infoIcon}>⏱</Text>
             <Text style={styles.infoText}>
-              Rest: {formatDuration(item.restTime)}
+              Rest Timer: {formatDuration(item.restTime)}
             </Text>
           </View>
         ) : null}
@@ -86,15 +85,15 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   rowBetween: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-  dateText: { fontSize: 13, color: "#d9d9d9", fontWeight: "600" },
-  durationChip: {
-    backgroundColor: "#1f1f1f",
-    paddingVertical: 3,
-    paddingHorizontal: 8,
-    borderRadius: 10,
-    fontSize: 11,
-    color: "#bfbfbf",
-  },
+  dateText: { fontSize: 13, color: "#3B82F6", fontWeight: "600" },
+durationChip: {
+  backgroundColor: "#1f2933",
+  paddingVertical: 3,
+  paddingHorizontal: 8,
+  borderRadius: 999,
+  fontSize: 11,
+  color: "#cbd5e1",
+},
 
   chipRow: { flexDirection: "row", marginTop: 6 },
 
@@ -125,6 +124,7 @@ infoRow: {
 
 infoIcon: {
   fontSize: 13,
+  color:"white"
 },
 
 infoText: {

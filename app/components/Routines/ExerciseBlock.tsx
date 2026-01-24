@@ -94,25 +94,40 @@ export default function ExerciseBlock({
     [sets, onChange, data]
   );
 
-  const handleAddSet = useCallback(() => {
-    if (visibleSets < sets.length) {
-      setVisibleSets((v) => v + 1);
-      return;
-    }
-    const newSet: Set = {
-      id: `${exercise.id}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-      reps: null,
-      weight: null,
-      duration: null, // NEW: support duration
-      unit: narrowUnit(data.unit),
-      repsType: narrowRepsType(data.repsType),
-      isCompleted: false,
-      setType: "Normal",
-    };
-    const next = [...sets, newSet].map((s) => normalizeSet(s, data.unit, data.repsType));
-    onChange({ ...data, sets: next });
-    setVisibleSets(next.length);
-  }, [visibleSets, sets, onChange, data, exercise.id]);
+const handleAddSet = useCallback(() => {
+  if (visibleSets < sets.length) {
+    setVisibleSets((v) => v + 1);
+    return;
+  }
+
+  const lastSet = sets[sets.length - 1];
+
+  const newSet: Set = lastSet
+    ? {
+        ...lastSet, // 👈 COPY previous set values
+
+        id: `${exercise.id}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        isCompleted: false, // 👈 reset completion
+      }
+    : {
+        id: `${exercise.id}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        reps: null,
+        weight: null,
+        duration: null,
+        unit: narrowUnit(data.unit),
+        repsType: narrowRepsType(data.repsType),
+        isCompleted: false,
+        setType: "Normal",
+      };
+
+  const next = [...sets, newSet].map((s) =>
+    normalizeSet(s, data.unit, data.repsType)
+  );
+
+  onChange({ ...data, sets: next });
+  setVisibleSets(next.length);
+}, [visibleSets, sets, onChange, data, exercise.id]);
+
 
   const handleRemoveSet = useCallback(
     (index: number) => {
@@ -341,13 +356,12 @@ export default function ExerciseBlock({
   );
 }
 
-// ... keep your styles from the original file unchanged (omitted here for brevity)
 
 const styles = StyleSheet.create({
   // overall
   container: {
     marginBottom: 12,
-    padding: 12,
+    padding: 10,
     borderRadius: 12,
     backgroundColor: "#161616ff", // dark card
     borderWidth: 1,
@@ -359,7 +373,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#080808ff",
     borderRadius: 10,
-    paddingHorizontal: 14,
+    paddingHorizontal: 13,
     paddingVertical: 16,
     backgroundColor: "#020202e1",
     color: "#e7eaecff",
@@ -368,15 +382,12 @@ const styles = StyleSheet.create({
   empty: { textAlign: "center", paddingVertical: 12, color: "#94a3b8" },
 
   restRow: {
-    marginTop: 8,
+    marginTop: 3,
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: 10,
     paddingHorizontal: 8,
     borderRadius: 8,
-    backgroundColor: "#050505ff",
-    borderWidth: 1,
-    borderColor: "#030303ff",
   },
   restLeft: {
     flexDirection: "row", // ✅ same row
