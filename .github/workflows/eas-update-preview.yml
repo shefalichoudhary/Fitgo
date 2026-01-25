@@ -1,0 +1,30 @@
+name: EAS Android Preview Update
+
+on:
+  push:
+    branches:
+      - main   # change if you use develop instead
+
+jobs:
+  eas-update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Expo Login
+        run: npx expo login --token ${{ secrets.EXPO_TOKEN }}
+
+      - name: EAS Update to Preview Channel
+        run: |
+          npx eas update \
+            --channel preview \
+            --platform android \
+            --message "Auto preview update from GitHub"

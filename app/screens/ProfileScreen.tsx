@@ -1,71 +1,76 @@
-import React, { useEffect, useState } from "react"
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  TextInput,
-  ScrollView,
-} from "react-native"
-import { db } from "@/utils/storage"
-import { users } from "@/utils/storage/schema"
-import { eq } from "drizzle-orm"
-import { Ionicons } from "@expo/vector-icons"
-import { getCurrentUser } from "@/utils/user"
-import { ConfirmModal } from "@/components/ConfirmModal"
-import LoadingOverlay from "@/components/LoadingOverlay"
-import Feather from "@expo/vector-icons/Feather"
+import React, { useEffect, useState, useCallback } from "react";
+import Feather from "@expo/vector-icons/Feather";
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
+import { db } from "@/utils/storage";
+import { users } from "@/utils/storage/schema";
+import { eq } from "drizzle-orm";
+import { getCurrentUser } from "@/utils/user";
+import LoadingOverlay from "@/components/LoadingOverlay";
+import { ConfirmModal } from "@/components/ConfirmModal";
+import { ProfileSection } from "@/components/profileScreen/ProfileSection";
+import { ProfileField } from "@/components/profileScreen/ProfileField";
+import { ProfileOptionGroup } from "@/components/profileScreen/ProfileOptionGroup";
+import { ProfileActions } from "@/components/profileScreen/ProfileActions";
+import { ProfileHeader } from "@/components/profileScreen/ProfileHeader";
+import { NumberPickerModal } from "@/components/Common/NumberPickerModal";
 
-type ConfirmType = "save" | "cancel" | null
+type ConfirmType = "save" | "cancel" | null;
+
+const mapUserToForm = (u: any) => ({
+  username: u?.username ?? "",
+  email: u?.email ?? "",
+  age: u?.age?.toString() ?? "",
+  height: u?.height?.toString() ?? "",
+  gender: u?.gender ?? "",
+  experience: u?.experience ?? "",
+  fitness_goal: u?.fitness_goal ?? "",
+  bio: u?.bio ?? "",
+});
 
 export default function ProfileScreen() {
-  const [loading, setLoading] = useState(true)
-  const [user, setUser] = useState<any>(null)
-  const [editing, setEditing] = useState(false)
+  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<any>(null);
+  const [editing, setEditing] = useState(false);
+  const [form, setForm] = useState(mapUserToForm(null));
+  const [agePickerOpen, setAgePickerOpen] = useState(false);
+  const [heightPickerOpen, setHeightPickerOpen] = useState(false);
+  const [confirmVisible, setConfirmVisible] = useState(false);
+  const [confirmType, setConfirmType] = useState<ConfirmType>(null);
+  const [saving, setSaving] = useState(false);
 
-  const [form, setForm] = useState({
-    username: "",
-    email: "",
-    age: "",
-    height: "",
-    gender: "",
-    experience: "",
-    fitness_goal: "",
-    bio: "",
-  })
-
-  const [confirmVisible, setConfirmVisible] = useState(false)
-  const [confirmType, setConfirmType] = useState<ConfirmType>(null)
-  const [saving, setSaving] = useState(false)
-
+  /* ================= FETCH USER (RUNS ONCE) ================= */
   useEffect(() => {
     const fetchUser = async () => {
-      const u = await getCurrentUser()
+      const u = await getCurrentUser();
       if (u) {
-        setUser(u)
-        setForm({
-          username: u.username ?? "",
-          email: u.email ?? "",
-          age: u.age?.toString() ?? "",
-          height: u.height?.toString() ?? "",
-          gender: u.gender ?? "",
-          experience: u.experience ?? "",
-          fitness_goal: u.fitness_goal ?? "",
-          bio: u.bio ?? "",
-        })
+        setUser(u);
+        setForm(mapUserToForm(u));
       }
-      setLoading(false)
-    }
-    fetchUser()
-  }, [])
+      setLoading(false);
+    };
+    fetchUser();
+  }, []);
 
-  const handleChange = (key: string, value: string) => {
-    setForm((p) => ({ ...p, [key]: value }))
-  }
+  /* ================= RESET EDIT MODE ON TAB SWITCH ================= */
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        setEditing(false);
+        if (user) {
+          setForm(mapUserToForm(user));
+        }
+      };
+    }, [user])
+  );
+
+  const handleChange = (key: keyof typeof form, value: string) => {
+    setForm((prev) => ({ ...prev, [key]: value }));
+  };
 
   const saveProfile = async () => {
-    if (!user) return
-    setSaving(true)
+    if (!user) return;
+    setSaving(true);
 
     await db
       .update(users)
@@ -76,207 +81,172 @@ export default function ProfileScreen() {
         height: form.height ? Number(form.height) : null,
         gender: form.gender || null,
         experience: form.experience || null,
-        fitness_goal: form.fitness_goal ,
+        fitness_goal: form.fitness_goal || null,
         bio: form.bio,
       })
       .where(eq(users.id, user.id))
-      .run()
-
-    setEditing(false)
-    setConfirmVisible(false)
-    setSaving(false)
-  }
+      .run();
+    setEditing(false);
+    setConfirmVisible(false);
+    setSaving(false);
+  };
 
   const discardChanges = () => {
-    if (!user) return
-    setForm({
-      username: user.username ?? "",
-      email: user.email ?? "",
-      age: user.age?.toString() ?? "",
-      height: user.height?.toString() ?? "",
-      gender: user.gender ?? "",
-      experience: user.experience ?? "",
-      fitness_goal: user.fitness_goal ?? "",
-      bio: user.bio ?? "",
-    })
-    setEditing(false)
-    setConfirmVisible(false)
-  }
+    if (!user) return;
+    setForm(mapUserToForm(user));
+    setEditing(false);
+    setConfirmVisible(false);
+  };
 
   if (loading) {
-    return <LoadingOverlay visible message="Loading profile..." />
+    return <LoadingOverlay visible message="Loading profile..." />;
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 40 }}>
+    <ScrollView style={styles.container}>
       <View style={styles.card}>
+        <ProfileHeader username={form.username} email={form.email} />
 
-        {/* HEADER */}
-        <View style={styles.header}>
-          <Ionicons name="person-circle-outline" size={72} color="#FFF" />
-          <Text style={styles.name}>{form.username}</Text>
-          <Text style={styles.email}>{form.email}</Text>
-        </View>
+        <ProfileSection title="Personal Information">
+          <ProfileField
+            label="Full Name"
+            value={form.username}
+            editable={editing}
+            onChange={(v: string) => handleChange("username", v)}
+          />
 
-        {/* PERSONAL */}
-        <Section title="Personal Information">
-          <Field label="Full Name" value={form.username} editable={editing} onChange={(v:any)=>handleChange("username",v)} />
-          <Field label="Email" value={form.email} editable={editing} onChange={(v:any)=>handleChange("email",v)} />
-          <Field label="Age" value={form.age} editable={editing} keyboardType="numeric" onChange={(v:any)=>handleChange("age",v)} />
-          <Field label="Height (cm)" value={form.height} editable={editing} keyboardType="numeric" onChange={(v:any)=>handleChange("height",v)} />
+          <ProfileField
+            label="Email"
+            value={form.email}
+            editable={editing}
+            onChange={(v: string) => handleChange("email", v)}
+          />
+
+          {/* AGE */}
+          {editing || !form.age ? (
+            <View style={styles.section}>
+              <Text style={styles.label}>Age</Text>
+              <TouchableOpacity
+                disabled={!editing && !!form.age}
+                onPress={() => setAgePickerOpen(true)}
+                style={styles.pickerRow}
+              >
+                <Text
+                  numberOfLines={1}
+                  style={[styles.pickerValue, !form.age && styles.placeholder]}
+                >
+                  {form.age || "Select age"}
+                </Text>
+                {(editing || !form.age) && (
+                  <Feather name="chevron-down" size={18} color="#9CA3AF" />
+                )}
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <ProfileField label="Age" value={form.age} editable={false} />
+          )}
+
+          {/* HEIGHT */}
+          {editing || !form.height ? (
+            <View style={styles.section}>
+              <Text style={styles.label}>Height (cm)</Text>
+              <TouchableOpacity
+                disabled={!editing && !!form.height}
+                onPress={() => setHeightPickerOpen(true)}
+                style={styles.pickerRow}
+              >
+                <Text style={[styles.pickerValue, !form.height && styles.placeholder]}>
+                  {form.height || "Select height"}
+                </Text>
+                {(editing || !form.height) && (
+                  <Feather name="chevron-down" size={18} color="#9CA3AF" />
+                )}
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <ProfileField label="Height (cm)" value={form.height} editable={false} />
+          )}
 
           {/* GENDER */}
-          {(editing || !form.gender) && (
-            <OptionGroup
+          {editing || !form.gender ? (
+            <ProfileOptionGroup
               label="Gender"
               options={["Male", "Female", "Other"]}
               value={form.gender}
-              onChange={(v:any)=>handleChange("gender",v)}
+              onChange={(v: string) => handleChange("gender", v)}
             />
+          ) : (
+            <ProfileField label="Gender" value={form.gender} editable={false} />
           )}
-          {!editing && form.gender && (
-            <Field label="Gender" value={form.gender} editable={false} />
-          )}
-        </Section>
+        </ProfileSection>
 
-        {/* FITNESS */}
-        <Section title="Fitness Profile">
-          {(editing || !form.experience) && (
-            <OptionGroup
-              label="Experience"
-              options={["Beginner","Intermediate","Advanced"]}
-              value={form.experience}
-              onChange={(v:any)=>handleChange("experience",v)}
-            />
-          )}
-          {!editing && form.experience && (
-            <Field label="Experience" value={form.experience} editable={false} />
-          )}
+        <ProfileSection title="Fitness Profile">
+          <ProfileOptionGroup
+            label="Experience"
+            options={["Beginner", "Intermediate", "Advanced"]}
+            value={form.experience}
+            onChange={(v: string) => handleChange("experience", v)}
+          />
 
-          {(editing || !form.fitness_goal) && (
-            <OptionGroup
-              label="Fitness Goal"
-              options={["Lose Fat","Build Muscle","Stay Fit"]}
-              value={form.fitness_goal}
-              onChange={(v:any)=>handleChange("fitness_goal",v)}
-            />
-          )}
-          {!editing && form.fitness_goal && (
-            <Field label="Fitness Goal" value={form.fitness_goal} editable={false} />
-          )}
+          <ProfileOptionGroup
+            label="Fitness Goal"
+            options={["Lose Fat", "Build Muscle", "Stay Fit"]}
+            value={form.fitness_goal}
+            onChange={(v: string) => handleChange("fitness_goal", v)}
+          />
+        </ProfileSection>
 
-          <View style={styles.section}>
-            <Text style={styles.label}>Bio</Text>
-            <TextInput
-              value={form.bio}
-              editable={editing}
-              multiline
-              onChangeText={(v)=>handleChange("bio",v)}
-              style={styles.textArea}
-              placeholder="Tell something about yourself…"
-              placeholderTextColor="#6B7280"
-            />
-          </View>
-        </Section>
-
-        {/* ACTIONS */}
-        {editing ? (
-          <View style={styles.actions}>
-            <TouchableOpacity style={styles.primaryBtn} onPress={()=>{setConfirmType("save");setConfirmVisible(true)}}>
-              <Text style={styles.btnDark}>Save</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.secondaryBtn} onPress={()=>{setConfirmType("cancel");setConfirmVisible(true)}}>
-              <Text style={styles.btnLight}>Cancel</Text>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <TouchableOpacity style={styles.primaryBtn} onPress={()=>setEditing(true)}>
-            <View style={{flexDirection:"row",alignItems:"center"}}>
-              <Feather name="edit" size={18} color="#000" />
-              <Text style={[styles.btnDark,{marginLeft:8}]}>Edit Profile</Text>
-            </View>
-          </TouchableOpacity>
-        )}
+        <ProfileActions
+          editing={editing}
+          onEdit={() => setEditing(true)}
+          onSave={() => {
+            setConfirmType("save");
+            setConfirmVisible(true);
+          }}
+          onCancel={() => {
+            setConfirmType("cancel");
+            setConfirmVisible(true);
+          }}
+        />
       </View>
 
+      {/* PICKERS */}
+      <NumberPickerModal
+        visible={agePickerOpen}
+        title="Select Age"
+        values={Array.from({ length: 83 }, (_, i) => i + 18)}
+        onSelect={(v) => handleChange("age", String(v))}
+        onClose={() => setAgePickerOpen(false)}
+      />
+
+      <NumberPickerModal
+        visible={heightPickerOpen}
+        title="Select Height (cm)"
+        values={Array.from({ length: 121 }, (_, i) => i + 140)}
+        onSelect={(v) => handleChange("height", String(v))}
+        onClose={() => setHeightPickerOpen(false)}
+      />
+
+      {/* CONFIRM MODAL */}
       <ConfirmModal
         visible={confirmVisible}
-        title={confirmType==="save"?"Save changes?":"Discard changes?"}
-        message={confirmType==="save"?"Save profile updates?":"Unsaved changes will be lost."}
-        cancelText="Cancel"
-        confirmText={saving?"Saving...":"Confirm"}
-        onCancel={()=>setConfirmVisible(false)}
-        onConfirm={confirmType==="save"?saveProfile:discardChanges}
+        title={confirmType === "save" ? "Save changes?" : "Discard changes?"}
+        message={confirmType === "save" ? "Save profile updates?" : "Unsaved changes will be lost."}
+        confirmText={saving ? "Saving..." : "Confirm"}
+        onCancel={() => setConfirmVisible(false)}
+        onConfirm={confirmType === "save" ? saveProfile : discardChanges}
       />
     </ScrollView>
-  )
+  );
 }
 
-/* ───────── HELPERS ───────── */
-
-const Section = ({ title, children }: any) => (
-  <View style={{ marginBottom: 26 }}>
-    <Text style={styles.sectionTitle}>{title}</Text>
-    {children}
-  </View>
-)
-
-const Field = ({ label, value, editable, onChange, keyboardType="default" }: any) => (
-  <View style={styles.section}>
-    <Text style={styles.label}>{label}</Text>
-    <TextInput
-      value={value}
-      editable={editable}
-      keyboardType={keyboardType}
-      onChangeText={onChange}
-      style={styles.input}
-    />
-  </View>
-)
-
-const OptionGroup = ({ label, options, value, onChange }: any) => (
-  <View style={styles.section}>
-    <Text style={styles.label}>{label}</Text>
-    <View style={styles.optionRow}>
-      {options.map((opt:string)=>{
-        const selected = value===opt
-        return (
-          <TouchableOpacity key={opt} onPress={()=>onChange(opt)} style={[styles.optionChip, selected && styles.optionActive]}>
-            <View style={[styles.radioOuter, selected && styles.radioOuterActive]}>
-              {selected && <View style={styles.radioInner} />}
-            </View>
-            <Text style={[styles.optionText, selected && styles.optionTextActive]}>{opt}</Text>
-          </TouchableOpacity>
-        )
-      })}
-    </View>
-  </View>
-)
-
-/* ───────── STYLES ───────── */
-
 const styles = StyleSheet.create({
-  container:{ flex:1, backgroundColor:"#000" },
-  card:{ backgroundColor:"#0B0B0C", margin:12, padding:20, borderRadius:20, borderWidth:1, borderColor:"#1F1F1F" },
-  header:{ alignItems:"center", marginBottom:28 },
-  name:{ color:"#FFF", fontSize:20, fontWeight:"700", marginTop:8 },
-  email:{ color:"#9CA3AF", fontSize:13 },
-  sectionTitle:{ color:"#E5E7EB", fontSize:13, fontWeight:"700", marginBottom:12, textTransform:"uppercase" },
-  section:{ marginBottom:14 },
-  label:{ color:"#9CA3AF", fontSize:12, marginBottom:6 },
-  input:{ borderBottomWidth:1, borderBottomColor:"#2A2A2A", color:"#FFF", fontSize:15, paddingVertical:6 },
-  textArea:{ borderWidth:1, borderColor:"#2A2A2A", borderRadius:12, padding:12, color:"#FFF", backgroundColor:"#050505", minHeight:90 },
-  optionRow:{ flexDirection:"row", flexWrap:"wrap", gap:10 },
-  optionChip:{ flexDirection:"row", alignItems:"center", padding:10, borderRadius:14, borderWidth:1, borderColor:"#2A2A2A", backgroundColor:"#050505" },
-  optionActive:{ backgroundColor:"#FFF", borderColor:"#FFF" },
-  optionText:{ color:"#D1D5DB", fontSize:13 },
-  optionTextActive:{ color:"#000", fontWeight:"700" },
-  radioOuter:{ width:16, height:16, borderRadius:8, borderWidth:2, borderColor:"#6B7280", marginRight:8, alignItems:"center", justifyContent:"center" },
-  radioOuterActive:{ borderColor:"#000" },
-  radioInner:{ width:8, height:8, borderRadius:4, backgroundColor:"#000" },
-  actions:{ flexDirection:"row", gap:12 },
-  primaryBtn:{ backgroundColor:"#FFF", paddingVertical:14, borderRadius:14, alignItems:"center", flex:1 },
-  secondaryBtn:{ backgroundColor:"#1F2937", paddingVertical:14, borderRadius:14, alignItems:"center", flex:1 },
-  btnDark:{ color:"#000", fontWeight:"700", fontSize:15 },
-  btnLight:{ color:"#FFF", fontWeight:"700", fontSize:15 },
+  container: { flex: 1, backgroundColor: "#000" },
+  card: { backgroundColor: "#0B0B0C", margin: 12, padding: 20, borderRadius: 20, borderWidth: 1, borderColor: "#1F1F1F" },
+  section: { marginBottom: 14 },
+  label: { color: "#9CA3AF", fontSize: 12, marginBottom: 6 },
+  pickerRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", borderBottomWidth: 1, borderBottomColor: "#2A2A2A", paddingVertical: 8 },
+  pickerValue: { color: "#FFF", fontSize: 15 },
+  placeholder: { color: "#6B7280" },
 })
+

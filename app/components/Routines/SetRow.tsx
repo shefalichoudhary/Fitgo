@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import type { Set } from "./types";
 import {
@@ -8,11 +8,8 @@ import {
   TouchableOpacity,
   StyleSheet,
   AccessibilityRole,
-  Modal,
-  Pressable,
   Vibration,
   SafeAreaView,
-  Platform,
 } from "react-native";
 import { ConfirmModal } from "@/components/ConfirmModal";
 import DurationTimer from "@/components/Routines/DurationTimer"; // <- adjust path if needed
@@ -60,6 +57,9 @@ export default function SetRow({
   const showRange = set.repsType === "rep range" || !!set.isRangeReps;
   const isCompleted = !!set.isCompleted;
   const editable = !disabled && !isCompleted;
+const durationRef = useRef<number>(set.duration ?? 0);
+const repsRef = useRef<number | null>(set.reps ?? null);
+const weightRef = useRef<number | null>(set.weight ?? null);
 
   const openIndexMenu = () => {
     if (disabled) return;
@@ -67,54 +67,62 @@ export default function SetRow({
   };
 
   const closeMenu = () => setMenuVisible(false);
+  
 const getSetTypeColor = () => {
   if (set.setType === "W") return "#facc15"; // yellow
   if (set.setType === "F") return "#ef4444"; // red
   return "#ffffff"; // Normal
 };
 
+useEffect(() => {
+  durationRef.current = set.duration ?? 0;
+  repsRef.current = set.reps ?? null;
+  weightRef.current = set.weight ?? null;
+}, [set.duration, set.reps, set.weight]);
 
+const isSetValid = () => {
+  if (isDuration || isYogaOrStretching) {
+    return durationRef.current > 0;
+  }
 
-  const handleToggle = () => {
-    if (isCompleted) {
-      Vibration.vibrate(40);
-      onToggleComplete && onToggleComplete();
-      return;
-    }
+  if (isBodyweight) {
+    return repsRef.current != null && repsRef.current > 0;
+  }
 
-    // Validation by exercise kind
-    if (isDuration || isYogaOrStretching) {
-      const hasDuration = (set.duration ?? 0) > 0;
-      if (!hasDuration) {
-        Vibration.vibrate(40);
-        setConfirmVisible(true);
-        return;
-      }
-    } else if (isBodyweight) {
-      const hasReps = set.reps != null && set.reps > 0;
-      if (!hasReps) {
-        Vibration.vibrate(40);
-        setConfirmVisible(true);
-        return;
-      }
-    } else {
-      const hasWeight = set.weight != null;
-      const isRangeLocal = set.repsType === "rep range" || !!set.isRangeReps;
-      const hasReps = isRangeLocal ? set.minReps != null && set.maxReps != null : set.reps != null;
-      if (!hasWeight || !hasReps) {
-        Vibration.vibrate(40);
-        setConfirmVisible(true);
-        return;
-      }
-    }
+  const hasWeight = weightRef.current != null;
+  const isRange = set.repsType === "rep range" || !!set.isRangeReps;
 
-    if (isDuration || isYogaOrStretching) {
-      onChangeField(idx, "duration", (set.duration ?? 0) as any);
-    }
+  const hasReps = isRange
+    ? set.minReps != null && set.maxReps != null
+    : repsRef.current != null;
 
-    Vibration.vibrate(60);
-    onToggleComplete && onToggleComplete();
-  };
+  return hasWeight && hasReps;
+};
+
+const handleToggle = () => {
+  // allow unchecking completed set
+  if (isCompleted) {
+    Vibration.vibrate(40);
+    onToggleComplete?.(); // ✅ uncheck
+    return;
+  }
+
+  // 🔍 unified validation
+  if (!isSetValid()) {
+    Vibration.vibrate(40);
+    setConfirmVisible(true);
+    return;
+  }
+
+  // 🔒 persist final values before completion
+  if (isDuration || isYogaOrStretching) {
+    onChangeField(idx, "duration", durationRef.current as any);
+  }
+
+  Vibration.vibrate(60);
+  onToggleComplete?.();
+};
+
 
   return (
     <View
@@ -146,19 +154,17 @@ const getSetTypeColor = () => {
         <View style={styles.inputsRow}>
           {isDuration || isYogaOrStretching ? (
             <View style={[styles.durationWrap]}>
-              <DurationTimer
-                key={`${set.id}-${isCompleted ? "completed" : "active"}`}
-                initialSeconds={set.duration ?? 0}
-                editable={editable}
-                hideControlsWhenNotEditable={true}
-                onChange={(seconds: any) => {
-                  onChangeField(idx, "duration", seconds as any);
-                }}
-                onStop={() => {
-                  onChangeField(idx, "duration", (set.duration ?? 0) as any);
-                }}
-                soundFile={require("../../../assets/sounds/beep.mp3")}
-              />
+           <DurationTimer
+  key={`${set.id}-${isCompleted ? "completed" : "active"}`}
+  initialSeconds={set.duration ?? 0}
+  editable={editable}
+  hideControlsWhenNotEditable={true}
+  onChange={(seconds: number) => {
+    durationRef.current = seconds;      // ✅ LIVE VALUE
+    onChangeField(idx, "duration", seconds);
+  }}
+  soundFile={require("../../../assets/sounds/beep.mp3")}
+/>
             </View>
           ) : isBodyweight ? (
             // Bodyweight: only reps input (no weight UI)
