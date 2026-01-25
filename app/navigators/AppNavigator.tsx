@@ -5,6 +5,9 @@ import { useAppTheme } from "@/theme/context"
 import { DemoNavigator } from "./DemoNavigator"
 import type { AppStackParamList, NavigationProps } from "./navigationTypes"
 import { navigationRef } from "./navigationUtilities"
+import { useEffect } from "react";
+import { useWorkoutSession } from "@/context/WorkoutSessionContext";
+import { WorkoutGuardModal } from "@/components/logWorkout/WorkoutGuardModal";
 
 
 const Stack = createNativeStackNavigator<AppStackParamList>()

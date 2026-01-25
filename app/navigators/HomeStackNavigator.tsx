@@ -77,7 +77,7 @@ export function HomeStackNavigator() {
                   size={28}
                   color="#3B82F6"
                   style={{ marginRight: 6 }} // blue-500
-                  onPress={() => navigation.navigate("Add Measurement")}
+                  onPress={() => navigation.navigate("AddMeasurement")}
                 />
               }
             />
@@ -95,7 +95,20 @@ export function HomeStackNavigator() {
         })}
       />
 
-      <Stack.Screen name="Add Measurement" component={AddMeasurementScreen} />
+   <Stack.Screen
+  name="AddMeasurement"
+  component={AddMeasurementScreen}
+  options={({ navigation }) => ({
+    header: () => (
+      <Header
+        title="Add Measurement"
+        leftIcon="back"
+        onLeftPress={navigation.goBack}
+      />
+    ),
+  })}
+/>
+
       <Stack.Screen
         name="Log Workout"
         component={LogWorkoutScreen}

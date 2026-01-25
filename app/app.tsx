@@ -14,24 +14,25 @@ if (__DEV__) {
   // Load Reactotron in development only.
   // Note that you must be using metro's `inlineRequires` for this to work.
   // If you turn it off in metro.config.js, you'll have to manually import it.
-  require("./devtools/ReactotronConfig.ts")
+  require("./devtools/ReactotronConfig.ts");
 }
 import "react-native-get-random-values";
-import "./utils/gestureHandler"
-import { RoutineProvider } from "@/context/RoutineContext"
-import { KeyboardProvider } from "react-native-keyboard-controller"
-import { initialWindowMetrics, SafeAreaProvider } from "react-native-safe-area-context"
-import { AuthProvider } from "./context/AuthContext"
-import { ThemeProvider } from "./theme/context"
-import RootLayout from "./rootLayout"
-import { GestureHandlerRootView } from "react-native-gesture-handler"
+import "./utils/gestureHandler";
+import { RoutineProvider } from "@/context/RoutineContext";
+import { KeyboardProvider } from "react-native-keyboard-controller";
+import { initialWindowMetrics, SafeAreaProvider } from "react-native-safe-area-context";
+import { AuthProvider } from "./context/AuthContext";
+import { ThemeProvider } from "./theme/context";
+import RootLayout from "./rootLayout";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useEffect } from "react";
 import { runSeedersOnce } from "@/utils/storage/runSeederOnce";
-export const NAVIGATION_PERSISTENCE_KEY = "NAVIGATION_STATE"
+export const NAVIGATION_PERSISTENCE_KEY = "NAVIGATION_STATE";
 import AppUpdateChecker from "./components/AppUpdateChecker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ToastAndroid, Alert, Platform } from "react-native";
 const UPDATE_FLAG_KEY = "app:update:just_applied";
+import { WorkoutSessionProvider } from "@/context/WorkoutSessionContext";
 
 /**
  * This is the root component of our app.
@@ -39,7 +40,7 @@ const UPDATE_FLAG_KEY = "app:update:just_applied";
  * @returns {JSX.Element} The rendered `App` component.
  */
 export function App() {
- useEffect(() => {
+  useEffect(() => {
     runSeedersOnce();
 
     // 2️⃣ Check if update was just applied
@@ -60,24 +61,24 @@ export function App() {
       } catch (_) {}
     })();
   }, []);
-  
+
   return (
-        <AppUpdateChecker>
-        <GestureHandlerRootView style={{ flex: 1 }}>
-    <SafeAreaProvider initialMetrics={initialWindowMetrics}>
-      <KeyboardProvider>
-        <RoutineProvider>
-          <AuthProvider>
-            <ThemeProvider>
-              <RootLayout />
-            </ThemeProvider>
-          </AuthProvider>
-        </RoutineProvider>
-      </KeyboardProvider>
-    </SafeAreaProvider>
-        </GestureHandlerRootView>
-        </AppUpdateChecker>
-
-
-  )
+    <AppUpdateChecker>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <SafeAreaProvider initialMetrics={initialWindowMetrics}>
+          <KeyboardProvider>
+            <RoutineProvider>
+              <AuthProvider>
+                <ThemeProvider>
+                  <WorkoutSessionProvider>
+                    <RootLayout />
+                  </WorkoutSessionProvider>
+                </ThemeProvider>
+              </AuthProvider>
+            </RoutineProvider>
+          </KeyboardProvider>
+        </SafeAreaProvider>
+      </GestureHandlerRootView>
+    </AppUpdateChecker>
+  );
 }

@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useCallback, useRef } from "react";
 import { FlatList, StyleSheet, Text, View } from "react-native";
-import { Screen } from "@/components/Screen";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { useWorkoutData } from "../../../hooks/useWorkoutData";
 import { WorkoutSummary } from "@/components/logWorkout/WorkoutSummary";
@@ -18,7 +17,7 @@ import { ConfirmModal } from "@/components/ConfirmModal";
 import { mapExerciseToBlockProps } from "@/utils/mappers/mapExerciseToBlockProps";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { InputField } from "@/components/InputField";
-import { Button } from "@/components/Button";
+import { useWorkoutSession } from "@/context/WorkoutSessionContext";
 
 export default function LogWorkoutScreen() {
   const [alertVisible, setAlertVisible] = useState(false);
@@ -28,11 +27,17 @@ export default function LogWorkoutScreen() {
   const [navigateAfterAlert, setNavigateAfterAlert] = useState(false);
   const [saveConfirmVisible, setSaveConfirmVisible] = useState(false);
   const [isFinalizing, setIsFinalizing] = useState(false);
-
+  const { setHasUnsavedWorkout, setRoutineId } = useWorkoutSession();
   const [saving, setSaving] = useState(false);
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
   const routineId = route.params?.routineId;
+
+  // Store routineId in global context
+  useEffect(() => {
+    setRoutineId(routineId);
+    return () => setRoutineId(null);
+  }, [routineId, setRoutineId]);
   const {
     routineTitle,
     exercisesData,
@@ -43,7 +48,6 @@ export default function LogWorkoutScreen() {
   } = useWorkoutData(routineId);
   const [user, setUser] = useState<any>(null);
   const { toggleRepsType, updateRestTimer } = useRoutineHelpers(setExercisesData);
-
   const restTimerRef = React.useRef<RestTimerHandle | null>(null);
 
   useEffect(() => {
@@ -233,6 +237,7 @@ export default function LogWorkoutScreen() {
       });
 
       const onChange = (newData: any) => {
+        setHasUnsavedWorkout(true);
         setExercisesData((prev: any[]) =>
           prev.map((ex) =>
             ex.id === item.id
@@ -269,6 +274,7 @@ export default function LogWorkoutScreen() {
         const setId = mappedSets?.[setIndex]?.id;
         if (!setId) return;
 
+        setHasUnsavedWorkout(true);
         toggleSetCompletion(_exerciseId, setId, completed);
 if (completed && restSeconds > 0) {
   restTimerRef.current?.stop();
@@ -282,6 +288,7 @@ if (completed && restSeconds > 0) {
         const ex = exercisesData.find((e: any) => e.id === exerciseId);
         if (!ex) return;
         const next = ex.repsType === "reps" ? "rep range" : "reps";
+        setHasUnsavedWorkout(true);
         setExercisesData((prev: any[]) =>
           prev.map((item) =>
             item.id === exerciseId
@@ -298,6 +305,7 @@ if (completed && restSeconds > 0) {
       const handleOpenRepRange = (exerciseId: string, setIndex: number) => {
         const setId = mappedSets?.[setIndex]?.id;
         if (setId) {
+          setHasUnsavedWorkout(true);
           toggleRepsType(exerciseId, setId);
         }
       };
@@ -305,11 +313,13 @@ if (completed && restSeconds > 0) {
       const handleOpenRestTimer = (exerciseId: string) => {
         const ex = exercisesData.find((e: any) => e.id === exerciseId);
         const next = (ex?.restTimer ?? 0) === 0 ? 60 : 0;
+        setHasUnsavedWorkout(true);
         updateRestTimer(exerciseId, next);
       };
 
       const handleDeleteExercise = async (exerciseId: string) => {
         try {
+          setHasUnsavedWorkout(true);
           await removeExercise(exerciseId);
           setExercisesData((prev: any[]) => {
             const next = prev.filter((e) => e.id !== exerciseId);
@@ -362,10 +372,12 @@ if (completed && restSeconds > 0) {
       style={[{ flex: 1, backgroundColor: "#000" }, styles.container]}
       edges={[ "bottom"]} // ✅ THIS IS KEY
     >
-      <InputField
+<InputField
   placeholder="Routine title"
   value={workoutTitle}
-  onChangeText={setWorkoutTitle}
+  onChangeText={(v) => {
+    setWorkoutTitle(v);
+  }}
 />
      
 <RestTimer ref={restTimerRef} />

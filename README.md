@@ -26,6 +26,31 @@ npm run build:android:device # build for android device
 npm run build:android:prod # build for android device
 ```
 
+## 🔄 Automatic EAS Updates (Important)
+
+This project uses **GitHub Actions + Expo EAS Update** to automatically deliver updates
+to the **Preview channel**.
+
+👉 Developers **do NOT need to run `eas update` manually**.
+
+---
+
+## 🧠 How the update flow works
+
+- Development is done on **feature branches**
+- Pushing code to a feature branch does **NOT** trigger an update
+- When a feature branch is **merged into `main`**, GitHub automatically:
+  - Runs `eas update`
+  - Sends the update to the **Expo `preview` channel**
+  - Updates all preview builds instantly
+
+---
+
+## ✅ Recommended Git Workflow
+
+
+
+
 ### `./assets` directory
 
 This directory is designed to organize and store various assets, making it easy for you to manage and use them in your application. The assets are further categorized into subdirectories, including `icons` and `images`:

@@ -1,5 +1,5 @@
 import React from "react"
-import { View, Text, StyleSheet } from "react-native"
+import { View, Text, StyleSheet, Platform } from "react-native"
 import { formatDuration } from "@/utils/formatDuration"
 
 export const WorkoutSummary = ({
@@ -48,5 +48,14 @@ const styles = StyleSheet.create({
   row: { flexDirection: "row", justifyContent: "space-around" },
   column: { alignItems: "center", flex: 1 },
   label: { color: "#aaa", fontSize: 13, fontWeight: "600", marginBottom: 4 },
-  value: { color: "#fff", fontSize: 14, fontWeight: "700" },
+value: {
+  color: "#fff",
+  fontSize: 14,
+  fontWeight: "700",
+  minWidth: 60,
+  textAlign: "center",
+  fontVariant: ["tabular-nums"], // iOS
+  fontFamily: Platform.OS === "android" ? "monospace" : undefined,
+},
+
 })

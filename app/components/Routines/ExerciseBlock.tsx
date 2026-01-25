@@ -84,15 +84,25 @@ export default function ExerciseBlock({
     [data.sets, data.unit, data.repsType, exercise.id]
   );
 
-  const handleChangeField = useCallback(
-    <K extends keyof Set>(index: number, key: K, value: Set[K]) => {
-      const next = [...sets];
-      next[index] = { ...next[index], [key]: value };
-      const normalizedNext = next.map((s) => normalizeSet(s, data.unit, data.repsType));
-      onChange({ ...data, sets: normalizedNext });
-    },
-    [sets, onChange, data]
-  );
+const handleChangeField = useCallback(
+  <K extends keyof Set>(index: number, key: K, value: Set[K]) => {
+    const current = sets[index];
+
+    // 🔒 Block edits ONLY if completed AND NOT toggling completion
+    if (current?.isCompleted && key !== "isCompleted") return;
+
+    const next = [...sets];
+    next[index] = { ...next[index], [key]: value };
+
+    onChange({
+      ...data,
+      sets: next.map((s) => normalizeSet(s, data.unit, data.repsType)),
+    });
+  },
+  [sets, onChange, data]
+);
+
+
 
 const handleAddSet = useCallback(() => {
   if (visibleSets < sets.length) {
@@ -157,38 +167,81 @@ const handleAddSet = useCallback(() => {
 
 
   // ---------- Exercise-level handlers for labels ----------
-  const handleToggleUnitAll = useCallback(() => {
-    const nextUnit: Unit = data.unit === "kg" ? "lbs" : "kg";
-    // If you want conversion of weight values, add conversion logic here.
-    const next = sets
-      .map((s) => ({ ...s, unit: nextUnit }))
-      .map((s) => normalizeSet(s, nextUnit, data.repsType));
-    onChange({ ...data, unit: nextUnit, sets: next });
-  }, [data, sets, onChange]);
+const KG_TO_LBS = 2.20462;
+
+const convertWeight = (
+  value: number | null | undefined,
+  toUnit: Unit
+): number | null => {
+  if (value == null) return null; // handles null + undefined
+  return toUnit === "lbs"
+    ? Math.round(value * KG_TO_LBS * 10) / 10
+    : Math.round((value / KG_TO_LBS) * 10) / 10;
+};
+
+const handleToggleUnitAll = useCallback(() => {
+  const nextUnit: Unit = data.unit === "kg" ? "lbs" : "kg";
+
+  const nextSets = sets.map((s) => {
+    if (s.isCompleted) return s; // 🔒 DO NOT TOUCH COMPLETED SET
+
+    return {
+      ...s,
+      unit: nextUnit,
+      weight: convertWeight(s.weight, nextUnit),
+    };
+  });
+
+  onChange({
+    ...data,
+    unit: nextUnit,
+    sets: nextSets.map((s) => normalizeSet(s, nextUnit, data.repsType)),
+  });
+}, [data, sets, onChange]);
+
+
 
   // Toggle reps type for entire exercise (reps <-> rep range)
-  const handleToggleRepsTypeAll = useCallback(() => {
-    const nextReps: RepsType = data.repsType === "reps" ? "rep range" : "reps";
-    const next = sets
-      .map((s) => ({ ...s, repsType: nextReps }))
-      .map((s) => normalizeSet(s, data.unit, nextReps));
-    onChange({ ...data, repsType: nextReps, sets: next });
-    if (onOpenRepsType) onOpenRepsType(exercise.id);
-  }, [data, sets, onChange, onOpenRepsType, exercise.id]);
+const handleToggleRepsTypeAll = useCallback(() => {
+  const nextReps: RepsType =
+    data.repsType === "reps" ? "rep range" : "reps";
+
+  const nextSets = sets.map((s) => {
+    if (s.isCompleted) return s; // 🔒 LOCK IT
+
+    return {
+      ...s,
+      repsType: nextReps,
+    };
+  });
+
+  onChange({
+    ...data,
+    repsType: nextReps,
+    sets: nextSets.map((s) => normalizeSet(s, data.unit, nextReps)),
+  });
+}, [data, sets, onChange]);
 
   // toggle unit for a single set (used by SetRow)
-  const handleToggleUnitForSet = useCallback(
-    (setIndex: number) => {
-      const next = sets.map((s) => ({ ...s }));
-      const s = next[setIndex];
-      if (!s) return;
-      const newUnit: Unit = s.unit === "kg" ? "lbs" : "kg";
-      s.unit = newUnit;
-      const normalizedNext = next.map((x) => normalizeSet(x, x.unit ?? newUnit, data.repsType));
-      onChange({ ...data, sets: normalizedNext });
-    },
-    [sets, data, onChange]
-  );
+const handleToggleUnitForSet = useCallback(
+  (setIndex: number) => {
+    const next = sets.map((s) => ({ ...s }));
+    const s = next[setIndex];
+    if (!s || s.isCompleted) return; // 🔒 BLOCK
+
+    const nextUnit: Unit = s.unit === "kg" ? "lbs" : "kg";
+
+    s.unit = nextUnit;
+    s.weight = convertWeight(s.weight, nextUnit);
+
+    onChange({
+      ...data,
+      sets: next.map((x) => normalizeSet(x, x.unit, data.repsType)),
+    });
+  },
+  [sets, data, onChange]
+);
+
 
   const handleToggleComplete = useCallback(
     (index: number) => {
