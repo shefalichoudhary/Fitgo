@@ -1,103 +1,176 @@
-# Welcome to your new ignited app!
+## Fitgo – Mobile App (iOS & Android)
 
-> The latest and greatest boilerplate for Infinite Red opinions
+Fitgo is a cross-platform mobile application built using Expo + React Native (Ignite).
+The app supports iOS and Android and uses modern OTA (over-the-air) updates for fast delivery of fixes and improvements.
 
-This is the boilerplate that [Infinite Red](https://infinite.red) uses as a way to test bleeding-edge changes to our React Native stack.
+📱 Platforms Supported
 
-- [Quick start documentation](https://github.com/infinitered/ignite/blob/master/docs/boilerplate/Boilerplate.md)
-- [Full documentation](https://github.com/infinitered/ignite/blob/master/docs/README.md)
+iOS (Simulator & Physical Devices)
 
-## Getting Started
+Android (Emulator & Physical Devices)
 
-```bash
+🚀 Quick Start (For Running the App)
+
+This project uses Expo Development Builds.
+⚠️ Expo Go is NOT used.
+
+## ✅ Requirements
+
+General
+
+Node.js (LTS)
+
+npm
+
+Git
+
+iOS (macOS only)
+
+Xcode
+
+iOS Simulator
+
+Android
+
+Android Studio
+
+Android SDK
+
+## Android Emulator or physical device
+
+📦 Install Dependencies
 npm install --legacy-peer-deps
-npm run start
-```
 
-To make things work on your local simulator, or on your phone, you need first to [run `eas build`](https://github.com/infinitered/ignite/blob/master/docs/expo/EAS.md). We have many shortcuts on `package.json` to make it easier:
+🧱 Install the App (One-Time)
 
-```bash
-npm run build:ios:sim # build for ios simulator
-npm run build:ios:device # build for ios device
-npm run build:ios:prod # build for ios device
+A development build must be installed once per device.
 
-npm run build:android:sim # build for android simulator
-npm run build:android:device # build for android device
-npm run build:android:prod # build for android device
-```
+iOS
+npm run build:ios:sim # iOS Simulator
+npm run build:ios:device # Physical iPhone
 
-## 🔄 Automatic EAS Updates (Important)
+Android
+npm run build:android:sim # Android Emulator
+npm run build:android:device # Physical Android device
 
-This project uses **GitHub Actions + Expo EAS Update** to automatically deliver updates
-to the **Preview channel**.
+## ▶️ Start the App
 
-👉 Developers **do NOT need to run `eas update` manually**.
+npx expo start --dev-client
 
----
+Press i for iOS
 
-## 🧠 How the update flow works
+Press a for Android
 
-- Development is done on **feature branches**
-- Pushing code to a feature branch does **NOT** trigger an update
-- When a feature branch is **merged into `main`**, GitHub automatically:
-  - Runs `eas update`
-  - Sends the update to the **Expo `preview` channel**
-  - Updates all preview builds instantly
+Or open the app directly on the device
 
----
+## 🔄 App Updates (Automatic)
 
-## ✅ Recommended Git Workflow
+The app supports instant updates without reinstalling.
 
+Updates are checked when the app opens
 
+Bug fixes and UI changes are delivered automatically
 
+No manual update action is required
 
-### `./assets` directory
+⚠️ Developers should NOT run eas update manually
+Updates are handled automatically via GitHub Actions.
 
-This directory is designed to organize and store various assets, making it easy for you to manage and use them in your application. The assets are further categorized into subdirectories, including `icons` and `images`:
+## 🚀 Production Builds (App Store / Play Store)
 
-```tree
-assets
-├── icons
-└── images
-```
+npm run build:ios:prod
+npm run build:android:prod
 
-**icons**
-This is where your icon assets will live. These icons can be used for buttons, navigation elements, or any other UI components. The recommended format for icons is PNG, but other formats can be used as well.
+These builds are:
 
-Ignite comes with a built-in `Icon` component. You can find detailed usage instructions in the [docs](https://github.com/infinitered/ignite/blob/master/docs/boilerplate/app/components/Icon.md).
+App Store ready
 
-**images**
-This is where your images will live, such as background images, logos, or any other graphics. You can use various formats such as PNG, JPEG, or GIF for your images.
+Play Store ready
 
-Another valuable built-in component within Ignite is the `AutoImage` component. You can find detailed usage instructions in the [docs](https://github.com/infinitered/ignite/blob/master/docs/Components-AutoImage.md).
+Stable production versions
 
-How to use your `icon` or `image` assets:
+📦 App Details
 
-```typescript
-import { Image } from 'react-native';
+App Name: Fitgo
 
-const MyComponent = () => {
-  return (
-    <Image source={require('assets/images/my_image.png')} />
-  );
-};
-```
+iOS Bundle ID: com.fitgo
 
-## Running Maestro end-to-end tests
+Android Package: com.fitgo
 
-Follow our [Maestro Setup](https://ignitecookbook.com/docs/recipes/MaestroSetup) recipe.
+Runtime Version: fitgo-runtime-v1
 
-## Next Steps
+JS Engine: Hermes
 
-### Ignite Cookbook
+New Architecture: Enabled
 
-[Ignite Cookbook](https://ignitecookbook.com/) is an easy way for developers to browse and share code snippets (or “recipes”) that actually work.
+## 👩‍💻 For New Developers (Important)
 
-### Upgrade Ignite boilerplate
+If you are cloning or forking this repository, you must create your own Expo / EAS project.
 
-Read our [Upgrade Guide](https://ignitecookbook.com/docs/recipes/UpdatingIgnite) to learn how to upgrade your Ignite project.
+You cannot use the existing builds or Expo project.
 
-## Community
+❓ Why is this required?
+
+Expo projects are linked to one Expo account
+
+Builds, updates, and credentials cannot be shared
+
+Each developer must use their own EAS project
+
+🧱 One-Time Setup for New Developers
+
+## 1️⃣ Login to Expo
+
+npx expo login
+
+## 2️⃣ Initialize Your Own EAS Project
+
+npx eas init
+
+This will:
+
+Create a new Expo project
+
+Generate a new EAS Project ID
+
+Link the app to your Expo account
+
+## 3️⃣ Update app.json
+
+Replace the existing project ID with your own:
+
+"extra": {
+"eas": {
+"projectId": "YOUR_OWN_PROJECT_ID"
+}
+}
+
+⚠️ Do NOT commit your personal projectId back to the main repository
+
+## 4️⃣ Create Your Own Development Builds
+
+npm run build:ios:sim
+npm run build:android:sim
+
+## 5️⃣ Start the App
+
+npx expo start --dev-client
+
+⚠️ Important Notes
+
+Rebuild is required when:
+
+Native libraries change
+
+Expo plugins change
+
+App configuration changes
+
+JavaScript-only changes are delivered instantly via OTA updates
+
+Each developer manages their own builds
+
+## 🤝 Community & Resources
 
 ⭐️ Help us out by [starring on GitHub](https://github.com/infinitered/ignite), filing bug reports in [issues](https://github.com/infinitered/ignite/issues) or [ask questions](https://github.com/infinitered/ignite/discussions).
 
